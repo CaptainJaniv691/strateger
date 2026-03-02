@@ -618,13 +618,15 @@ window.runSim = function() {
     const resEl = document.getElementById('simResult');
     if (resEl) {
         const t = window.t || ((k) => k);
+        const isRTL = document.documentElement.dir === 'rtl';
         resEl.classList.remove('hidden');
         resEl.style.borderColor = '#22d3ee';
         resEl.style.color = '#22d3ee';
+        resEl.style.direction = isRTL ? 'rtl' : 'ltr';
         resEl.innerHTML = `
-            ✅ <b>${stints.length} ${t('stints')}</b> | ${t('avgStint')}: ${avgStint}m<br>
-            🏁 ${t('driveNoun')}: ${(actualDriveTime/60000).toFixed(0)}m + ${t('pitNoun')}: ${(actualPitTime/60000).toFixed(0)}m = <b>${(totalRaceTime/60000).toFixed(0)}m</b> (${(totalRaceTime/3600000).toFixed(2)}h)
-            ${pitClosedInfo}${squadInfo}
+            <span dir="${isRTL ? 'rtl' : 'ltr'}">✅ <b>${stints.length} ${t('stints')}</b> | ${t('avgStint')}: ${avgStint}m</span><br>
+            <span dir="ltr">🏁 ${t('driveNoun')}: ${(actualDriveTime/60000).toFixed(0)}m + ${t('pitNoun')}: ${(actualPitTime/60000).toFixed(0)}m = <b>${(totalRaceTime/60000).toFixed(0)}m</b> (${(totalRaceTime/3600000).toFixed(2)}h)</span>
+            ${pitClosedInfo ? `<br><span dir="ltr">${pitClosedInfo.trim()}</span>` : ''}${squadInfo ? `<br><span dir="ltr">${squadInfo.trim()}</span>` : ''}
         `;
     }
 };

@@ -6,6 +6,54 @@ const GOOGLE_CLIENT_ID = '944328539678-cm1ao0asklck15o9rpneh48nbdtpdstk.apps.goo
 let googleUser = null;
 let googleAccessToken = null;
 
+/**
+ * Check if a Google email has a Pro license bound to it.
+ * First checks local cache, then queries server.
+ * If found, auto-activates Pro for offline use.
+ */
+window.checkProByEmail = async function(email) {
+    if (!email || window._proUnlocked) return; // Already Pro or no email
+    
+    const normalEmail = email.toLowerCase();
+    
+    // Check 1: Local cache — was Pro previously activated with this email?
+    const cachedEmail = localStorage.getItem('strateger_pro_email');
+    const cachedKey = localStorage.getItem('strateger_pro_license');
+    const cachedValid = localStorage.getItem('strateger_pro_valid');
+    if (cachedEmail === normalEmail && cachedKey && cachedValid === 'true') {
+        console.log('✅ Pro restored from local email cache');
+        window._proUnlocked = true;
+        window._proLicenseKey = cachedKey;
+        if (typeof window.updateProUI === 'function') window.updateProUI();
+        return;
+    }
+    
+    // Check 2: Server lookup — does the database have a license for this email?
+    try {
+        const deviceId = window.getDeviceId ? window.getDeviceId() : '';
+        const res = await fetch(window.APP_CONFIG.API_BASE + '/verify-license', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: normalEmail, deviceId })
+        });
+        const data = await res.json();
+        
+        if (data.valid && data.key) {
+            console.log('✅ Pro license restored from server for ' + normalEmail);
+            window._proUnlocked = true;
+            window._proLicenseKey = data.key;
+            localStorage.setItem('strateger_pro_license', data.key);
+            localStorage.setItem('strateger_pro_valid', 'true');
+            localStorage.setItem('strateger_pro_email', normalEmail);
+            if (typeof window.updateProUI === 'function') window.updateProUI();
+            window.showToast('⭐ Pro restored from your account!', 'success');
+        }
+    } catch (err) {
+        console.log('Offline — Pro email check skipped');
+        // Offline: if local cache had email match, it was handled above
+    }
+};
+
 // --- Initialization & Persistence ---
 window.initGoogleAuth = function() {
     // Native app: restore session from localStorage only (no Google JS API needed)
@@ -16,6 +64,10 @@ window.initGoogleAuth = function() {
                 googleUser = JSON.parse(savedUser);
                 window.updateGoogleUI(true);
                 console.log('✅ Native session restored');
+                // Check Pro by email on session restore
+                if (googleUser.email && typeof window.checkProByEmail === 'function') {
+                    window.checkProByEmail(googleUser.email);
+                }
             } catch (e) {
                 console.error('Session restore failed:', e);
                 window.googleSignOut();
@@ -48,6 +100,10 @@ window.initGoogleAuth = function() {
                 googleAccessToken = savedToken;
                 window.updateGoogleUI(true);
                 console.log('✅ Session restored');
+                // Check Pro by email on session restore
+                if (googleUser.email && typeof window.checkProByEmail === 'function') {
+                    window.checkProByEmail(googleUser.email);
+                }
             } catch (e) {
                 console.error('Session restore failed:', e);
                 window.googleSignOut();
@@ -79,6 +135,11 @@ window.googleSignIn = async function() {
 
             localStorage.setItem('strateger_google_user', JSON.stringify(googleUser));
             window.updateGoogleUI(true);
+
+            // Check if this Google email has a Pro license
+            if (typeof window.checkProByEmail === 'function') {
+                window.checkProByEmail(googleUser.email);
+            }
 
             if (typeof window.requestNotificationPermission === 'function') {
                 window.requestNotificationPermission();
@@ -132,6 +193,11 @@ window.fetchGoogleUserInfo = async function(accessToken) {
         
         localStorage.setItem('strateger_google_user', JSON.stringify(googleUser));
         window.updateGoogleUI(true);
+        
+        // Check if this Google email has a Pro license
+        if (typeof window.checkProByEmail === 'function') {
+            window.checkProByEmail(googleUser.email);
+        }
         
         if (typeof window.requestNotificationPermission === 'function') {
             window.requestNotificationPermission();

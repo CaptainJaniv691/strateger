@@ -311,6 +311,8 @@ window.confirmDemoStart = function() {
         rain: document.getElementById('demoFeatRain')?.checked ?? true,
         penalties: document.getElementById('demoFeatPenalties')?.checked ?? true,
         tires: document.getElementById('demoFeatTires')?.checked ?? true,
+        squads: document.getElementById('demoFeatSquads')?.checked ?? false,
+        fuel: document.getElementById('demoFeatFuel')?.checked ?? false,
     };
     // Close the config modal
     const modal = document.getElementById('demoConfigModal');
@@ -321,6 +323,10 @@ window.confirmDemoStart = function() {
 
 window.startDemoRace = function() {
     const t = window.t || (k => k);
+
+    // Temporarily unlock Pro so demo can enable all features without Pro gate
+    const wasPro = window._proUnlocked;
+    window._proUnlocked = true;
 
     // === 1. RACE PARAMETERS — 30 min kart endurance demo ===
     const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
@@ -337,11 +343,18 @@ window.startDemoRace = function() {
     setVal('maxDriverTime', '15');       // max 15 min per driver
     setVal('releaseBuffer', '5');        // 5 sec buffer alert
     setChecked('allowDouble', false);    // no double stints
-    setChecked('trackFuel', false);      // fuel off for demo
+    setChecked('trackFuel', window.demoConfig?.fuel ?? false);  // fuel based on demo config
+    if (window.demoConfig?.fuel) {
+        setVal('fuelTime', '12');         // 12 min fuel tank for demo
+        if (typeof window.toggleFuelInput === 'function') window.toggleFuelInput();
+    }
 
-    // Squad off for demo
+    // Squads based on demo config
     const squadsEl = document.getElementById('numSquads');
-    if (squadsEl) { squadsEl.value = '0'; if (typeof window.toggleSquadsInput === 'function') window.toggleSquadsInput(); }
+    if (squadsEl) {
+        squadsEl.value = (window.demoConfig?.squads) ? '2' : '0';
+        if (typeof window.toggleSquadsInput === 'function') window.toggleSquadsInput();
+    }
 
     // === 2. START TIME — now ===
     const nowDate = new Date((window.getSyncedNow && typeof window.getSyncedNow === 'function') ? window.getSyncedNow() : Date.now());
@@ -375,9 +388,23 @@ window.startDemoRace = function() {
         if (nameInput) nameInput.value = driver.name;
         const colorInput = row.querySelector('input[type="color"]');
         if (colorInput) colorInput.value = driver.color;
+        // Assign squads if enabled: Alex+Jordan=A, Sam=B
+        if (window.demoConfig?.squads) {
+            const squadVal = row.querySelector('.squad-value');
+            const squadDisplay = row.querySelector('.squad-toggle-container > div:last-child');
+            if (squadVal && squadDisplay) {
+                const sq = i < 2 ? 0 : 1; // A=0, B=1
+                squadVal.value = String(sq);
+                squadDisplay.innerText = ['A','B','C','D'][sq];
+                squadDisplay.style.background = ['#3b82f6','#06b6d4','#a855f7','#f97316'][sq];
+            }
+        }
     });
 
     // === 4. GENERATE & RUN ===
+    // Restore Pro state after demo setup
+    window._proUnlocked = wasPro;
+
     // Generate strategy with all the configured parameters
     if (typeof window.runSim === 'function') window.runSim();
 
@@ -700,6 +727,9 @@ window.tick = function() {
 
         window.showToast('🏁 ' + (window.t ? window.t('raceFinished') : 'RACE FINISHED!'), 'success', 6000);
         window.haptic('success');
+
+        // Finalize the last driver's stint BEFORE saving history
+        if (typeof window.finalizeLastStint === 'function') window.finalizeLastStint();
 
         // Save race to history
         if (typeof window.saveRaceToHistory === 'function') window.saveRaceToHistory();
@@ -3247,6 +3277,27 @@ if ('serviceWorker' in navigator) {
 // 🏆 POST-RACE SUMMARY
 // ==========================================
 
+// Finalize the last driver's stint — extracted so it runs BEFORE saveRaceToHistory
+window.finalizeLastStint = function() {
+    if (window._raceSummaryFinalized) return;
+    const now = (window.getSyncedNow && typeof window.getSyncedNow === 'function') ? window.getSyncedNow() : Date.now();
+    const raceMs = window.config.raceMs || (parseFloat(window.config.duration) * 3600000);
+    const lastDriver = window.drivers[window.state.currentDriverIdx];
+    if (lastDriver && window.state.stintStart) {
+        const lastStintDuration = Math.min(
+            now - window.state.stintStart + (window.state.stintOffset || 0),
+            raceMs // Cap at race duration
+        );
+        // Only add if not already logged (check if pit happened)
+        if (!window.state.isInPit) {
+            lastDriver.totalTime = (lastDriver.totalTime || 0) + lastStintDuration;
+            if (!lastDriver.logs) lastDriver.logs = [];
+            lastDriver.logs.push({ drive: lastStintDuration, pit: 0, timestamp: now, final: true });
+        }
+    }
+    window._raceSummaryFinalized = true;
+};
+
 window.showRaceSummary = function() {
     const modal = document.getElementById('raceSummaryModal');
     if (!modal) return;
@@ -3258,24 +3309,8 @@ window.showRaceSummary = function() {
     }, 0);
     const now = Date.now();
     
-    // If the last driver was still driving when race ended, record their final stint
-    // Guard: only do this once to prevent double-counting on re-open
-    if (!window._raceSummaryFinalized) {
-        const lastDriver = window.drivers[window.state.currentDriverIdx];
-        if (lastDriver && window.state.stintStart) {
-            const lastStintDuration = Math.min(
-                now - window.state.stintStart + (window.state.stintOffset || 0),
-                raceMs // Cap at race duration
-            );
-            // Only add if not already logged (check if pit happened)
-            if (!window.state.isInPit) {
-                lastDriver.totalTime = (lastDriver.totalTime || 0) + lastStintDuration;
-                if (!lastDriver.logs) lastDriver.logs = [];
-                lastDriver.logs.push({ drive: lastStintDuration, pit: 0, timestamp: now, final: true });
-            }
-        }
-        window._raceSummaryFinalized = true;
-    }
+    // Finalize last driver's stint (if not already done by tick)
+    if (typeof window.finalizeLastStint === 'function') window.finalizeLastStint();
     
     // === Race Info Row ===
     const infoEl = document.getElementById('summaryRaceInfo');

@@ -2,7 +2,7 @@
 // 🔑 PRO LICENSE VERIFICATION (Database-backed)
 // ==========================================
 // Validates license keys against the pro_licenses table in Neon DB.
-// Keys are generated via the admin generate-license endpoint.
+// Supports: verify by key, bind Google email, lookup by email, device tracking.
 
 const { neon } = require('@neondatabase/serverless');
 
@@ -25,14 +25,9 @@ exports.handler = async (event) => {
     try {
         const body = JSON.parse(event.body || '{}');
         const key = (body.key || '').trim();
-
-        if (!key) {
-            return { statusCode: 400, headers, body: JSON.stringify({ valid: false, message: 'No license key provided' }) };
-        }
-
-        if (!key.startsWith('STRAT-') || key.length < 16) {
-            return { statusCode: 200, headers, body: JSON.stringify({ valid: false, message: 'Invalid license key format' }) };
-        }
+        const email = (body.email || '').trim().toLowerCase();
+        const deviceId = (body.deviceId || '').trim();
+        const bindEmail = !!body.bindEmail; // Flag: bind this email to the license
 
         const sql = neon(process.env.NETLIFY_DATABASE_URL);
 
@@ -46,40 +41,106 @@ exports.handler = async (event) => {
                 created_at TIMESTAMPTZ DEFAULT NOW(),
                 activated_at TIMESTAMPTZ,
                 is_active BOOLEAN DEFAULT true,
-                notes TEXT
+                notes TEXT,
+                device_id VARCHAR(128),
+                last_device_at TIMESTAMPTZ
             )
         `;
 
-        // Look up the key
-        const rows = await sql`
-            SELECT id, license_key, is_active, customer_email, activated_at
-            FROM pro_licenses
-            WHERE license_key = ${key}
+        // Ensure device columns exist (idempotent for existing tables)
+        await sql`
+            DO $$ BEGIN
+                ALTER TABLE pro_licenses ADD COLUMN IF NOT EXISTS device_id VARCHAR(128);
+                ALTER TABLE pro_licenses ADD COLUMN IF NOT EXISTS last_device_at TIMESTAMPTZ;
+            EXCEPTION WHEN OTHERS THEN NULL;
+            END $$;
         `;
 
-        if (rows.length === 0) {
-            console.log(`❌ License key not found: ${key.substring(0, 10)}...`);
-            return { statusCode: 200, headers, body: JSON.stringify({ valid: false, message: 'Invalid license key' }) };
+        // === Mode 1: Verify by license key ===
+        if (key) {
+            if (!key.startsWith('STRAT-') || key.length < 16) {
+                return { statusCode: 200, headers, body: JSON.stringify({ valid: false, message: 'Invalid license key format' }) };
+            }
+
+            const rows = await sql`
+                SELECT id, license_key, is_active, customer_email, activated_at
+                FROM pro_licenses
+                WHERE license_key = ${key}
+            `;
+
+            if (rows.length === 0) {
+                console.log(`❌ License key not found: ${key.substring(0, 10)}...`);
+                return { statusCode: 200, headers, body: JSON.stringify({ valid: false, message: 'Invalid license key' }) };
+            }
+
+            const license = rows[0];
+
+            if (!license.is_active) {
+                console.log(`⛔ Deactivated license used: ${key.substring(0, 10)}...`);
+                return { statusCode: 200, headers, body: JSON.stringify({ valid: false, message: 'This license has been deactivated' }) };
+            }
+
+            // Mark first activation timestamp
+            if (!license.activated_at) {
+                await sql`UPDATE pro_licenses SET activated_at = NOW() WHERE id = ${license.id}`;
+            }
+
+            // Bind Google email to license if requested
+            if (bindEmail && email) {
+                await sql`UPDATE pro_licenses SET customer_email = ${email} WHERE id = ${license.id}`;
+                console.log(`🔗 Bound email ${email} to license ${key.substring(0, 10)}...`);
+            }
+
+            // Update device tracking
+            if (deviceId) {
+                await sql`UPDATE pro_licenses SET device_id = ${deviceId}, last_device_at = NOW() WHERE id = ${license.id}`;
+            }
+
+            console.log(`✅ Pro license verified: ${key.substring(0, 10)}... (${license.customer_email || email || 'no email'})`);
+            return {
+                statusCode: 200,
+                headers,
+                body: JSON.stringify({ 
+                    valid: true, 
+                    message: '⭐ Pro license verified!',
+                    email: license.customer_email || email || null
+                })
+            };
         }
 
-        const license = rows[0];
+        // === Mode 2: Lookup by Google email ===
+        if (email && !key) {
+            const rows = await sql`
+                SELECT license_key, is_active
+                FROM pro_licenses
+                WHERE LOWER(customer_email) = ${email} AND is_active = true
+                LIMIT 1
+            `;
 
-        if (!license.is_active) {
-            console.log(`⛔ Deactivated license used: ${key.substring(0, 10)}...`);
-            return { statusCode: 200, headers, body: JSON.stringify({ valid: false, message: 'This license has been deactivated' }) };
+            if (rows.length === 0) {
+                return { statusCode: 200, headers, body: JSON.stringify({ valid: false, message: 'No license found for this email' }) };
+            }
+
+            const license = rows[0];
+
+            // Update device tracking
+            if (deviceId) {
+                await sql`UPDATE pro_licenses SET device_id = ${deviceId}, last_device_at = NOW() WHERE license_key = ${license.license_key}`;
+            }
+
+            console.log(`✅ Pro license found by email: ${email}`);
+            return {
+                statusCode: 200,
+                headers,
+                body: JSON.stringify({ 
+                    valid: true, 
+                    key: license.license_key,
+                    message: '⭐ Pro license restored from account!' 
+                })
+            };
         }
 
-        // Mark first activation timestamp
-        if (!license.activated_at) {
-            await sql`UPDATE pro_licenses SET activated_at = NOW() WHERE id = ${license.id}`;
-        }
-
-        console.log(`✅ Pro license verified: ${key.substring(0, 10)}... (${license.customer_email || 'no email'})`);
-        return {
-            statusCode: 200,
-            headers,
-            body: JSON.stringify({ valid: true, message: '⭐ Pro license verified!' })
-        };
+        return { statusCode: 400, headers, body: JSON.stringify({ valid: false, message: 'No license key or email provided' }) };
 
     } catch (err) {
         console.error('License verification error:', err);
