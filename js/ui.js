@@ -499,7 +499,7 @@ window.renderPreview = function() {
     const diffClass = Math.abs(diffMs) <= 60000 ? 'text-neon' : 'text-red-400';
     const totalBar = `
         <div class="bg-navy-800 p-2 rounded border border-gray-700 text-[10px] text-gray-400 flex justify-between items-center mt-2">
-            <span>Drive: <b class="text-white">${(totalDrive/60000).toFixed(0)}m</b> + Pit: <b class="text-gold">${(totalPit/60000).toFixed(0)}m</b></span>
+            <span>${window.t ? window.t('driveNoun') : 'Drive'}: <b class="text-white">${(totalDrive/60000).toFixed(0)}m</b> + ${window.t ? window.t('pitNoun') : 'Pit'}: <b class="text-gold">${(totalPit/60000).toFixed(0)}m</b></span>
             <span class="${diffClass} font-bold">= ${((totalDrive+totalPit)/60000).toFixed(0)}m ${diffMs !== 0 ? '(' + (diffMs > 0 ? '+' : '') + (diffMs/60000).toFixed(0) + 'm)' : '✅'}</span>
         </div>
     `;
@@ -524,7 +524,7 @@ window.renderPreview = function() {
             <div class="bg-navy-950 p-1.5 sm:p-2 rounded border-t-2 flex flex-col items-center justify-center text-center shadow-md h-14 sm:h-20" style="border-color: ${data.color}">
                 <div class="text-[9px] sm:text-[10px] font-bold text-gray-300 truncate w-full">${name}</div>
                 <div class="text-xs sm:text-sm text-white font-mono font-bold my-0.5 sm:my-1">${window.formatTimeHMS(data.time)}</div>
-                <div class="text-[8px] sm:text-[9px] text-gray-500 bg-navy-900 px-1.5 sm:px-2 rounded-full">${data.stints} stints</div>
+                <div class="text-[8px] sm:text-[9px] text-gray-500 bg-navy-900 px-1.5 sm:px-2 rounded-full">${data.stints} ${window.t ? window.t('stints') : 'stints'}</div>
             </div>
         `;
     }).join('');

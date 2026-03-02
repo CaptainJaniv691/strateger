@@ -406,7 +406,7 @@
                     <button id="startRaceBtn" onclick="window.initRace()" class="flex-1 bg-ice hover:bg-cyan-300 text-navy-950 font-bold py-4 rounded text-xl shadow-[0_0_15px_rgba(34,211,238,0.4)] transition uppercase tracking-wider" data-i18n="startRace">
                         Start Race
                     </button>
-                    <button onclick="window.startDemoRace()" class="bg-neon/20 border-2 border-neon/50 text-neon font-bold py-4 px-4 rounded text-sm hover:bg-neon/30 transition" title="Start a 30-min demo race with simulated competitors">
+                    <button onclick="window.showDemoConfig()" class="bg-neon/20 border-2 border-neon/50 text-neon font-bold py-4 px-4 rounded text-sm hover:bg-neon/30 transition" title="Start a 30-min demo race with simulated competitors">
                         <i class="fas fa-play-circle mr-1"></i> <span data-i18n="demoRace">Demo</span>
                     </button>
                 </div>
@@ -810,6 +810,9 @@
 
         <div class="text-6xl font-bold font-mono text-white mb-2" id="pitTimerDisplay">00.0</div>
         
+        <!-- Dynamic pit status banner: GET READY / GO OUT IN Xs / GO! -->
+        <div id="pitReadyBanner" class="hidden w-full max-w-xs py-3 rounded-xl mb-2 text-center font-black text-2xl tracking-wider transition-all duration-300"></div>
+
         <div id="modalPitAdjInfo" class="text-sm text-gray-500 mb-8 font-mono hidden">
             <span data-i18n="includesAdj">Includes adjustment:</span> <span id="modalPitAdjValue" class="text-white font-bold">0s</span>
         </div>
@@ -1371,6 +1374,53 @@
             <div class="flex gap-3 pt-2">
                 <button onclick="window.dismissConfirmModal()" class="flex-1 bg-navy-800 border border-gray-600 text-gray-300 font-bold py-2.5 rounded-lg text-sm hover:bg-navy-700 transition">Cancel</button>
                 <button id="confirmOkBtn" onclick="window.executeConfirmAction()" class="flex-1 bg-red-600 hover:bg-red-500 text-white font-bold py-2.5 rounded-lg text-sm transition">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DEMO CONFIG MODAL -->
+    <div id="demoConfigModal" class="hidden fixed inset-0 bg-black/85 z-[200] flex items-center justify-center p-4" onclick="if(event.target===this)this.classList.add('hidden')">
+        <div class="bg-navy-900 border border-neon/40 rounded-2xl shadow-2xl max-w-sm w-full p-5 space-y-4">
+            <div class="text-center">
+                <div class="text-3xl mb-1">🎮</div>
+                <h2 class="text-lg font-bold text-neon" data-i18n="demoRace">Demo Race</h2>
+                <p class="text-xs text-gray-400 mt-1" data-i18n="demoSelectFeatures">Select Pro features to test</p>
+            </div>
+            <div class="space-y-2">
+                <label class="flex items-center gap-3 bg-navy-800 p-3 rounded-lg border border-gray-700 cursor-pointer hover:border-neon/30 transition">
+                    <input type="checkbox" id="demoFeatLiveTiming" checked disabled class="accent-neon w-4 h-4">
+                    <div>
+                        <div class="text-sm font-bold text-white">📡 <span data-i18n="liveTiming">Live Timing</span></div>
+                        <div class="text-[10px] text-gray-500" data-i18n="demoLiveTimingDesc">Simulated 20-team leaderboard</div>
+                    </div>
+                </label>
+                <label class="flex items-center gap-3 bg-navy-800 p-3 rounded-lg border border-gray-700 cursor-pointer hover:border-neon/30 transition">
+                    <input type="checkbox" id="demoFeatRain" checked class="accent-neon w-4 h-4">
+                    <div>
+                        <div class="text-sm font-bold text-white">🌧️ <span data-i18n="demoRainLabel">Rain Simulation</span></div>
+                        <div class="text-[10px] text-gray-500" data-i18n="demoRainDesc">Random rain events with pace changes</div>
+                    </div>
+                </label>
+                <label class="flex items-center gap-3 bg-navy-800 p-3 rounded-lg border border-gray-700 cursor-pointer hover:border-neon/30 transition">
+                    <input type="checkbox" id="demoFeatPenalties" checked class="accent-neon w-4 h-4">
+                    <div>
+                        <div class="text-sm font-bold text-white">⚠️ <span data-i18n="penalty">Penalties</span></div>
+                        <div class="text-[10px] text-gray-500" data-i18n="demoPenaltyDesc">Random penalties & time additions</div>
+                    </div>
+                </label>
+                <label class="flex items-center gap-3 bg-navy-800 p-3 rounded-lg border border-gray-700 cursor-pointer hover:border-neon/30 transition">
+                    <input type="checkbox" id="demoFeatTires" checked class="accent-neon w-4 h-4">
+                    <div>
+                        <div class="text-sm font-bold text-white">🔧 <span data-i18n="demoTiresLabel">Tire Degradation</span></div>
+                        <div class="text-[10px] text-gray-500" data-i18n="demoTiresDesc">Lap times increase over stint</div>
+                    </div>
+                </label>
+            </div>
+            <div class="flex gap-2 pt-1">
+                <button onclick="document.getElementById('demoConfigModal').classList.add('hidden')" class="flex-1 bg-navy-800 border border-gray-600 text-gray-300 font-bold py-2.5 rounded-lg text-sm hover:bg-navy-700 transition" data-i18n="cancel">Cancel</button>
+                <button onclick="window.confirmDemoStart()" class="flex-1 bg-neon hover:bg-cyan-300 text-navy-950 font-bold py-2.5 rounded-lg text-sm transition flex items-center justify-center gap-2">
+                    <i class="fas fa-play"></i> <span data-i18n="startRace">Start Race</span>
+                </button>
             </div>
         </div>
     </div>

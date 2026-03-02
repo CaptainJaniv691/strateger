@@ -617,12 +617,13 @@ window.runSim = function() {
 
     const resEl = document.getElementById('simResult');
     if (resEl) {
+        const t = window.t || ((k) => k);
         resEl.classList.remove('hidden');
         resEl.style.borderColor = '#22d3ee';
         resEl.style.color = '#22d3ee';
         resEl.innerHTML = `
-            ✅ <b>${stints.length} Stints</b> | Avg: ${avgStint}m<br>
-            🏁 Drive: ${(actualDriveTime/60000).toFixed(0)}m + Pit: ${(actualPitTime/60000).toFixed(0)}m = <b>${(totalRaceTime/60000).toFixed(0)}m</b> (${(totalRaceTime/3600000).toFixed(2)}h)
+            ✅ <b>${stints.length} ${t('stints')}</b> | ${t('avgStint')}: ${avgStint}m<br>
+            🏁 ${t('driveNoun')}: ${(actualDriveTime/60000).toFixed(0)}m + ${t('pitNoun')}: ${(actualPitTime/60000).toFixed(0)}m = <b>${(totalRaceTime/60000).toFixed(0)}m</b> (${(totalRaceTime/3600000).toFixed(2)}h)
             ${pitClosedInfo}${squadInfo}
         `;
     }

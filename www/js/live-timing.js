@@ -795,17 +795,23 @@ window.startDemoMode = function() {
     window.liveTimingConfig.demoMode = true;
     window.liveTimingConfig.enabled = true;
 
-    // Initialize rain simulation state
-    window.demoState.rain = {
-        active: false,          // currently raining?
-        intensity: 0,           // 0 = dry, 0.3 = light, 0.6 = medium, 1.0 = heavy
-        drying: false,          // track is drying after rain
-        nextEventTime: 0,       // ms from race start when next rain change happens
-        lastChangeTime: 0,
-        paceMultiplier: 1.0     // current wet multiplier applied to all lap times
-    };
-    // Schedule first possible rain between 2–6 minutes into the race
-    window.demoState.rain.nextEventTime = 120000 + Math.random() * 240000;
+    // Read feature config from demo chooser (defaults to all on)
+    const cfg = window.demoConfig || { rain: true, penalties: true, tires: true };
+
+    // Initialize rain simulation state (only if rain feature enabled)
+    if (cfg.rain) {
+        window.demoState.rain = {
+            active: false,
+            intensity: 0,
+            drying: false,
+            nextEventTime: 0,
+            lastChangeTime: 0,
+            paceMultiplier: 1.0
+        };
+        window.demoState.rain.nextEventTime = 120000 + Math.random() * 240000;
+    } else {
+        window.demoState.rain = { active: false, intensity: 0, drying: false, nextEventTime: Infinity, lastChangeTime: 0, paceMultiplier: 1.0 };
+    }
 
     window.initializeDemoCompetitors();
     
@@ -1056,9 +1062,10 @@ window.updateDemoData = function() {
     });
 
     // --- Demo scenarios: penalties, tire degradation ---
+    const demoCfg = window.demoConfig || { rain: true, penalties: true, tires: true };
     window.demoState.competitors.forEach(comp => {
         // Random penalty chance (~0.3% per update, roughly 1 per 5-6 min at 1Hz)
-        if (!comp._penaltyApplied && comp.laps > 5 && Math.random() < 0.003) {
+        if (demoCfg.penalties && !comp._penaltyApplied && comp.laps > 5 && Math.random() < 0.003) {
             const penaltySec = [5, 10, 10, 15, 30][Math.floor(Math.random() * 5)];
             comp.penalty = (comp.penalty || 0) + 1;
             comp.penaltyTime = (comp.penaltyTime || 0) + penaltySec;
@@ -1069,18 +1076,22 @@ window.updateDemoData = function() {
         }
 
         // Tire degradation: lap times get ~0.2% slower every 8 laps in a stint
-        const lapsSincePit = comp.laps - (comp._lapsAtLastPit || 0);
-        if (lapsSincePit > 8) {
-            comp._tireDeg = 1 + (lapsSincePit - 8) * 0.002;
+        if (demoCfg.tires) {
+            const lapsSincePit = comp.laps - (comp._lapsAtLastPit || 0);
+            if (lapsSincePit > 8) {
+                comp._tireDeg = 1 + (lapsSincePit - 8) * 0.002;
+            } else {
+                comp._tireDeg = 1;
+            }
+            // Reset tire deg on pit
+            if (comp.inPit && !comp._wasPitting) {
+                comp._lapsAtLastPit = comp.laps;
+                comp._tireDeg = 1;
+            }
+            comp._wasPitting = comp.inPit;
         } else {
             comp._tireDeg = 1;
         }
-        // Reset tire deg on pit
-        if (comp.inPit && !comp._wasPitting) {
-            comp._lapsAtLastPit = comp.laps;
-            comp._tireDeg = 1;
-        }
-        comp._wasPitting = comp.inPit;
     });
 
     // Write sorted order back
@@ -1099,6 +1110,54 @@ window.updateDemoData = function() {
         // Expose penalty data for UI
         window.liveData.ourTeamPenalty = ourTeam.penalty || 0;
         window.liveData.ourTeamPenaltyTime = ourTeam.penaltyTime || 0;
+
+        // === PIT BRIDGE: sync demo pit state ↔ app pit state ===
+        // This mirrors what real live-timing does in processUpdate()
+        const wasInPit = window.liveData.ourTeamInPit;
+        window.liveData.ourTeamInPit = !!ourTeam.inPit;
+        window.liveData.ourTeamPitCount = ourTeam.pitCount ?? null;
+
+        // Case 1: Demo says team entered pit, but app doesn't know yet
+        // → trigger confirmPitEntry just like real live timing would
+        if (window.state && window.state.isRunning && !window.state.isInPit && ourTeam.inPit) {
+            console.log('[Demo] 🛑 AUTO PIT ENTRY from demo simulation');
+            if (typeof window.confirmPitEntry === 'function') {
+                window.confirmPitEntry(true); // true = auto-detected, skip confirm dialog
+            }
+        }
+
+        // Case 2: Demo says team exited pit, but app still thinks we're in pit
+        // → trigger confirmPitExit just like real live timing would
+        if (window.state && window.state.isRunning && window.state.isInPit && !ourTeam.inPit && wasInPit === true) {
+            console.log('[Demo] ✅ AUTO PIT EXIT from demo simulation');
+            window.liveData.stintLapHistory = [];
+            window.liveData.stintBestLap = null;
+            window.liveData.lastRecordedLap = null;
+            if (typeof window.confirmPitExit === 'function') {
+                window.confirmPitExit();
+            }
+        }
+
+        // Case 3: User manually pressed "Enter Pit" → sync back to demo competitor
+        // so the demo knows to hold the car in pit for the configured pit time
+        if (window.state && window.state.isInPit && !ourTeam.inPit && !ourTeam._userForcedPit) {
+            ourTeam.inPit = true;
+            ourTeam._userForcedPit = true;
+            ourTeam._pitEnterTime = ourTeam.elapsed;
+            window.liveData.ourTeamInPit = true;
+            console.log('[Demo] 🔧 User manually entered pit → synced to demo');
+        }
+
+        // Case 4: User manually pressed "Exit Pit" → release the demo competitor
+        if (window.state && !window.state.isInPit && ourTeam._userForcedPit && ourTeam.inPit) {
+            ourTeam.inPit = false;
+            ourTeam._userForcedPit = false;
+            ourTeam.pitsDone++;
+            ourTeam.pitCount = ourTeam.pitsDone;
+            ourTeam.pitTimeSpent += (ourTeam.elapsed - (ourTeam._pitEnterTime || ourTeam.elapsed));
+            window.liveData.ourTeamInPit = false;
+            console.log('[Demo] 🔧 User manually exited pit → synced to demo');
+        }
 
         // Track stint lap history
         if (ourTeam.lastLap && ourTeam.lastLap !== window.liveData.lastRecordedLap) {
@@ -1124,12 +1183,6 @@ window.updateDemoData = function() {
             }
         }
 
-        // Reset stint on pit exit
-        if (ourTeam._wasInPit && !ourTeam.inPit) {
-            window.liveData.stintLapHistory = [];
-            window.liveData.stintBestLap = null;
-            window.liveData.lastRecordedLap = null;
-        }
         ourTeam._wasInPit = ourTeam.inPit;
     }
 

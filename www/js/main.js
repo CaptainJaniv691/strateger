@@ -300,6 +300,25 @@ window.requestNotificationPermission = function() {
 // 🎮 DEMO RACE
 // ==========================================
 
+window.showDemoConfig = function() {
+    const modal = document.getElementById('demoConfigModal');
+    if (modal) modal.classList.remove('hidden');
+};
+
+window.confirmDemoStart = function() {
+    // Read user feature choices into demoConfig
+    window.demoConfig = {
+        rain: document.getElementById('demoFeatRain')?.checked ?? true,
+        penalties: document.getElementById('demoFeatPenalties')?.checked ?? true,
+        tires: document.getElementById('demoFeatTires')?.checked ?? true,
+    };
+    // Close the config modal
+    const modal = document.getElementById('demoConfigModal');
+    if (modal) modal.classList.add('hidden');
+    // Start the demo race
+    window.startDemoRace();
+};
+
 window.startDemoRace = function() {
     const t = window.t || (k => k);
 
@@ -802,10 +821,16 @@ window.renderFrame = function() {
         if (raceRemaining <= 0 || window.state.isFinished) {
             timerEl.innerText = "FINISH";
             timerEl.classList.add("text-neon", "animate-pulse");
-            // Clear the finished flag so we don't re-render endlessly
-            if (window.state.isFinished && !window.state.isRunning) {
-                window.state.isFinished = false;
-            }
+            // Lock pit entry button when finished
+            const pitEntryBtn = document.getElementById('pitEntryBtn');
+            const pitEntryBtnLabel = document.getElementById('pitEntryBtnLabel');
+            if (pitEntryBtn) { pitEntryBtn.disabled = true; pitEntryBtn.classList.add('opacity-40', 'cursor-not-allowed', 'pointer-events-none'); }
+            if (pitEntryBtnLabel) pitEntryBtnLabel.innerText = '🏁 ' + (window.t ? window.t('raceFinished') : 'FINISHED');
+            // Disable mode buttons
+            ['btnPush', 'btnBad', 'btnResetMode'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) { el.disabled = true; el.style.pointerEvents = 'none'; el.classList.add('opacity-40'); }
+            });
             return;
         }
         if (remainingSec <= 0) {
@@ -1136,9 +1161,14 @@ window.updatePitModalLogic = function() {
     }
 
     // Determine current zone
+    // buffer = seconds the driver needs to walk/drive from pit crew to pit exit line
+    // So when timeRemaining <= buffer, driver must GO NOW so they cross the line at the right time
+    // When timeRemaining <= 0, the minimum pit time is fully served
     let pitZone = 'wait';
     if (timeRemaining <= 0) pitZone = 'go';
-    else if (timeRemaining <= buffer) pitZone = 'ready';
+    else if (buffer > 0 && timeRemaining <= buffer) pitZone = 'ready'; // ready = GO NOW (driver must leave to reach exit)
+
+    const pitReadyBanner = document.getElementById('pitReadyBanner');
 
     if (pitZone === 'wait') {
         if (timerDisplay) timerDisplay.className = "text-6xl font-bold font-mono text-red-500";
@@ -1147,30 +1177,53 @@ window.updatePitModalLogic = function() {
         releaseBtn.className = "w-full max-w-xs bg-gray-800 text-gray-500 font-bold py-4 rounded-lg text-2xl border border-gray-700 cursor-pointer";
         const pitWarningBox = document.getElementById('pitWarningBox');
         if (pitWarningBox) pitWarningBox.classList.add('hidden');
+        // Show GET READY heads-up 3 seconds before buffer zone starts
+        if (pitReadyBanner) {
+            if (buffer > 0 && timeRemaining <= buffer + 3 && timeRemaining > buffer) {
+                pitReadyBanner.classList.remove('hidden');
+                pitReadyBanner.className = "w-full max-w-xs py-2 rounded-xl mb-2 text-center font-bold text-lg tracking-wider transition-all duration-300 bg-gray-800/80 border border-gray-600 text-gray-400";
+                pitReadyBanner.innerText = `${t('getReady')}...`;
+            } else {
+                pitReadyBanner.classList.add('hidden');
+            }
+        }
         window._lastOrangeBeep = null;
     } else if (pitZone === 'ready') {
-        if (timerDisplay) timerDisplay.className = "text-6xl font-bold font-mono text-yellow-400 animate-pulse";
+        // BUFFER ZONE: Driver must GO NOW — they need `buffer` seconds to reach the pit exit line
+        if (timerDisplay) timerDisplay.className = "text-6xl font-bold font-mono text-green-400 animate-pulse";
         releaseBtn.disabled = false;
         releaseBtn.innerText = t('exitPits');
-        releaseBtn.className = "w-full max-w-xs bg-yellow-800 text-yellow-400 font-bold py-4 rounded-lg text-2xl border border-yellow-600 cursor-pointer";
+        releaseBtn.className = "w-full max-w-xs bg-green-600 hover:bg-green-500 text-white font-bold py-4 rounded-lg text-3xl border border-green-400 shadow-[0_0_20px_rgba(34,197,94,0.6)] cursor-pointer";
         const pitWarningBox = document.getElementById('pitWarningBox');
-        if (pitWarningBox) pitWarningBox.classList.remove('hidden');
-        // Repeating beep in orange zone (every 1 second)
-        const now = (window.getSyncedNow && typeof window.getSyncedNow === 'function') ? window.getSyncedNow() : Date.now();
-        if (!window._lastOrangeBeep || (now - window._lastOrangeBeep >= 1000)) {
-            window.playAlertBeep('info');
-            window._lastOrangeBeep = now;
+        if (pitWarningBox) pitWarningBox.classList.add('hidden');
+        // Show big GO! GO! GO! banner — driver must leave NOW
+        if (pitReadyBanner) {
+            pitReadyBanner.classList.remove('hidden');
+            pitReadyBanner.innerHTML = `<div class="text-green-300 text-5xl animate-bounce">${t('go')}</div>`;
+            pitReadyBanner.className = "w-full max-w-xs py-4 rounded-xl mb-2 text-center font-black tracking-wider transition-all duration-300 bg-green-600/40 border-2 border-green-400 shadow-[0_0_40px_rgba(34,197,94,0.6)]";
+        }
+        window._lastOrangeBeep = null;
+        // Sound only on transition to go zone
+        if (window.alertState.lastZone !== 'go' && window.alertState.lastZone !== 'ready') {
+            window.playReleaseSound();
         }
     } else {
+        // TIMER DONE: minimum pit time fully served
         if (timerDisplay) timerDisplay.className = "text-6xl font-bold font-mono text-green-500";
         releaseBtn.disabled = false;
         releaseBtn.innerText = t('exitPits');
         releaseBtn.className = "w-full max-w-xs bg-green-600 hover:bg-green-500 text-white font-bold py-4 rounded-lg text-3xl border border-green-400 shadow-[0_0_20px_rgba(34,197,94,0.6)] cursor-pointer";
         const pitWarningBox = document.getElementById('pitWarningBox');
         if (pitWarningBox) pitWarningBox.classList.add('hidden');
+        // Show big GO! GO! GO! banner
+        if (pitReadyBanner) {
+            pitReadyBanner.classList.remove('hidden');
+            pitReadyBanner.innerHTML = `<div class="text-green-300 text-5xl animate-bounce">${t('go')}</div>`;
+            pitReadyBanner.className = "w-full max-w-xs py-4 rounded-xl mb-2 text-center font-black tracking-wider transition-all duration-300 bg-green-600/40 border-2 border-green-400 shadow-[0_0_40px_rgba(34,197,94,0.6)]";
+        }
         window._lastOrangeBeep = null;
         // Sound only on transition to go zone
-        if (window.alertState.lastZone !== 'go') {
+        if (window.alertState.lastZone !== 'go' && window.alertState.lastZone !== 'ready') {
             window.playReleaseSound();
         }
     }
@@ -1229,6 +1282,8 @@ window.adjustPitTime = function(seconds) {
 };
 
 window.confirmPitEntry = function(autoDetected) {
+    // Guard: race is finished — no pit actions allowed
+    if (window.state.isFinished || (!window.state.isRunning && window.state.startTime)) return;
     // Guard: prevent re-entry if already in pit
     if (window.state.isInPit) return;
     
@@ -1302,6 +1357,9 @@ window._executePitEntry = function(isShortStint) {
             releaseBtn.innerText = t('exitPits');
             releaseBtn.className = "w-full max-w-xs bg-gray-800 text-gray-500 font-bold py-4 rounded-lg text-2xl border border-gray-700 cursor-pointer";
         }
+        // Reset the ready/go banner
+        const pitReadyBanner = document.getElementById('pitReadyBanner');
+        if (pitReadyBanner) pitReadyBanner.classList.add('hidden');
     }
 
     if (window.pitInterval) clearInterval(window.pitInterval);
@@ -1569,6 +1627,8 @@ window.getBoxMessage = function() {
 };
 
 window.confirmPitExit = function() {
+    // Guard: race is finished — no pit actions allowed
+    if (window.state.isFinished || (!window.state.isRunning && window.state.startTime)) return;
     // Guard: only exit if actually in pit
     if (!window.state.isInPit) return;
     window.haptic('success');
@@ -3232,11 +3292,11 @@ window.showRaceSummary = function() {
             </div>
             <div>
                 <div class="text-lg font-bold text-fuel">${window.formatTimeHMS(totalPitTime)}</div>
-                <div>${t('totalPitTime') || 'Pit Time'}</div>
+                <div>${t('totalPitTime')}</div>
             </div>
             <div>
                 <div class="text-lg font-bold text-white">${raceStartDate.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
-                <div>${t('raceStart') || 'Start'}</div>
+                <div>${t('raceStart')}</div>
             </div>
         `;
     }
@@ -3274,9 +3334,9 @@ window.showRaceSummary = function() {
                         <div class="h-2 rounded-full transition-all" style="width:${pct}%; background:${d.color || '#3b82f6'}"></div>
                     </div>
                     <div class="flex justify-between text-[11px] text-gray-400">
-                        <span>${t('totalTime') || 'Total'}: <b class="text-white">${window.formatTimeHMS(d.totalTime || 0)}</b></span>
-                        <span>${t('stints') || 'Stints'}: <b class="text-white">${stintCount}</b></span>
-                        <span>${t('avgStint') || 'Avg'}: <b class="text-white">${window.formatTimeHMS(avgStint)}</b></span>
+                        <span>${t('totalTime')}: <b class="text-white">${window.formatTimeHMS(d.totalTime || 0)}</b></span>
+                        <span>${t('stints')}: <b class="text-white">${stintCount}</b></span>
+                        <span>${t('avgStint')}: <b class="text-white">${window.formatTimeHMS(avgStint)}</b></span>
                     </div>
                 </div>
             `;
@@ -3300,13 +3360,13 @@ window.showRaceSummary = function() {
         
         if (allPits.length > 0) {
             pitLogEl.innerHTML = `
-                <div class="text-xs text-gray-500 font-bold mb-1 border-b border-gray-700 pb-1">${t('pitLog') || 'Pit Stop Log'}</div>
+                <div class="text-xs text-gray-500 font-bold mb-1 border-b border-gray-700 pb-1">${t('pitLog')}</div>
                 <div class="space-y-1 max-h-32 overflow-y-auto">
                     ${allPits.map((p, i) => `
                         <div class="flex items-center justify-between text-[11px] py-1 ${i % 2 === 0 ? 'bg-navy-800/50' : ''} px-2 rounded">
                             <span class="font-bold" style="color:${p.color}">${p.driver}</span>
-                            <span class="text-gray-400">${t('drove') || 'Drove'} ${window.formatTimeHMS(p.drive)}</span>
-                            <span class="text-fuel font-mono">${t('pit') || 'Pit'} ${Math.round(p.pit / 1000)}s</span>
+                            <span class="text-gray-400">${t('drove')} ${window.formatTimeHMS(p.drive)}</span>
+                            <span class="text-fuel font-mono">${t('pitNoun')} ${Math.round(p.pit / 1000)}s</span>
                         </div>
                     `).join('')}
                 </div>
@@ -3324,7 +3384,7 @@ window.shareRaceSummary = function() {
     const raceMs = window.config.raceMs || (parseFloat(window.config.duration) * 3600000);
     const t = window.t || ((k) => k);
     
-    let text = `🏁 ${t('raceFinished') || 'Race Finished'} - Strateger\n`;
+    let text = `🏁 ${t('raceFinished')} - Strateger\n`;
     text += `⏱ ${window.formatTimeHMS(raceMs)} | 🛑 ${window.state.pitCount || 0} ${t('stopsHeader')}\n\n`;
     
     const ranked = window.drivers
