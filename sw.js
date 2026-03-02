@@ -1,7 +1,7 @@
 // ==========================================
 // 📦 STRATEGER SERVICE WORKER — Offline-First PWA
 // ==========================================
-const CACHE_VERSION = 2;
+const CACHE_VERSION = 3;
 const CACHE_NAME = `strateger-v${CACHE_VERSION}`;
 
 // Core app shell — must be cached for offline
@@ -22,6 +22,8 @@ const STATIC_ASSETS = [
     '/js/main.js',
     '/icons/icon-192.svg',
     '/icons/icon-512.svg',
+    '/icons/icon-192.png',
+    '/icons/icon-512.png',
     '/manifest.json'
 ];
 
@@ -38,6 +40,14 @@ const CDN_ASSETS = [
 // Paths that should NEVER be cached (live/server features)
 const NETWORK_ONLY_PATTERNS = [
     '.netlify/functions',
+    '/verify-license',
+    '/ai-strategy',
+    '/cors-proxy',
+    '/save-race',
+    '/save-strategy',
+    '/load-strategies',
+    '/get-strategies',
+    '/send-feedback',
     '/peerjs',
     'accounts.google.com',
     'apis.google.com',
@@ -106,6 +116,9 @@ function isNetworkOnly(url) {
 // Fetch strategy
 self.addEventListener('fetch', (event) => {
     const url = event.request.url;
+
+    // Skip non-http(s) schemes entirely (chrome-extension://, etc.)
+    if (!url.startsWith('http://') && !url.startsWith('https://')) return;
 
     // Skip non-GET requests
     if (event.request.method !== 'GET') return;

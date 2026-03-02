@@ -57,8 +57,21 @@ const netlifyFunctionWrapper = (functionName) => async (req, res) => {
     }
 };
 
-// --- הגדרת הנתיבים (Routes) ---
-// אלו בדיוק אותם נתיבים שה-Frontend שלך מחפש
+// --- Short routes (Frontend calls these without /.netlify/functions prefix) ---
+app.all('/verify-license', netlifyFunctionWrapper('verify-license'));
+app.all('/ai-strategy', netlifyFunctionWrapper('ai-strategy'));
+app.all('/cors-proxy', netlifyFunctionWrapper('cors-proxy'));
+app.all('/save-race', netlifyFunctionWrapper('save-race'));
+app.all('/save-strategy', netlifyFunctionWrapper('save-strategy'));
+app.all('/load-strategies', netlifyFunctionWrapper('load-strategies'));
+app.all('/get-strategies', netlifyFunctionWrapper('get-strategies'));
+app.all('/send-feedback', netlifyFunctionWrapper('send-feedback'));
+app.all('/generate-license', netlifyFunctionWrapper('generate-license'));
+app.all('/manage-licenses', netlifyFunctionWrapper('manage-licenses'));
+app.all('/manage-coupons', netlifyFunctionWrapper('manage-coupons'));
+app.all('/verify-coupon', netlifyFunctionWrapper('verify-coupon'));
+
+// --- Legacy Netlify paths (backwards compat) ---
 app.all('/.netlify/functions/save-race', netlifyFunctionWrapper('save-race'));
 app.all('/.netlify/functions/save-strategy', netlifyFunctionWrapper('save-strategy'));
 app.all('/.netlify/functions/load-strategies', netlifyFunctionWrapper('load-strategies'));
