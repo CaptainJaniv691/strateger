@@ -78,13 +78,13 @@
                 <option value="el">🇬🇷 EL</option>
             </select>
             
-            <div id="googleAuthCompact" class="flex items-center ml-2">
-                <button id="googleSignInBtn" onclick="window.googleSignIn()" class="flex items-center gap-2 bg-white text-gray-700 hover:bg-gray-100 border border-gray-300 px-2 py-1 rounded text-[10px] font-bold transition" data-i18n="googleLoginBtn">
+            <div id="googleAuthCompact" class="flex items-center ml-2 min-h-[28px]">
+                <button id="googleSignInBtn" onclick="window.googleSignIn()" class="flex items-center gap-2 bg-white text-gray-700 hover:bg-gray-100 border border-gray-300 px-2 py-1 rounded text-[10px] font-bold transition min-h-[28px]" data-i18n="googleLoginBtn">
                     <img src="https://www.google.com/favicon.ico" class="w-3 h-3">
                     Login
                 </button>
 
-                <div id="googleUserDisplay" class="hidden flex items-center gap-2 bg-navy-800 border border-gray-600 px-2 py-1 rounded-full">
+                <div id="googleUserDisplay" class="hidden flex items-center gap-2 bg-navy-800 border border-gray-600 px-2 py-1 rounded-full min-h-[28px]">
                     <img id="googleAvatarSmall" src="" class="w-4 h-4 rounded-full border border-ice">
                     <span id="googleNameSmall" class="text-xs text-white max-w-[80px] truncate hidden sm:block">User</span>
                     <button onclick="window.googleSignOut()" class="text-gray-400 hover:text-red-400 ml-1">
@@ -117,7 +117,7 @@
             </button>
 
             <!-- Visible on sm+ screens only -->
-            <button id="themeToggleBtn" onclick="window.toggleThemePanel()" class="hidden sm:flex bg-navy-800 hover:bg-navy-700 text-gray-300 hover:text-white text-xs font-bold px-2 py-1.5 rounded-full border border-gray-700 hover:border-gray-500 transition transform active:scale-95 items-center gap-1" title="Theme">
+            <button id="themeToggleBtn" onclick="window.toggleThemePanel()" class="flex bg-navy-800 hover:bg-navy-700 text-gray-300 hover:text-white text-xs font-bold px-2 py-1.5 rounded-full border border-gray-700 hover:border-gray-500 transition transform active:scale-95 items-center gap-1" title="Theme">
                 <i class="fas fa-palette"></i>
             </button>
 
@@ -137,9 +137,6 @@
                     <i class="fas fa-ellipsis-v"></i>
                 </button>
                 <div id="headerOverflowMenu" class="hidden absolute right-0 top-full mt-1 bg-navy-900 border border-gray-700 rounded-lg shadow-2xl p-1.5 min-w-[160px] z-50 animate-scale-in">
-                    <button onclick="window.toggleThemePanel(); document.getElementById('headerOverflowMenu').classList.add('hidden')" class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm text-gray-300 hover:bg-navy-800 hover:text-white transition text-left">
-                        <i class="fas fa-palette w-4 text-center text-ice"></i> <span data-i18n="lblAppearance">Theme</span>
-                    </button>
                     <button onclick="window.toggleMute(); document.getElementById('headerOverflowMenu').classList.add('hidden')" class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm text-gray-300 hover:bg-navy-800 hover:text-white transition text-left">
                         <i class="fas fa-volume-up w-4 text-center text-gray-500" id="overflowMuteIcon"></i> <span data-i18n="mute">Sound</span>
                     </button>
@@ -361,6 +358,7 @@
                         <input type="number" id="fuelTime" onchange="window.runSim()" class="input-field border-fuel/50">
                     </div>
                 </div>
+                <hr class="border-gray-700/50 my-3">
                 </div>
             </div>
 
@@ -805,7 +803,7 @@
 
     <div id="pitModal" class="hidden fixed inset-0 bg-navy-950/95 z-50 flex flex-col items-center justify-center p-4" style="padding-bottom: max(16px, env(safe-area-inset-bottom, 16px));">
         <h2 class="text-ice text-3xl font-bold mb-2 tracking-widest animate-pulse" data-i18n="inPit">IN PIT</h2>
-        <p class="text-gray-400 mb-4"><span data-i18n="nextLabel">Next:</span> <span id="modalNextDriverName" class="text-white font-bold text-xl">---</span></p>
+        <p class="text-gray-400 mb-4"><span data-i18n="nextLabel">Next</span> <span id="modalNextDriverName" class="text-white font-bold text-xl">---</span></p>
         
         <div id="pitStintWarning" class="hidden bg-red-900/80 border border-red-500 text-white px-4 py-2 rounded mb-4 text-center animate-bounce" data-i18n="shortStintMsg">⚠️ <span class="font-bold">SHORT STINT!</span> Penalty Risk</div>
 
@@ -1178,6 +1176,30 @@
                 <button class="bg-swatch w-full aspect-[3/2] rounded-lg border-2 border-gray-600 hover:border-cyan-300 transition overflow-hidden relative group" data-bg="arctic-ice" title="Arctic Ice" onclick="window.setPageBackground('arctic-ice')">
                     <div class="absolute inset-0" style="background: linear-gradient(180deg, #0a1520 0%, #102535 30%, #1a3a50 50%, #102535 70%, #0a1520 100%);"></div>
                     <span class="absolute bottom-0 inset-x-0 text-[8px] text-cyan-200 bg-black/70 text-center py-0.5 opacity-0 group-hover:opacity-100 transition">❄️ Arctic</span>
+                </button>
+                <button class="bg-swatch w-full aspect-[3/2] rounded-lg border-2 border-gray-600 hover:border-purple-300 transition overflow-hidden relative group" data-bg="aurora" title="Aurora" onclick="window.setPageBackground('aurora')">
+                    <div class="absolute inset-0" style="background: linear-gradient(180deg, #020510 0%, #0a1030 20%, #081848 40%, #1a0a40 60%, #2a0828 80%, #0a0510 100%);"></div>
+                    <span class="absolute bottom-0 inset-x-0 text-[8px] text-purple-300 bg-black/70 text-center py-0.5 opacity-0 group-hover:opacity-100 transition">🌌 Aurora</span>
+                </button>
+                <button class="bg-swatch w-full aspect-[3/2] rounded-lg border-2 border-gray-600 hover:border-yellow-400 transition overflow-hidden relative group" data-bg="monaco-gold" title="Monaco Gold" onclick="window.setPageBackground('monaco-gold')">
+                    <div class="absolute inset-0" style="background: linear-gradient(180deg, #0a0800 0%, #1a1505 20%, #2a2008 40%, #1a1505 60%, #0a0800 100%);"></div>
+                    <span class="absolute bottom-0 inset-x-0 text-[8px] text-yellow-300 bg-black/70 text-center py-0.5 opacity-0 group-hover:opacity-100 transition">👑 Monaco</span>
+                </button>
+                <button class="bg-swatch w-full aspect-[3/2] rounded-lg border-2 border-gray-600 hover:border-red-500 transition overflow-hidden relative group" data-bg="ferrari-rosso" title="Ferrari Rosso" onclick="window.setPageBackground('ferrari-rosso')">
+                    <div class="absolute inset-0" style="background: linear-gradient(180deg, #0e0000 0%, #2a0808 25%, #4a0a0a 50%, #2a0808 75%, #0e0000 100%);"></div>
+                    <span class="absolute bottom-0 inset-x-0 text-[8px] text-red-400 bg-black/70 text-center py-0.5 opacity-0 group-hover:opacity-100 transition">🐎 Ferrari</span>
+                </button>
+                <button class="bg-swatch w-full aspect-[3/2] rounded-lg border-2 border-gray-600 hover:border-orange-400 transition overflow-hidden relative group" data-bg="mclaren-papaya" title="McLaren Papaya" onclick="window.setPageBackground('mclaren-papaya')">
+                    <div class="absolute inset-0" style="background: linear-gradient(180deg, #100800 0%, #201505 25%, #3a2008 40%, #4a2a0a 50%, #3a2008 60%, #201505 75%, #100800 100%);"></div>
+                    <span class="absolute bottom-0 inset-x-0 text-[8px] text-orange-300 bg-black/70 text-center py-0.5 opacity-0 group-hover:opacity-100 transition">🟠 Papaya</span>
+                </button>
+                <button class="bg-swatch w-full aspect-[3/2] rounded-lg border-2 border-gray-600 hover:border-blue-500 transition overflow-hidden relative group" data-bg="ocean-depth" title="Ocean Depth" onclick="window.setPageBackground('ocean-depth')">
+                    <div class="absolute inset-0" style="background: linear-gradient(180deg, #000510 0%, #001030 25%, #002050 50%, #001030 75%, #000510 100%);"></div>
+                    <span class="absolute bottom-0 inset-x-0 text-[8px] text-blue-300 bg-black/70 text-center py-0.5 opacity-0 group-hover:opacity-100 transition">🌊 Ocean</span>
+                </button>
+                <button class="bg-swatch w-full aspect-[3/2] rounded-lg border-2 border-gray-600 hover:border-orange-600 transition overflow-hidden relative group" data-bg="volcanic" title="Volcanic" onclick="window.setPageBackground('volcanic')">
+                    <div class="absolute inset-0" style="background: linear-gradient(180deg, #0a0000 0%, #1a0500 20%, #2d0800 35%, #401005 50%, #2d0800 65%, #1a0500 80%, #0a0000 100%);"></div>
+                    <span class="absolute bottom-0 inset-x-0 text-[8px] text-orange-400 bg-black/70 text-center py-0.5 opacity-0 group-hover:opacity-100 transition">🌋 Volcanic</span>
                 </button>
             </div>
         </div>

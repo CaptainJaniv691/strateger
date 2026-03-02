@@ -3117,7 +3117,41 @@ window.addEventListener('beforeinstallprompt', (e) => {
     setTimeout(() => {
         const banner = document.getElementById('installBanner');
         if (banner) banner.classList.remove('hidden');
-    }, 30000); // Show after 30s of use
+    }, 10000); // Show after 10s of use
+});
+
+// Fallback for browsers that don't fire beforeinstallprompt (Samsung Internet, some WebViews)
+// Show a manual "Add to Home Screen" guide after 60s if no prompt was captured
+window.addEventListener('load', () => {
+    // Skip if already installed as PWA, native app, or already dismissed
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    const isNative = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+    const dismissed = localStorage.getItem('strateger_install_dismissed');
+    const recentlyDismissed = dismissed && (Date.now() - parseInt(dismissed)) < 7 * 86400000;
+    
+    if (isStandalone || isNative || recentlyDismissed) return;
+    
+    setTimeout(() => {
+        if (!window._deferredInstallPrompt) {
+            // No browser prompt available — show banner with manual instructions
+            const banner = document.getElementById('installBanner');
+            const installBtn = banner?.querySelector('button[onclick*="installPWA"]');
+            if (banner && installBtn) {
+                // Change button to show manual instructions
+                installBtn.innerText = window.t ? window.t('install') : 'Add to Home';
+                installBtn.onclick = function() {
+                    const isAndroid = /android/i.test(navigator.userAgent);
+                    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+                    let msg = '';
+                    if (isAndroid) msg = 'Tap ⋮ menu → "Add to Home screen" or "Install app"';
+                    else if (isIOS) msg = 'Tap the Share button → "Add to Home Screen"';
+                    else msg = 'Use your browser menu to install this app';
+                    window.showToast('📲 ' + msg, 'info', 8000);
+                };
+                banner.classList.remove('hidden');
+            }
+        }
+    }, 45000);
 });
 
 window.installPWA = function() {

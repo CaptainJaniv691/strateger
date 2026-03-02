@@ -46,6 +46,33 @@ body {
 
 /* ==================== HEADER PROTECTION ==================== */
 
+/* ==================== RTL LAYOUT ==================== */
+/* Header stays LTR so nav buttons don't flip */
+[dir="rtl"] header {
+    direction: ltr;
+}
+/* Keep numeric, timer, and input elements LTR */
+[dir="rtl"] [class*="font-mono"],
+[dir="rtl"] .driver-stint-timer,
+[dir="rtl"] .driver-race-timer,
+[dir="rtl"] .driver-data,
+[dir="rtl"] .driver-delta,
+[dir="rtl"] .cr-gap,
+[dir="rtl"] .cr-lap,
+[dir="rtl"] input,
+[dir="rtl"] select {
+    direction: ltr;
+}
+/* Modals keep LTR layout */
+[dir="rtl"] [id$="Modal"] > div,
+[dir="rtl"] #pitModal > div {
+    direction: ltr;
+}
+/* Overflow menu stays LTR */
+[dir="rtl"] #headerOverflowMenu {
+    direction: ltr;
+}
+
 /* ==================== THEME TINTING ==================== */
 /* When a color theme is active, tint ALL app elements */
 :root[style*="--theme-panel"] #raceDashboard .bg-navy-900,
@@ -608,13 +635,19 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
     left: 0;
     right: 0;
     z-index: 9999;
-    background: #7c2d12;
-    color: #fed7aa;
+    background: linear-gradient(90deg, #1c1917, #292524);
+    color: #fbbf24;
     text-align: center;
-    padding: 6px;
+    padding: 7px 12px;
     font-size: 12px;
-    font-weight: 700;
+    font-weight: 600;
+    letter-spacing: 0.02em;
     animation: slideDown 0.3s ease-out;
+    border-bottom: 1px solid #44403c;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
 }
 @keyframes slideDown {
     from { transform: translateY(-100%); }

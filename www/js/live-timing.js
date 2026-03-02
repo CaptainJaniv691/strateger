@@ -794,6 +794,19 @@ window.stopLiveTimingUpdates = function() {
 window.startDemoMode = function() {
     window.liveTimingConfig.demoMode = true;
     window.liveTimingConfig.enabled = true;
+
+    // Initialize rain simulation state
+    window.demoState.rain = {
+        active: false,          // currently raining?
+        intensity: 0,           // 0 = dry, 0.3 = light, 0.6 = medium, 1.0 = heavy
+        drying: false,          // track is drying after rain
+        nextEventTime: 0,       // ms from race start when next rain change happens
+        lastChangeTime: 0,
+        paceMultiplier: 1.0     // current wet multiplier applied to all lap times
+    };
+    // Schedule first possible rain between 2–6 minutes into the race
+    window.demoState.rain.nextEventTime = 120000 + Math.random() * 240000;
+
     window.initializeDemoCompetitors();
     
     const statusEl = document.getElementById('liveTimingStatus');
@@ -837,11 +850,16 @@ window.initializeDemoCompetitors = function() {
         }
         pitEntryTimes.sort((a, b) => a - b);
 
+        // Rain skill: 1.0 = no penalty in rain, higher = slower in wet
+        // Some teams are much better in rain than others (karting is very sensitive to rain)
+        const rainSkill = 1.0 + r() * 0.06; // 0–6% additional slowdown in wet
+
         return {
             name, kart: String(10 + idx), isOurTeam: idx === 0,
             position: idx + 1, previousPosition: idx + 1,
             basePace, consistency, pitEntryTimes,
             pitTimeMs: configPitTimeSec * 1000,
+            rainSkill,
             // Cumulative state — built lap-by-lap
             lapTimes: [],       // every completed lap (ms)
             lastLap: null,
@@ -868,6 +886,80 @@ window.updateDemoData = function() {
     const now = Date.now();
     const raceStart = window.state.startTime;
     const raceElapsed = now - raceStart;
+
+    // --- Rain simulation ---
+    const rain = window.demoState.rain;
+    if (rain && raceElapsed >= rain.nextEventTime) {
+        if (!rain.active && !rain.drying) {
+            // Start raining
+            rain.active = true;
+            rain.drying = false;
+            rain.intensity = 0.3 + Math.random() * 0.7; // 0.3–1.0
+            rain.lastChangeTime = raceElapsed;
+            // Rain lasts 2–8 minutes
+            rain.nextEventTime = raceElapsed + 120000 + Math.random() * 360000;
+
+            // Update weather UI and notify
+            window.state.trackCondition = 'wet';
+            window.state.isRain = true;
+            if (typeof updateWeatherUI === 'function') updateWeatherUI();
+            const intensityLabel = rain.intensity > 0.7 ? 'Heavy' : rain.intensity > 0.45 ? 'Medium' : 'Light';
+            if (typeof window.showToast === 'function') {
+                window.showToast(`🌧️ Rain starting! ${intensityLabel} rain — lap times will increase`, 'warning', 6000);
+            }
+            if (typeof window._fireStrategyNotification === 'function') {
+                window._fireStrategyNotification(`🌧️ ${intensityLabel} rain! Track is getting wet — consider strategy adjustments`, 'info');
+            }
+            if (typeof window.playAlertBeep === 'function') window.playAlertBeep('info');
+
+        } else if (rain.active) {
+            // Rain stops → drying phase
+            rain.active = false;
+            rain.drying = true;
+            rain.lastChangeTime = raceElapsed;
+            // Drying lasts 2–5 minutes
+            rain.nextEventTime = raceElapsed + 120000 + Math.random() * 180000;
+
+            window.state.trackCondition = 'drying';
+            window.state.isRain = false;
+            if (typeof updateWeatherUI === 'function') updateWeatherUI();
+            if (typeof window.showToast === 'function') {
+                window.showToast('⛅ Rain stopped — track is drying', 'info', 5000);
+            }
+            if (typeof window._fireStrategyNotification === 'function') {
+                window._fireStrategyNotification('⛅ Rain stopped — track drying, lap times improving', 'info');
+            }
+
+        } else if (rain.drying) {
+            // Fully dry again
+            rain.drying = false;
+            rain.intensity = 0;
+            rain.lastChangeTime = raceElapsed;
+            // Next rain event: 3–10 minutes later
+            rain.nextEventTime = raceElapsed + 180000 + Math.random() * 420000;
+
+            window.state.trackCondition = 'dry';
+            window.state.isRain = false;
+            if (typeof updateWeatherUI === 'function') updateWeatherUI();
+            if (typeof window.showToast === 'function') {
+                window.showToast('☀️ Track is dry — back to normal pace', 'success', 4000);
+            }
+        }
+    }
+
+    // Calculate current rain pace multiplier
+    // Wet karting is significantly slower: ~8-15% slower depending on intensity
+    if (rain) {
+        if (rain.active) {
+            rain.paceMultiplier = 1.0 + rain.intensity * 0.15; // 4.5%–15% slower
+        } else if (rain.drying) {
+            // Gradually dry: pace recovers over the drying period
+            const dryingProgress = Math.min(1, (raceElapsed - rain.lastChangeTime) / 180000); // ~3 min to fully dry
+            rain.paceMultiplier = 1.0 + rain.intensity * 0.15 * (1 - dryingProgress);
+        } else {
+            rain.paceMultiplier = 1.0;
+        }
+    }
 
     // --- Advance each competitor ---
     window.demoState.competitors.forEach(comp => {
@@ -904,7 +996,12 @@ window.updateDemoData = function() {
                 const u1 = Math.random() || 0.001;
                 const u2 = Math.random();
                 const gauss = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
-                const lapTime = Math.max(comp.basePace * 0.92, comp.basePace + gauss * comp.consistency);
+                // Apply tire degradation multiplier
+                const tireMult = comp._tireDeg || 1;
+                // Apply rain multiplier: base rain slowdown + per-team rain skill
+                const rainMult = rain ? rain.paceMultiplier : 1;
+                const teamRainMult = rainMult > 1.01 ? (1 + (rainMult - 1) * comp.rainSkill) : 1;
+                const lapTime = Math.max(comp.basePace * 0.92, (comp.basePace + gauss * comp.consistency) * tireMult * teamRainMult);
 
                 if (comp.elapsed + lapTime > raceElapsed) {
                     // Mid-lap: don't complete it yet
@@ -958,6 +1055,34 @@ window.updateDemoData = function() {
         }
     });
 
+    // --- Demo scenarios: penalties, tire degradation ---
+    window.demoState.competitors.forEach(comp => {
+        // Random penalty chance (~0.3% per update, roughly 1 per 5-6 min at 1Hz)
+        if (!comp._penaltyApplied && comp.laps > 5 && Math.random() < 0.003) {
+            const penaltySec = [5, 10, 10, 15, 30][Math.floor(Math.random() * 5)];
+            comp.penalty = (comp.penalty || 0) + 1;
+            comp.penaltyTime = (comp.penaltyTime || 0) + penaltySec;
+            comp.penaltyReason = ['Short stint', 'Pit lane speeding', 'Track limits', 'Unsafe release', 'Jump start'][Math.floor(Math.random() * 5)];
+            // Add penalty time to elapsed (time penalty = lost time)
+            comp.elapsed += penaltySec * 1000;
+            comp._penaltyApplied = true; // Max 1 penalty per team in demo
+        }
+
+        // Tire degradation: lap times get ~0.2% slower every 8 laps in a stint
+        const lapsSincePit = comp.laps - (comp._lapsAtLastPit || 0);
+        if (lapsSincePit > 8) {
+            comp._tireDeg = 1 + (lapsSincePit - 8) * 0.002;
+        } else {
+            comp._tireDeg = 1;
+        }
+        // Reset tire deg on pit
+        if (comp.inPit && !comp._wasPitting) {
+            comp._lapsAtLastPit = comp.laps;
+            comp._tireDeg = 1;
+        }
+        comp._wasPitting = comp.inPit;
+    });
+
     // Write sorted order back
     window.demoState.competitors = sorted;
 
@@ -971,6 +1096,10 @@ window.updateDemoData = function() {
         window.liveData.laps = ourTeam.laps;
         window.liveData.gapToLeader = ourTeam.gapToLeader;
 
+        // Expose penalty data for UI
+        window.liveData.ourTeamPenalty = ourTeam.penalty || 0;
+        window.liveData.ourTeamPenaltyTime = ourTeam.penaltyTime || 0;
+
         // Track stint lap history
         if (ourTeam.lastLap && ourTeam.lastLap !== window.liveData.lastRecordedLap) {
             if (!window.liveData.stintLapHistory) window.liveData.stintLapHistory = [];
@@ -978,6 +1107,20 @@ window.updateDemoData = function() {
             window.liveData.lastRecordedLap = ourTeam.lastLap;
             if (!window.liveData.stintBestLap || ourTeam.lastLap < window.liveData.stintBestLap) {
                 window.liveData.stintBestLap = ourTeam.lastLap;
+            }
+        }
+
+        // Detect new penalty in demo → fire notification
+        if (ourTeam.penalty > (ourTeam._lastNotifiedPenalty || 0)) {
+            ourTeam._lastNotifiedPenalty = ourTeam.penalty;
+            if (typeof window._fireStrategyNotification === 'function') {
+                window._fireStrategyNotification(`⚠️ PENALTY! +${ourTeam.penaltyTime}s — ${ourTeam.penaltyReason}`, 'warning');
+            }
+            if (typeof window.playAlertBeep === 'function') {
+                window.playAlertBeep('warning');
+            }
+            if (typeof window.showToast === 'function') {
+                window.showToast(`⚠️ Penalty: +${ourTeam.penaltyTime}s (${ourTeam.penaltyReason})`, 'error', 8000);
             }
         }
 

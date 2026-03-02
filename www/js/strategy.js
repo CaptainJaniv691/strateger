@@ -661,11 +661,14 @@ window.initRace = function() {
 
     console.log("🏁 Starting Race...");
 
+    // use the host‑synced clock so viewers/drivers are all aligned
     const now = (window.getSyncedNow && typeof window.getSyncedNow === 'function') ? window.getSyncedNow() : Date.now();
+    // if a race start date/time has been entered, treat the start as that moment
     let startTime = now;
     const raceStartDate = window.getRaceStartDate && window.getRaceStartDate();
     if (raceStartDate) {
         const sched = raceStartDate.getTime();
+        // if we're within a few seconds of the scheduled start, snap to it
         if (now >= sched && now - sched < 10000) {
             startTime = sched;
         }

@@ -250,6 +250,22 @@ class ApexTimingScraper {
             }
             return;
         }
+
+        // Penalty message: r<rowId>|pen|<seconds> or penalty|r<rowId>|<seconds>
+        const penMatch = line.match(/^(r\d+)\|pen\|(\d+)/) || line.match(/^penalty\|(r\d+)\|(\d+)/);
+        if (penMatch) {
+            const rowId = penMatch[1];
+            const penSec = parseInt(penMatch[2]) || 0;
+            const comp = this.competitors.get(rowId);
+            if (comp) {
+                comp.penalty = (comp.penalty || 0) + 1;
+                comp.penaltyTime = (comp.penaltyTime || 0) + penSec;
+                comp.penaltyReason = `+${penSec}s penalty`;
+                this.log('INFO', `⚠️ Penalty: ${comp.driverName || rowId} +${penSec}s`);
+                this.emitUpdate();
+            }
+            return;
+        }
     }
 
     updateCompetitorCell(comp, colIdx, value) {
@@ -366,6 +382,17 @@ class ApexTimingScraper {
             comp.lastLapMs = this.parseTimeToMs(comp.lastLap);
             comp.bestLapMs = this.parseTimeToMs(comp.bestLap);
             comp.previousPosition = comp.position;
+
+            // Penalty column (some Apex configs have it at column 14+)
+            const penaltyCell = cells[14]?.textContent?.trim() || '';
+            if (penaltyCell) {
+                const penSec = parseInt(penaltyCell);
+                if (!isNaN(penSec) && penSec > 0) {
+                    comp.penalty = 1;
+                    comp.penaltyTime = penSec;
+                    comp.penaltyReason = `+${penSec}s`;
+                }
+            }
 
             // Skip invalid/header rows (position 0 or no data)
             if (comp.position <= 0 && !comp.driverName && !comp.kartNumber) continue;
@@ -511,7 +538,10 @@ class ApexTimingScraper {
             laps: c.totalLaps || 0,
             totalLaps: c.totalLaps || 0,
             inPit: c.inPit || false,
-            previousPosition: c.previousPosition || c.position
+            previousPosition: c.previousPosition || c.position,
+            penalty: c.penalty || 0,
+            penaltyTime: c.penaltyTime || 0,
+            penaltyReason: c.penaltyReason || ''
         });
 
         const result = {

@@ -781,13 +781,22 @@ window.renderFrame = function() {
 
     try {
         const now = window.getSyncedNow();
-        const raceElapsed = now - window.state.startTime;
-        let raceRemaining = raceMs - raceElapsed;
+        const raceElapsedRaw = now - window.state.startTime;
+        let raceRemainingRaw = raceMs - raceElapsedRaw;
         
         // Use live timing race clock when available (more accurate than local timer)
         if (window.liveData && window.liveData.raceTimeLeftMs != null && window.liveData.raceTimeLeftMs >= 0) {
-            raceRemaining = window.liveData.raceTimeLeftMs;
+            raceRemainingRaw = window.liveData.raceTimeLeftMs;
         }
+
+        // Floor elapsed to whole seconds — derive remaining from the SAME boundary
+        // so countdown and stint timers always cross the second together
+        const effectiveElapsedMs = Math.max(0, raceMs - raceRemainingRaw);
+        const elapsedSec = Math.floor(effectiveElapsedMs / 1000);
+        const totalSec = Math.floor(raceMs / 1000);
+        const remainingSec = Math.max(0, totalSec - elapsedSec);
+        // keep raw remaining for logic checks
+        const raceRemaining = raceRemainingRaw;
         
         const timerEl = document.getElementById('raceTimerDisplay');
         if (raceRemaining <= 0 || window.state.isFinished) {
@@ -799,16 +808,15 @@ window.renderFrame = function() {
             }
             return;
         }
-        if (raceRemaining <= 0) {
+        if (remainingSec <= 0) {
             timerEl.innerText = "0:00:00";
             timerEl.classList.add("text-neon");
         } else {
             // Timer mode: elapsed or remaining
             if (window._timerMode === 'elapsed') {
-                timerEl.innerText = window.formatTimeHMS(Math.max(0, raceElapsed));
+                timerEl.innerText = window.formatTimeHMS(elapsedSec * 1000);
             } else {
-                // Floor so the last visible second is 0:00:00 (not stuck on 0:00:01)
-                timerEl.innerText = window.formatTimeHMS(Math.max(0, raceRemaining));
+                timerEl.innerText = window.formatTimeHMS(remainingSec * 1000);
             }
         }
 
@@ -848,9 +856,9 @@ window.renderFrame = function() {
 
         if (!window.state.isInPit) {
             let currentStintTime = (now - window.state.stintStart) + (window.state.stintOffset || 0);
-// Display current stint time without flooring
-            const dispStint = Math.max(0, currentStintTime);
-            document.getElementById('stintTimerDisplay').innerText = window.formatTimeHMS(dispStint);
+            // Floor to whole seconds so it ticks in sync with the race countdown
+            const stintSec = Math.floor(Math.max(0, currentStintTime) / 1000);
+            document.getElementById('stintTimerDisplay').innerText = window.formatTimeHMS(stintSec * 1000);
             
             const maxStintMs = (window.config.maxStintMs) || (window.config.maxStint * 60000) || (60 * 60000);
             const minStintMs = (window.config.minStint * 60000) || 0;
@@ -2356,17 +2364,23 @@ window.updateDriverMode = function() {
     const targetMs = window.state.targetStintMs || maxStintMs;
     const currentStintMs = (now - window.state.stintStart) + (window.state.stintOffset || 0);
 
+    // Floor elapsed to whole seconds — derive remaining from the SAME boundary
+    const drvEffectiveElapsed = Math.max(0, raceMs - raceRemaining);
+    const drvElapsedSec = Math.floor(drvEffectiveElapsed / 1000);
+    const drvTotalSec = Math.floor(raceMs / 1000);
+    const drvRemainingSec = Math.max(0, drvTotalSec - drvElapsedSec);
+
     // === Race timer (top-right, small) ===
     const timerEl = document.getElementById('driverRaceTimer');
     if (timerEl) {
         if (raceRemaining <= -1000) {
             timerEl.innerText = '🏁 FINISH';
             timerEl.style.color = '#39ff14';
-        } else if (raceRemaining <= 0) {
+        } else if (drvRemainingSec <= 0) {
             timerEl.innerText = '0:00:00';
             timerEl.style.color = '#39ff14';
         } else {
-            timerEl.innerText = window.formatTimeHMS(raceRemaining);
+            timerEl.innerText = window.formatTimeHMS(drvRemainingSec * 1000);
             timerEl.style.color = '';
         }
     }
@@ -2377,13 +2391,14 @@ window.updateDriverMode = function() {
         if (window.state.isInPit) {
             // Show pit elapsed time
             const pitMs = now - (window.state.pitStart || now);
-            let str = window.formatTimeHMS(Math.max(0, pitMs));
+            const pitSec = Math.floor(Math.max(0, pitMs) / 1000);
+            let str = window.formatTimeHMS(pitSec * 1000);
             if (str.startsWith('00:')) str = str.substring(3);
             stintTimerEl.innerText = str;
             stintTimerEl.style.color = '#f87171';
         } else {
-            const stintMs = currentStintMs;
-            let str = window.formatTimeHMS(Math.max(0, stintMs));
+            const stintSec = Math.floor(Math.max(0, currentStintMs) / 1000);
+            let str = window.formatTimeHMS(stintSec * 1000);
             if (str.startsWith('00:')) str = str.substring(3);
             stintTimerEl.innerText = str;
             // Color by zone
@@ -3102,7 +3117,41 @@ window.addEventListener('beforeinstallprompt', (e) => {
     setTimeout(() => {
         const banner = document.getElementById('installBanner');
         if (banner) banner.classList.remove('hidden');
-    }, 30000); // Show after 30s of use
+    }, 10000); // Show after 10s of use
+});
+
+// Fallback for browsers that don't fire beforeinstallprompt (Samsung Internet, some WebViews)
+// Show a manual "Add to Home Screen" guide after 60s if no prompt was captured
+window.addEventListener('load', () => {
+    // Skip if already installed as PWA, native app, or already dismissed
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    const isNative = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+    const dismissed = localStorage.getItem('strateger_install_dismissed');
+    const recentlyDismissed = dismissed && (Date.now() - parseInt(dismissed)) < 7 * 86400000;
+    
+    if (isStandalone || isNative || recentlyDismissed) return;
+    
+    setTimeout(() => {
+        if (!window._deferredInstallPrompt) {
+            // No browser prompt available — show banner with manual instructions
+            const banner = document.getElementById('installBanner');
+            const installBtn = banner?.querySelector('button[onclick*="installPWA"]');
+            if (banner && installBtn) {
+                // Change button to show manual instructions
+                installBtn.innerText = window.t ? window.t('install') : 'Add to Home';
+                installBtn.onclick = function() {
+                    const isAndroid = /android/i.test(navigator.userAgent);
+                    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+                    let msg = '';
+                    if (isAndroid) msg = 'Tap ⋮ menu → "Add to Home screen" or "Install app"';
+                    else if (isIOS) msg = 'Tap the Share button → "Add to Home Screen"';
+                    else msg = 'Use your browser menu to install this app';
+                    window.showToast('📲 ' + msg, 'info', 8000);
+                };
+                banner.classList.remove('hidden');
+            }
+        }
+    }, 45000);
 });
 
 window.installPWA = function() {
@@ -3500,13 +3549,39 @@ window.showShortcutsHelp = function() {
 
 (function() {
     let offlineBanner = null;
-    
+    const t = () => window.t || ((k) => k);
+
+    function setOfflineUI(offline) {
+        // Google sign-in: hide when offline
+        const googleAuth = document.getElementById('googleAuthCompact');
+        if (googleAuth) googleAuth.style.display = offline ? 'none' : '';
+
+        // Sync controls: dim when offline
+        const syncControls = document.getElementById('syncControls');
+        if (syncControls) syncControls.style.opacity = offline ? '0.3' : '';
+
+        // Share/invite buttons: dim when offline
+        ['shareRaceBtn', 'driverLinkBtn'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) { el.style.opacity = offline ? '0.4' : ''; el.style.pointerEvents = offline ? 'none' : ''; }
+        });
+
+        // Live timing indicator
+        const liveInd = document.getElementById('liveIndicator');
+        if (liveInd && offline) liveInd.classList.add('hidden');
+
+        // Pro status button (license verification needs server)
+        const proBtn = document.getElementById('proStatusBtn');
+        if (proBtn) proBtn.style.opacity = offline ? '0.4' : '';
+    }
+
     function showOffline() {
         if (offlineBanner) return;
         offlineBanner = document.createElement('div');
         offlineBanner.className = 'offline-banner';
-        offlineBanner.innerHTML = '⚡ Offline — data may not sync';
+        offlineBanner.innerHTML = '📡 Offline mode — race strategy works, live features unavailable';
         document.body.appendChild(offlineBanner);
+        setOfflineUI(true);
     }
     
     function hideOffline() {
@@ -3514,6 +3589,7 @@ window.showShortcutsHelp = function() {
             offlineBanner.remove();
             offlineBanner = null;
         }
+        setOfflineUI(false);
     }
     
     window.addEventListener('offline', showOffline);
