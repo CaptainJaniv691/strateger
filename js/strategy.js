@@ -619,15 +619,32 @@ window.runSim = function() {
     if (resEl) {
         const t = window.t || ((k) => k);
         const isRTL = document.documentElement.dir === 'rtl';
+        const um = t('unitMin') || 'm';
+        const uh = t('unitHour') || 'h';
         resEl.classList.remove('hidden');
         resEl.style.borderColor = '#22d3ee';
         resEl.style.color = '#22d3ee';
         resEl.style.direction = isRTL ? 'rtl' : 'ltr';
-        resEl.innerHTML = `
-            <span dir="${isRTL ? 'rtl' : 'ltr'}">✅ <b>${stints.length} ${t('stints')}</b> | ${t('avgStint')}: ${avgStint}m</span><br>
-            <span dir="ltr">🏁 ${t('driveNoun')}: ${(actualDriveTime/60000).toFixed(0)}m + ${t('pitNoun')}: ${(actualPitTime/60000).toFixed(0)}m = <b>${(totalRaceTime/60000).toFixed(0)}m</b> (${(totalRaceTime/3600000).toFixed(2)}h)</span>
-            ${pitClosedInfo ? `<br><span dir="ltr">${pitClosedInfo.trim()}</span>` : ''}${squadInfo ? `<br><span dir="ltr">${squadInfo.trim()}</span>` : ''}
-        `;
+
+        const driveMin = (actualDriveTime/60000).toFixed(0);
+        const pitMin = (actualPitTime/60000).toFixed(0);
+        const totalMin = (totalRaceTime/60000).toFixed(0);
+        const totalH = (totalRaceTime/3600000).toFixed(2);
+
+        if (isRTL) {
+            // RTL: wrap every numeric+unit chunk in <bdi> so BiDi doesn't reorder them
+            resEl.innerHTML = `
+                <span dir="rtl">✅ <b><bdi>${stints.length} ${t('stints')}</bdi></b> | ${t('avgStint')}: <bdi>${avgStint}${um}</bdi></span><br>
+                <span dir="rtl">🏁 ${t('driveNoun')}: <bdi>${driveMin}${um}</bdi> + ${t('pitNoun')}: <bdi>${pitMin}${um}</bdi> = <b><bdi>${totalMin}${um}</bdi></b> (<bdi>${totalH}${uh}</bdi>)</span>
+                ${pitClosedInfo ? `<br><span dir="ltr">${pitClosedInfo.trim()}</span>` : ''}${squadInfo ? `<br><span dir="ltr">${squadInfo.trim()}</span>` : ''}
+            `;
+        } else {
+            resEl.innerHTML = `
+                ✅ <b>${stints.length} ${t('stints')}</b> | ${t('avgStint')}: ${avgStint}${um}<br>
+                🏁 ${t('driveNoun')}: ${driveMin}${um} + ${t('pitNoun')}: ${pitMin}${um} = <b>${totalMin}${um}</b> (${totalH}${uh})
+                ${pitClosedInfo}${squadInfo}
+            `;
+        }
     }
 };
 
