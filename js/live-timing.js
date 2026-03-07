@@ -164,6 +164,7 @@ window.fetchLiveTimingFromProxy = async function() {
                 // === Pit status from live timing ===
                 const wasInPit = window.liveData.ourTeamInPit;
                 window.liveData.ourTeamInPit = !!data.ourTeam.inPit;
+                const prevPitCount = window.liveData.ourTeamPitCount;
                 window.liveData.ourTeamPitCount = data.ourTeam.pitCount ?? null;
 
                 // Auto-detect pit entry from live timing — AUTHORITATIVE: live timing always wins
@@ -171,20 +172,37 @@ window.fetchLiveTimingFromProxy = async function() {
 
                 if (window.state && window.state.isRunning && !window.state.isInPit && data.ourTeam.inPit) {
                     // Live timing says we are in pit — override everything
-                    console.log('[LiveTiming] 🛑 AUTHORITATIVE PIT ENTRY from live data');
+                    console.log('[LiveTiming] 🛑 AUTHORITATIVE PIT ENTRY from live data (inPit=true)');
                     if (typeof window.confirmPitEntry === 'function') {
                         window.confirmPitEntry(true); // true = auto-detected, skip confirm dialog
                     }
                 }
+                // Fallback: detect pit entry from pitCount increase (catches cases where inPit flag was missed between polls)
+                else if (window.state && window.state.isRunning && !window.state.isInPit
+                    && prevPitCount != null && data.ourTeam.pitCount != null
+                    && data.ourTeam.pitCount > prevPitCount) {
+                    console.log(`[LiveTiming] 🛑 PIT ENTRY detected via pitCount increase (${prevPitCount} → ${data.ourTeam.pitCount})`);
+                    window.liveData.ourTeamInPit = true; // Force so exit detection works
+                    window.liveData._pitEntryForcedAt = now; // Track when we forced entry
+                    if (typeof window.confirmPitEntry === 'function') {
+                        window.confirmPitEntry(true);
+                    }
+                }
                 // Auto-detect pit exit from live timing — AUTHORITATIVE
                 if (window.state && window.state.isRunning && window.state.isInPit && !data.ourTeam.inPit && wasInPit === true) {
-                    console.log('[LiveTiming] ✅ AUTHORITATIVE PIT EXIT from live data');
-                    // Reset stint lap tracking for new stint
-                    window.liveData.stintLapHistory = [];
-                    window.liveData.stintBestLap = null;
-                    window.liveData.lastRecordedLap = null;
-                    if (typeof window.confirmPitExit === 'function') {
-                        window.confirmPitExit(true); // true = auto-detected from live timing
+                    // Guard: don't auto-exit if pit time is too short (< 20s) — prevents false exits from pitCount fallback
+                    const pitElapsed = window.state.pitStart ? (now - window.state.pitStart) : Infinity;
+                    if (pitElapsed >= 20000) {
+                        console.log('[LiveTiming] ✅ AUTHORITATIVE PIT EXIT from live data');
+                        // Reset stint lap tracking for new stint
+                        window.liveData.stintLapHistory = [];
+                        window.liveData.stintBestLap = null;
+                        window.liveData.lastRecordedLap = null;
+                        if (typeof window.confirmPitExit === 'function') {
+                            window.confirmPitExit(true); // true = auto-detected from live timing
+                        }
+                    } else {
+                        console.log(`[LiveTiming] ⏳ Pit exit suppressed — only ${Math.round(pitElapsed/1000)}s in pit (min 20s)`);
                     }
                 }
                 

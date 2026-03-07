@@ -352,6 +352,7 @@ class LiveTimingManager {
                     laps: parseInt(c.laps) || 0,
                     gap: gapToMs(c.gap),
                     inPit: c.inPit || false,
+                    pitCount: c.pitCount || 0,
                     isOurTeam: data.ourTeam ? (c.name === data.ourTeam.name && c.kart === data.ourTeam.kart) : false
                 })),
                 found: data.found,

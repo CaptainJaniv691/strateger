@@ -245,6 +245,13 @@ class ApexTimingScraper {
             const inPit = pitMatch[2] === '1';
             const comp = this.competitors.get(rowId);
             if (comp) {
+                // Track pitCount: increment when transitioning into pit
+                if (inPit && !comp.inPit) {
+                    comp.pitCount = (comp.pitCount || 0) + 1;
+                    this.log('INFO', `🛑 Pit entry detected for ${comp.driverName || rowId} (pit #${comp.pitCount})`);
+                } else if (!inPit && comp.inPit) {
+                    this.log('INFO', `✅ Pit exit detected for ${comp.driverName || rowId}`);
+                }
                 comp.inPit = inPit;
                 this.emitUpdate();
             }
@@ -376,6 +383,7 @@ class ApexTimingScraper {
                 lastLapMs: 0,
                 bestLapMs: 0,
                 inPit: false,
+                pitCount: 0,
                 previousPosition: 0
             };
 
@@ -453,6 +461,7 @@ class ApexTimingScraper {
                 lastLapMs: 0,
                 bestLapMs: 0,
                 inPit: false,
+                pitCount: 0,
                 previousPosition: 0
             };
 
@@ -538,6 +547,7 @@ class ApexTimingScraper {
             laps: c.totalLaps || 0,
             totalLaps: c.totalLaps || 0,
             inPit: c.inPit || false,
+            pitCount: c.pitCount || 0,
             previousPosition: c.previousPosition || c.position,
             penalty: c.penalty || 0,
             penaltyTime: c.penaltyTime || 0,
