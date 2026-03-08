@@ -25,6 +25,10 @@ class ApexTimingScraper {
         this.onUpdate = config.onUpdate || null;
         this.onError = config.onError || null;
         this.onComment = config.onComment || null;
+
+        // Race time remaining (parsed from Apex countdown WS messages)
+        this.raceTimeLeftSec = null;
+        this._raceTimeReceivedAt = null;
     }
 
     log(level, msg) {
@@ -220,12 +224,32 @@ class ApexTimingScraper {
             } else if (key === 'css') {
                 // Style info, skip
             } else if (key === 'ti') {
-                this.log('INFO', `⏱️ Timer: ${rest}`);
+                this._parsePotentialTimer('ti', rest);
+            } else {
+                // Generic Apex element update: <data-id>|<type>|<value>|...
+                // Catches countdown timer regardless of which data-id key is used
+                this._parsePotentialTimer(key, rest);
             }
         }
     }
 
     handleRowUpdate(line) {
+        // Pit in/out via Apex *in/*out/*i1/*i2 markers: r<rowId>|*in| or r<rowId>|*out|
+        const starPitMatch = line.match(/^(r\d+)\|\*(in|i1|i2|out)\|?/i);
+        if (starPitMatch) {
+            const rowId = starPitMatch[1];
+            const dir = starPitMatch[2].toLowerCase();
+            const isEntering = dir !== 'out';
+            const comp = this.competitors.get(rowId);
+            if (comp) {
+                if (isEntering && !comp.inPit) comp.pitCount = (comp.pitCount || 0) + 1;
+                comp.inPit = isEntering;
+                this.log('INFO', `🏎️ Pit ${isEntering ? 'entry' : 'exit'} (*${dir}) for ${comp.driverName || rowId}`);
+                this.emitUpdate();
+            }
+            return;
+        }
+
         // Cell update: r<rowId>c<colIdx>|<value>|
         const cellMatch = line.match(/^(r\d+)c(\d+)\|([^|]*)\|?$/);
         if (cellMatch) {
@@ -328,6 +352,53 @@ class ApexTimingScraper {
         }
     }
 
+    /** Convert time string (H:MM:SS, MM:SS, or decimal seconds) to seconds */
+    _timerStringToSeconds(str) {
+        if (!str) return null;
+        const s = str.trim().split('_')[0]; // strip "_Running" suffix
+        const hms = s.match(/^(\d{1,2}):(\d{2}):(\d{2})$/);
+        if (hms) return parseInt(hms[1]) * 3600 + parseInt(hms[2]) * 60 + parseInt(hms[3]);
+        const ms = s.match(/^(\d{1,3}):(\d{2})$/);
+        if (ms) return parseInt(ms[1]) * 60 + parseInt(ms[2]);
+        const f = parseFloat(s);
+        return (!isNaN(f) && f > 0 && f < 90000) ? f : null;
+    }
+
+    /**
+     * Parse race time from Apex WS message.
+     * Handles: ti|HH:MM:SS  and  <data-id>|countdown|<seconds>  and  <data-id>|countdown_text|MM:SS_status
+     */
+    _parsePotentialTimer(key, rest) {
+        if (key === 'ti') {
+            // ti messages carry the time value directly in rest
+            const sec = this._timerStringToSeconds(rest.split('|')[0]);
+            if (sec !== null && sec > 0) {
+                this.raceTimeLeftSec = sec;
+                this._raceTimeReceivedAt = Date.now();
+                this.log('INFO', `⏱️ Race time from ti: ${Math.round(sec)}s`);
+            }
+            return;
+        }
+        // Generic element update: rest = "<type>|<value>|..."
+        const p = rest.indexOf('|');
+        if (p === -1) return;
+        const type = rest.substring(0, p);
+        if (type !== 'countdown' && type !== 'countdown_text' && type !== 'count') return;
+        const value = rest.substring(p + 1).split('|')[0];
+        const timePart = value.split('_')[0];
+        let sec;
+        if (type === 'countdown' && /^\d+\.\d+$/.test(timePart)) {
+            sec = parseFloat(timePart); // Apex sends decimal seconds for countdown type
+        } else {
+            sec = this._timerStringToSeconds(timePart);
+        }
+        if (sec !== null && sec > 0 && sec < 86400) {
+            this.raceTimeLeftSec = sec;
+            this._raceTimeReceivedAt = Date.now();
+            this.log('INFO', `⏱️ Race time from ${key}|${type}: ${Math.round(sec)}s`);
+        }
+    }
+
     detectColumnMapping(headerCells) {
         const patterns = [
             { field: 'position',   re: /^(cla|pos|rnk|rank|platz|p\.?|#|classifica)$/i },
@@ -410,6 +481,13 @@ class ApexTimingScraper {
                         comp.bestLap = value;
                         comp.bestLapMs = this.parseTimeToMs(value);
                         break;
+                    case 'onTrack': {
+                        // 'in'/'si' = in pit, 'out'/'so' = on track
+                        const v = value.toLowerCase().trim();
+                        if (v === 'in' || v === 'si') comp.inPit = true;
+                        else if (v === 'out' || v === 'so') comp.inPit = false;
+                        break;
+                    }
                     case 'sector1':    comp.sector1 = value; break;
                     case 'sector2':    comp.sector2 = value; break;
                     case 'sector3':    comp.sector3 = value; break;
@@ -597,10 +675,16 @@ class ApexTimingScraper {
                 continue;
             }
 
-            // Pit status from hidden status cells (0,1)
-            const statusCell = (cells[0]?.textContent?.trim() || '') + (cells[1]?.textContent?.trim() || '');
-            if (statusCell.includes('P') || statusCell.toLowerCase().includes('pit')) {
+            // Pit status: row class > onTrack column > hidden status cells
+            const rowCls = (row.className || '').toLowerCase();
+            if (/\bpit\b/.test(rowCls) || rowCls.includes('in_pit')) {
                 comp.inPit = true;
+            } else if (cm?.onTrack != null && cm.onTrack < cells.length) {
+                const stVal = cells[cm.onTrack].textContent.trim().toLowerCase();
+                if (stVal === 'in' || stVal === 'si') comp.inPit = true;
+            } else {
+                const sc = (cells[0]?.textContent?.trim() || '') + (cells[1]?.textContent?.trim() || '');
+                if (/^[Pp]$/.test(sc) || sc.toLowerCase().includes('pit')) comp.inPit = true;
             }
 
             this.competitors.set(rowId, comp);
@@ -677,6 +761,18 @@ class ApexTimingScraper {
             const hasTimingData = comp.lastLapMs > 0 || comp.bestLapMs > 0 || comp.totalLaps > 0;
             if (!posValid && !kartNumeric && !hasTimingData) continue;
 
+            // Pit status: check row's opening tag class attribute
+            const trTag = match[0].substring(0, match[0].indexOf('>') + 1).toLowerCase();
+            if (/\bpit\b/.test(trTag) || trTag.includes('in_pit')) {
+                comp.inPit = true;
+            } else if (cm?.onTrack != null && cm.onTrack < cells.length) {
+                const stVal = (cells[cm.onTrack] || '').toLowerCase().trim();
+                if (stVal === 'in' || stVal === 'si') comp.inPit = true;
+            } else {
+                const sc = (cells[0] || '') + (cells[1] || '');
+                if (/^[Pp]$/.test(sc) || sc.toLowerCase().includes('pit')) comp.inPit = true;
+            }
+
             this.competitors.set(rowId, comp);
         }
 
@@ -740,6 +836,7 @@ class ApexTimingScraper {
 
         // Map to field names LiveTimingManager expects: kart, laps, found
         const mapComp = c => ({
+            rowId: c.rowId,
             position: c.position,
             name: c.driverName || `${c.firstName} ${c.lastName}`.trim(),
             team: c.lastName || '',
@@ -748,7 +845,7 @@ class ApexTimingScraper {
             lastLapMs: c.lastLapMs || 0,
             bestLap: c.bestLap || '',
             bestLapMs: c.bestLapMs || 0,
-            gap: c.gap || '-',
+            gap: c.gap || '',
             laps: c.totalLaps || 0,
             totalLaps: c.totalLaps || 0,
             inPit: c.inPit || false,
@@ -757,10 +854,12 @@ class ApexTimingScraper {
             penalty: c.penalty || 0,
             penaltyTime: c.penaltyTime || 0,
             penaltyReason: c.penaltyReason || '',
-            category: c.category || ''
+            category: c.category || '',
+            isOurTeam: c.rowId === ourTeam?.rowId
         });
 
         const result = {
+            race: { timeLeftSeconds: this.raceTimeLeftSec },
             competitors: allCompetitors.map(mapComp),
             ourTeam: ourTeam ? {
                 ...mapComp(ourTeam),

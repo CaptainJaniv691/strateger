@@ -335,8 +335,14 @@ class LiveTimingManager {
 
         // עבור ספקים אחרים - פשוט החזר את הדאטה כמו שהיא
         if (provider === 'apex') {
+            // Sort by position for interval computation (gap[n] - gap[n-1])
+            const apexComps = (data.competitors || []).slice().sort((a, b) => (parseInt(a.position) || 0) - (parseInt(b.position) || 0));
+            const gapMsArr = apexComps.map(c => gapToMs(c.gap));
             return {
-                race: data.race || {},
+                race: {
+                    timeLeftSeconds: data.race?.timeLeftSeconds ?? null,
+                    status: data.race?.status || null
+                },
                 ourTeam: data.ourTeam ? {
                     position: parseInt(data.ourTeam.position) || 0,
                     name: data.ourTeam.name || '',
@@ -344,25 +350,35 @@ class LiveTimingManager {
                     kart: data.ourTeam.kart || '',
                     lastLap: data.ourTeam.lastLapMs || null,
                     bestLap: data.ourTeam.bestLapMs || null,
-                    totalLaps: parseInt(data.ourTeam.laps) || 0,
+                    totalLaps: parseInt(data.ourTeam.totalLaps || data.ourTeam.laps) || 0,
                     gap: gapToMs(data.ourTeam.gap),
+                    gapRaw: data.ourTeam.gap || '',
                     inPit: data.ourTeam.inPit || false,
                     pitCount: data.ourTeam.pitCount || 0,
-                    category: data.ourTeam.category || ''
+                    category: data.ourTeam.category || '',
+                    penalty: data.ourTeam.penalty || 0,
+                    penaltyTime: data.ourTeam.penaltyTime || 0,
+                    penaltyReason: data.ourTeam.penaltyReason || ''
                 } : null,
-                competitors: (data.competitors || []).map(c => ({
+                competitors: apexComps.map((c, idx) => ({
                     position: parseInt(c.position) || 0,
                     name: c.name || '',
                     team: c.team || '',
                     kart: c.kart || '',
                     lastLap: c.lastLapMs || null,
                     bestLap: c.bestLapMs || null,
-                    laps: parseInt(c.laps) || 0,
-                    gap: gapToMs(c.gap),
+                    laps: parseInt(c.laps || c.totalLaps) || 0,
+                    totalLaps: parseInt(c.laps || c.totalLaps) || 0,
+                    gap: gapMsArr[idx],
+                    gapRaw: c.gap || '',
+                    interval: idx === 0 ? 0 : Math.max(0, gapMsArr[idx] - gapMsArr[idx - 1]),
                     inPit: c.inPit || false,
                     pitCount: c.pitCount || 0,
                     category: c.category || '',
-                    isOurTeam: data.ourTeam ? (c.name === data.ourTeam.name && c.kart === data.ourTeam.kart) : false
+                    penalty: c.penalty || 0,
+                    penaltyTime: c.penaltyTime || 0,
+                    penaltyReason: c.penaltyReason || '',
+                    isOurTeam: c.isOurTeam || (data.ourTeam ? c.rowId === data.ourTeam.rowId : false)
                 })),
                 comments: data.comments || [],
                 found: data.found,
