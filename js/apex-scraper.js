@@ -68,10 +68,12 @@ class ApexTimingScraper {
         this.log('INFO', `🔌 Race URL: ${this.raceUrl}`);
         this.log('INFO', `🔍 Search term: "${this.searchTerm}"`);
 
-        // Fetch circuit-specific WebSocket port from javascript/config.js
-        const port = await this.fetchConfigPort(this.raceUrl);
-        this.wsUrl = `wss://${urlObj.hostname}:${port}/`;
-        this.log('INFO', `🔌 WS URL: ${this.wsUrl} (port ${port})`);
+        // Fetch circuit-specific WebSocket port from javascript/config.js.
+        // Apex Timing uses configPort+3 for WSS (HTTPS) and configPort+2 for WS (HTTP).
+        const configPort = await this.fetchConfigPort(this.raceUrl);
+        const wsPort = location.protocol === 'https:' ? configPort + 3 : configPort + 2;
+        this.wsUrl = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${urlObj.hostname}:${wsPort}/`;
+        this.log('INFO', `🔌 WS URL: ${this.wsUrl} (configPort ${configPort} → wsPort ${wsPort})`);
 
         this.connectWebSocket();
         this.scrapeInitialGrid();
