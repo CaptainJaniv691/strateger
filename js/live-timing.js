@@ -220,7 +220,7 @@ window.fetchLiveTimingFromProxy = async function() {
                     
                     // Notify admin via strategy notification
                     if (typeof window._fireStrategyNotification === 'function') {
-                        const msg = `⚠️ PENALTY! ${newPenaltyTime > 0 ? `+${newPenaltyTime}s` : ''} ${penaltyMsg}`;
+                        const msg = `⚠️ PENALTY! ${newPenaltyTime > 0 ? `${newPenaltyTime} Lap` : ''} ${penaltyMsg}`;
                         window._fireStrategyNotification(msg, 'warning');
                     }
                     
@@ -442,11 +442,6 @@ window.updateCompetitorsTable = function() {
         tableEl.addEventListener('scroll', () => {
             if (window._ltScroll._programmaticScroll) return;
             window._ltScroll.userScrolled = true;
-            if (window._ltScroll.refocusTimer) clearTimeout(window._ltScroll.refocusTimer);
-            window._ltScroll.refocusTimer = setTimeout(() => {
-                window._ltScroll.userScrolled = false;
-                window._scrollToOurTeamRow();
-            }, 60000);
         }, { passive: true });
     }
 
@@ -556,9 +551,9 @@ window.updateCompetitorsTable = function() {
             if (comp.inPit) badges += '<span class="badge-pit">PIT</span>';
             const penaltyVal = comp.penalty || comp.penaltyTime || 0;
             if (penaltyVal > 0) {
-                const penSec = comp.penaltyTime ? `${comp.penaltyTime}s` : '';
+                const penLabel = comp.penaltyTime ? `${comp.penaltyTime} Lap` : '';
                 const reason = (comp.penaltyReason || 'Penalty').replace(/"/g, '&quot;');
-                badges += `<span class="badge-penalty" title="${reason}" style="background:rgba(239,68,68,0.3);color:#f87171;font-size:8px;padding:0 3px;border-radius:2px;margin-left:2px;">⚠${penSec}</span>`;
+                badges += `<span class="badge-penalty" title="${reason}" style="background:rgba(239,68,68,0.3);color:#f87171;font-size:8px;padding:0 3px;border-radius:2px;margin-left:2px;">⚠${penLabel}</span>`;
             }
             // Only show ⚡ for top 3 fastest best-lap karts, not all "good pace"
             if (comp.position <= 3 && isPB) badges += '<span class="badge-fast" title="Top 3">⚡</span>';
@@ -665,11 +660,6 @@ window.updateCompetitorsTable = function() {
             if (avgEl.textContent !== avgTxt) avgEl.textContent = avgTxt;
         }
     });
-
-    // ---- Auto-scroll to our team ----
-    if (!window._ltScroll.userScrolled && ourTeamRow) {
-        window._scrollToOurTeamRow();
-    }
 
     // ---- Update kart ranking mini-panel ----
     window._updateKartRankingPanel();
@@ -1333,13 +1323,13 @@ window.updateDemoData = function() {
         if (ourTeam.penalty > (ourTeam._lastNotifiedPenalty || 0)) {
             ourTeam._lastNotifiedPenalty = ourTeam.penalty;
             if (typeof window._fireStrategyNotification === 'function') {
-                window._fireStrategyNotification(`⚠️ PENALTY! +${ourTeam.penaltyTime}s — ${ourTeam.penaltyReason}`, 'warning');
+                window._fireStrategyNotification(`⚠️ PENALTY! ${ourTeam.penaltyTime} Lap — ${ourTeam.penaltyReason}`, 'warning');
             }
             if (typeof window.playAlertBeep === 'function') {
                 window.playAlertBeep('warning');
             }
             if (typeof window.showToast === 'function') {
-                window.showToast(`⚠️ Penalty: +${ourTeam.penaltyTime}s (${ourTeam.penaltyReason})`, 'error', 8000);
+                window.showToast(`⚠️ Penalty: ${ourTeam.penaltyTime} Lap (${ourTeam.penaltyReason})`, 'error', 8000);
             }
         }
 

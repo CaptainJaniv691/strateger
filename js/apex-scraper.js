@@ -327,8 +327,8 @@ class ApexTimingScraper {
             if (comp) {
                 comp.penalty = (comp.penalty || 0) + 1;
                 comp.penaltyTime = (comp.penaltyTime || 0) + penSec;
-                comp.penaltyReason = `+${penSec}s penalty`;
-                this.log('INFO', `⚠️ Penalty: ${comp.driverName || rowId} +${penSec}s`);
+                comp.penaltyReason = `${penSec} Lap`;
+                this.log('INFO', `⚠️ Penalty: ${comp.driverName || rowId} ${penSec} Lap`);
                 this.emitUpdate();
             }
             return;
@@ -497,7 +497,7 @@ class ApexTimingScraper {
                         if (!isNaN(penSec) && penSec > 0) {
                             comp.penalty = 1;
                             comp.penaltyTime = penSec;
-                            comp.penaltyReason = `+${penSec}s`;
+                            comp.penaltyReason = `${penSec} Lap`;
                         }
                         break;
                     }
@@ -605,6 +605,8 @@ class ApexTimingScraper {
             return;
         }
 
+        // Preserve WS-signalled pit states across the HTML full refresh
+        const prevPitStates = new Map([...this.competitors].map(([k, v]) => [k, v.inPit]));
         this.competitors.clear();
         const getCell = (cells, field, fallbackIdx) => {
             const idx = cm ? cm[field] : fallbackIdx;
@@ -642,7 +644,7 @@ class ApexTimingScraper {
                 category:   cm?.category != null ? getCell(cells, 'category', null) : '',
                 lastLapMs: 0,
                 bestLapMs: 0,
-                inPit: false,
+                inPit: prevPitStates.get(rowId) || false,
                 pitCount: cm?.pitCount != null ? (parseInt(getCell(cells, 'pitCount', null)) || 0) : 0,
                 previousPosition: 0,
                 penalty: 0,
@@ -662,7 +664,7 @@ class ApexTimingScraper {
                 if (!isNaN(penSec) && penSec > 0) {
                     comp.penalty = 1;
                     comp.penaltyTime = penSec;
-                    comp.penaltyReason = `+${penSec}s`;
+                    comp.penaltyReason = `${penSec} Lap`;
                 }
             }
 
@@ -676,15 +678,21 @@ class ApexTimingScraper {
             }
 
             // Pit status: row class > onTrack column > hidden status cells
+            // Preserves prev inPit state when no definitive indicator is present.
             const rowCls = (row.className || '').toLowerCase();
             if (/\bpit\b/.test(rowCls) || rowCls.includes('in_pit')) {
                 comp.inPit = true;
+            } else if (rowCls.includes('on_track') || rowCls.includes('ontrack')) {
+                comp.inPit = false; // Explicit CSS class confirms out of pit
             } else if (cm?.onTrack != null && cm.onTrack < cells.length) {
                 const stVal = cells[cm.onTrack].textContent.trim().toLowerCase();
                 if (stVal === 'in' || stVal === 'si') comp.inPit = true;
+                else if (stVal === 'out' || stVal === 'so') comp.inPit = false;
+                // else: preserve existing comp.inPit (from prevPitStates)
             } else {
                 const sc = (cells[0]?.textContent?.trim() || '') + (cells[1]?.textContent?.trim() || '');
                 if (/^[Pp]$/.test(sc) || sc.toLowerCase().includes('pit')) comp.inPit = true;
+                // else: preserve existing comp.inPit (from prevPitStates)
             }
 
             this.competitors.set(rowId, comp);
@@ -700,6 +708,8 @@ class ApexTimingScraper {
         const rowRegex = /<tr[^>]*\bid=["']?(r\d+)["']?[^>]*>([\s\S]*?)<\/tr>/gi;
         const cellRegex = /<td[^>]*>([\s\S]*?)<\/td>/gi;
 
+        // Preserve WS-signalled pit states across the HTML full refresh
+        const prevPitStates = new Map([...this.competitors].map(([k, v]) => [k, v.inPit]));
         this.competitors.clear();
         const cm = this.columnMap;
         let match;
@@ -743,7 +753,7 @@ class ApexTimingScraper {
                 category:   cm?.category != null ? getCell('category', null) : '',
                 lastLapMs: 0,
                 bestLapMs: 0,
-                inPit: false,
+                inPit: prevPitStates.get(rowId) || false,
                 pitCount: cm?.pitCount != null ? (parseInt(getCell('pitCount', null)) || 0) : 0,
                 previousPosition: 0,
                 penalty: 0,
@@ -762,15 +772,21 @@ class ApexTimingScraper {
             if (!posValid && !kartNumeric && !hasTimingData) continue;
 
             // Pit status: check row's opening tag class attribute
+            // Preserves prev inPit state when no definitive indicator is present.
             const trTag = match[0].substring(0, match[0].indexOf('>') + 1).toLowerCase();
             if (/\bpit\b/.test(trTag) || trTag.includes('in_pit')) {
                 comp.inPit = true;
+            } else if (trTag.includes('on_track') || trTag.includes('ontrack')) {
+                comp.inPit = false; // Explicit CSS class confirms out of pit
             } else if (cm?.onTrack != null && cm.onTrack < cells.length) {
                 const stVal = (cells[cm.onTrack] || '').toLowerCase().trim();
                 if (stVal === 'in' || stVal === 'si') comp.inPit = true;
+                else if (stVal === 'out' || stVal === 'so') comp.inPit = false;
+                // else: preserve comp.inPit (from prevPitStates)
             } else {
                 const sc = (cells[0] || '') + (cells[1] || '');
                 if (/^[Pp]$/.test(sc) || sc.toLowerCase().includes('pit')) comp.inPit = true;
+                // else: preserve comp.inPit (from prevPitStates)
             }
 
             this.competitors.set(rowId, comp);
