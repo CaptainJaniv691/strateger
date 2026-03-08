@@ -844,6 +844,41 @@ window.startLiveTimingUpdates = function() {
     }
 };
 
+window.toggleApexIframe = function() {
+    const iframeContainer = document.getElementById('apexIframeContainer');
+    const tableContainer = document.getElementById('competitorsTable');
+    const statsGrids = document.querySelectorAll('#liveTimingPanel .grid');
+    const btn = document.getElementById('apexViewToggle');
+    if (!iframeContainer) return;
+
+    const showingIframe = !iframeContainer.classList.contains('hidden');
+
+    if (showingIframe) {
+        // Switch back to data view
+        iframeContainer.classList.add('hidden');
+        if (tableContainer) tableContainer.classList.remove('hidden');
+        if (btn) {
+            btn.textContent = '🌐';
+            btn.classList.remove('bg-ice', 'text-navy-900');
+            btn.classList.add('bg-navy-700', 'text-gray-300');
+        }
+    } else {
+        // Switch to iframe view — lazy-load the URL
+        const iframeEl = document.getElementById('apexIframe');
+        const url = window.liveTimingConfig && window.liveTimingConfig.url;
+        if (iframeEl && url && !iframeEl.getAttribute('src')) {
+            iframeEl.setAttribute('src', url);
+        }
+        iframeContainer.classList.remove('hidden');
+        if (tableContainer) tableContainer.classList.add('hidden');
+        if (btn) {
+            btn.textContent = '📊';
+            btn.classList.remove('bg-navy-700', 'text-gray-300');
+            btn.classList.add('bg-ice', 'text-navy-900');
+        }
+    }
+};
+
 window.stopLiveTiming = function() {
     if (window.liveTimingManager) {
         window.liveTimingManager.stop();

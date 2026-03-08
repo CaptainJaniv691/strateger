@@ -57,21 +57,49 @@ class ApexTimingScraper {
         this.isRunning = true;
         this.consecutiveErrors = 0;
 
-        // Build WSS URL from the race page URL
+        let urlObj;
         try {
-            const urlObj = new URL(this.raceUrl);
-            this.wsUrl = `wss://${urlObj.hostname}:8523/`;
+            urlObj = new URL(this.raceUrl);
         } catch (e) {
             this.log('ERROR', `Invalid race URL: ${this.raceUrl}`);
             return;
         }
 
         this.log('INFO', `🔌 Race URL: ${this.raceUrl}`);
-        this.log('INFO', `🔌 WS URL: ${this.wsUrl}`);
         this.log('INFO', `🔍 Search term: "${this.searchTerm}"`);
+
+        // Fetch circuit-specific WebSocket port from javascript/config.js
+        const port = await this.fetchConfigPort(this.raceUrl);
+        this.wsUrl = `wss://${urlObj.hostname}:${port}/`;
+        this.log('INFO', `🔌 WS URL: ${this.wsUrl} (port ${port})`);
 
         this.connectWebSocket();
         this.scrapeInitialGrid();
+    }
+
+    /**
+     * Fetch circuit-specific WebSocket port from javascript/config.js.
+     * Each Apex Timing circuit has a unique port stored in configPort.
+     */
+    async fetchConfigPort(raceUrl) {
+        const FALLBACK_PORT = 8180;
+        try {
+            const base = raceUrl.endsWith('/') ? raceUrl : raceUrl + '/';
+            const configUrl = base + 'javascript/config.js';
+            this.log('INFO', `🔍 Fetching Apex config: ${configUrl}`);
+            const text = await this.fetchWithProxy(configUrl);
+            const m = text.match(/var\s+configPort\s*=\s*(\d+)/);
+            if (m) {
+                const p = parseInt(m[1]);
+                this.log('INFO', `✅ Detected configPort: ${p}`);
+                return p;
+            }
+            this.log('WARN', 'configPort not found in config.js');
+        } catch (e) {
+            this.log('WARN', `Config fetch failed: ${e.message}`);
+        }
+        this.log('WARN', `⚠️ Falling back to port ${FALLBACK_PORT}`);
+        return FALLBACK_PORT;
     }
 
     extractHost(url) {
