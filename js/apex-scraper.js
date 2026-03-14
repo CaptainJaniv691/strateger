@@ -20,6 +20,8 @@ class ApexTimingScraper {
         this._reverseColMap = null;
         this._comments = [];       // recent race-control comments
         this._maxComments = 50;
+        this._emitTimer = null;
+        this._lastGridAt = 0;
 
         // Callbacks from LiveTimingManager
         this.onUpdate = config.onUpdate || null;
@@ -259,6 +261,7 @@ class ApexTimingScraper {
 
     handleMessage(data) {
         const lines = data.split('\n');
+        let hasRowDelta = false;
         
         this.log('INFO', `📨 WS Message (${data.length} chars)`);
         this.log('INFO', `📨 Message has ${lines.length} lines. First 3:`);
@@ -288,13 +291,21 @@ class ApexTimingScraper {
                 }
                 this.log('INFO', `📋 Received grid message (${gridHtml.length} chars HTML), sessionId="${this.sessionId}"`);
                 if (gridHtml.length > 0) {
+                    const now = Date.now();
+                    if (this._lastGridAt && (now - this._lastGridAt) < 350) {
+                        this.log('INFO', '📋 Grid message throttled (arrived too soon after previous grid)');
+                        continue;
+                    }
+                    this._lastGridAt = now;
                     this.gridHtml = gridHtml;
                     this.parseGridHTML(gridHtml);
                 } else {
                     this.log('WARN', '📋 Grid HTML was empty in WS message — waiting for HTTP fallback');
                 }
             } else if (key === 'r' || key.startsWith('r')) {
-                this.handleRowUpdate(line);
+                if (this.handleRowUpdate(line, true)) {
+                    hasRowDelta = true;
+                }
             } else if (key === 'title') {
                 this.log('INFO', `🏁 Race title: ${rest}`);
             } else if (key === 'comment') {
@@ -314,9 +325,21 @@ class ApexTimingScraper {
                 this._parsePotentialTimer(key, rest);
             }
         }
+
+        if (hasRowDelta) {
+            this.scheduleEmitUpdate();
+        }
     }
 
-    handleRowUpdate(line) {
+    scheduleEmitUpdate(delayMs = 90) {
+        if (this._emitTimer) return;
+        this._emitTimer = setTimeout(() => {
+            this._emitTimer = null;
+            this.emitUpdate();
+        }, delayMs);
+    }
+
+    handleRowUpdate(line, deferEmit = false) {
         // Pit in/out via Apex *in/*out/*i1/*i2 markers: r<rowId>|*in| or r<rowId>|*out|
         const starPitMatch = line.match(/^(r\d+)\|\*(in|i1|i2|out)\|?/i);
         if (starPitMatch) {
@@ -328,9 +351,10 @@ class ApexTimingScraper {
                 if (isEntering && !comp.inPit) comp.pitCount = (comp.pitCount || 0) + 1;
                 comp.inPit = isEntering;
                 this.log('INFO', `🏎️ Pit ${isEntering ? 'entry' : 'exit'} (*${dir}) for ${comp.driverName || rowId}`);
-                this.emitUpdate();
+                if (!deferEmit) this.emitUpdate();
+                return true;
             }
-            return;
+            return false;
         }
 
         // Cell update: r<rowId>c<colIdx>|<value>|
@@ -343,9 +367,10 @@ class ApexTimingScraper {
             const comp = this.competitors.get(rowId);
             if (comp) {
                 this.updateCompetitorCell(comp, colIdx, value);
-                this.emitUpdate();
+                if (!deferEmit) this.emitUpdate();
+                return true;
             }
-            return;
+            return false;
         }
 
         // Lap update: r<rowId>|*|<laptime>|<totaltime>
@@ -362,9 +387,10 @@ class ApexTimingScraper {
                     comp.bestLapMs = lapMs;
                 }
                 comp.totalLaps = (comp.totalLaps || 0) + 1;
-                this.emitUpdate();
+                if (!deferEmit) this.emitUpdate();
+                return true;
             }
-            return;
+            return false;
         }
 
         // Position update: r<rowId>|#|<position>
@@ -376,9 +402,10 @@ class ApexTimingScraper {
             if (comp) {
                 comp.previousPosition = comp.position;
                 comp.position = newPos;
-                this.emitUpdate();
+                if (!deferEmit) this.emitUpdate();
+                return true;
             }
-            return;
+            return false;
         }
 
         // Pit status: r<rowId>|p|<0or1>
@@ -396,9 +423,10 @@ class ApexTimingScraper {
                     this.log('INFO', `✅ Pit exit detected for ${comp.driverName || rowId}`);
                 }
                 comp.inPit = inPit;
-                this.emitUpdate();
+                if (!deferEmit) this.emitUpdate();
+                return true;
             }
-            return;
+            return false;
         }
 
         // Penalty message: r<rowId>|pen|<seconds> or penalty|r<rowId>|<seconds>
@@ -412,10 +440,35 @@ class ApexTimingScraper {
                 comp.penaltyTime = (comp.penaltyTime || 0) + penSec;
                 comp.penaltyReason = `${penSec} Lap`;
                 this.log('INFO', `⚠️ Penalty: ${comp.driverName || rowId} ${penSec} Lap`);
-                this.emitUpdate();
+                if (!deferEmit) this.emitUpdate();
+                return true;
             }
-            return;
+            return false;
         }
+
+        return false;
+    }
+
+    mergeCompetitor(prev, next) {
+        if (!prev) return next;
+
+        const merged = { ...prev, ...next };
+
+        const textFields = ['kartNumber', 'driverName', 'firstName', 'lastName', 'sector1', 'sector2', 'sector3', 'lastLap', 'bestLap', 'gap', 'category'];
+        for (const field of textFields) {
+            if ((!next[field] || next[field] === '-') && prev[field]) {
+                merged[field] = prev[field];
+            }
+        }
+
+        if (!next.position && prev.position) merged.position = prev.position;
+        if (!next.totalLaps && prev.totalLaps) merged.totalLaps = prev.totalLaps;
+        if (!next.lastLapMs && prev.lastLapMs) merged.lastLapMs = prev.lastLapMs;
+        if (!next.bestLapMs && prev.bestLapMs) merged.bestLapMs = prev.bestLapMs;
+        if ((!next.pitCount || next.pitCount < 0) && prev.pitCount) merged.pitCount = prev.pitCount;
+        if (next.inPit == null && prev.inPit != null) merged.inPit = prev.inPit;
+
+        return merged;
     }
 
     /**
@@ -688,9 +741,10 @@ class ApexTimingScraper {
             return;
         }
 
-        // Preserve WS-signalled pit states across the HTML full refresh
-        const prevPitStates = new Map([...this.competitors].map(([k, v]) => [k, v.inPit]));
-        this.competitors.clear();
+        // Preserve current state and merge grid snapshots on top (Apex stream is stateful).
+        const prevComps = new Map(this.competitors);
+        const prevPitStates = new Map([...prevComps].map(([k, v]) => [k, v.inPit]));
+        const nextComps = new Map(prevComps);
         const getCell = (cells, field, fallbackIdx) => {
             const idx = cm ? cm[field] : fallbackIdx;
             return (idx != null && idx < cells.length) ? cells[idx].textContent.trim() : '';
@@ -708,7 +762,7 @@ class ApexTimingScraper {
             const cells = row.querySelectorAll('td');
             if (cells.length < 5) continue;
 
-            const rowId = row.id || `r${this.competitors.size}`;
+            const rowId = row.id || `r${nextComps.size}`;
 
             const comp = {
                 rowId: rowId,
@@ -778,10 +832,11 @@ class ApexTimingScraper {
                 // else: preserve existing comp.inPit (from prevPitStates)
             }
 
-            this.competitors.set(rowId, comp);
+            nextComps.set(rowId, this.mergeCompetitor(prevComps.get(rowId), comp));
         }
 
-        this.log('INFO', `Grid initialized with ${this.competitors.size} competitors (skipped ${skippedRows} non-data rows)`);
+        this.competitors = nextComps;
+        this.log('INFO', `Grid merged with ${this.competitors.size} competitors (skipped ${skippedRows} non-data rows)`);
         if (this.competitors.size > 0) {
             this.emitUpdate();
         }
@@ -791,9 +846,10 @@ class ApexTimingScraper {
         const rowRegex = /<tr[^>]*\bid=["']?(r\d+)["']?[^>]*>([\s\S]*?)<\/tr>/gi;
         const cellRegex = /<td[^>]*>([\s\S]*?)<\/td>/gi;
 
-        // Preserve WS-signalled pit states across the HTML full refresh
-        const prevPitStates = new Map([...this.competitors].map(([k, v]) => [k, v.inPit]));
-        this.competitors.clear();
+        // Preserve current state and merge regex-parsed snapshots on top.
+        const prevComps = new Map(this.competitors);
+        const prevPitStates = new Map([...prevComps].map(([k, v]) => [k, v.inPit]));
+        const nextComps = new Map(prevComps);
         const cm = this.columnMap;
         let match;
 
@@ -872,10 +928,11 @@ class ApexTimingScraper {
                 // else: preserve comp.inPit (from prevPitStates)
             }
 
-            this.competitors.set(rowId, comp);
+            nextComps.set(rowId, this.mergeCompetitor(prevComps.get(rowId), comp));
         }
 
-        this.log('INFO', `Regex parser found ${this.competitors.size} competitors`);
+        this.competitors = nextComps;
+        this.log('INFO', `Regex parser merged ${this.competitors.size} competitors`);
         if (this.competitors.size > 0) {
             this.emitUpdate();
         }
@@ -1055,6 +1112,11 @@ class ApexTimingScraper {
 
     stop() {
         this.isRunning = false;
+
+        if (this._emitTimer) {
+            clearTimeout(this._emitTimer);
+            this._emitTimer = null;
+        }
         
         // Abort any in-flight HTTP request
         if (this._activeController) {
@@ -1072,6 +1134,17 @@ class ApexTimingScraper {
         }
         
         this._errorLogThrottle = {};
+    }
+
+    getStats() {
+        return {
+            isRunning: this.isRunning,
+            consecutiveErrors: this.consecutiveErrors,
+            competitorsCount: this.competitors.size,
+            sessionId: this.sessionId || null,
+            wsUrl: this.wsUrl || null,
+            raceTimeLeftSec: this.raceTimeLeftSec
+        };
     }
 }
 

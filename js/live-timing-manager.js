@@ -256,6 +256,12 @@ class LiveTimingManager {
                 provider: this.provider
             };
         }
+        if (this.currentScraper) {
+            return {
+                provider: this.provider,
+                isRunning: !!this.currentScraper.isRunning
+            };
+        }
         return {
             provider: this.provider,
             isRunning: false

@@ -123,7 +123,8 @@ window.fetchLiveTimingFromProxy = async function() {
     
     // Check if already running with same config - don't restart
     const stats = window.liveTimingManager.getStats();
-    if (stats && stats.isRunning) {
+    const scraperRunning = !!(window.liveTimingManager.currentScraper && window.liveTimingManager.currentScraper.isRunning);
+    if ((stats && stats.isRunning) || scraperRunning) {
         console.log('[LiveTiming] Already running, skipping restart');
         return;
     }
