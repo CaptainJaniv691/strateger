@@ -6,7 +6,7 @@
 window._isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("🚀 Strateger Initializing...");
+    console.log("🚀 Streger Initializing...");
     window._autoStartFired = false;
 
     // 🟢 Load viewer's own language preference if available
@@ -291,11 +291,11 @@ window.sendBrowserNotification = function(message) {
 
     // Browser notification
     if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification('🏎️ Strateger', { body: message, icon: 'https://cdn-icons-png.flaticon.com/512/2418/2418779.png' });
+        new Notification('🏎️ Streger', { body: message, icon: 'https://cdn-icons-png.flaticon.com/512/2418/2418779.png' });
     } else if ('Notification' in window && Notification.permission !== 'denied') {
         Notification.requestPermission().then(p => {
             if (p === 'granted') {
-                new Notification('🏎️ Strateger', { body: message });
+                new Notification('🏎️ Streger', { body: message });
             }
         });
     }
@@ -2315,7 +2315,7 @@ window._fireDriverAlert = function(message, minutesBefore) {
     // Browser notification
     if ('Notification' in window && Notification.permission === 'granted') {
         try {
-            new Notification('🏎️ Strateger', { body: `${message} (${minutesBefore}min)`, icon: '/favicon.ico', tag: 'stint-alert' });
+            new Notification('🏎️ Streger', { body: `${message} (${minutesBefore}min)`, icon: '/favicon.ico', tag: 'stint-alert' });
         } catch(e) {}
     } else if ('Notification' in window && Notification.permission !== 'denied') {
         Notification.requestPermission();
@@ -2452,7 +2452,7 @@ window._fireStrategyNotification = function(message, type) {
     // Browser notification
     if ('Notification' in window && Notification.permission === 'granted') {
         try {
-            new Notification('🏁 Strateger', { 
+            new Notification('🏁 Streger', { 
                 body: message, 
                 icon: '/favicon.ico', 
                 tag: 'strategy-' + Date.now(),
@@ -3127,7 +3127,7 @@ window.exportStrategyImage = async function() {
         
         // Download as PNG
         const link = document.createElement('a');
-        link.download = `strateger-strategy-${Date.now()}.png`;
+        link.download = `Streger-strategy-${Date.now()}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
     } catch (e) {
@@ -3209,7 +3209,7 @@ window.exportStrategyPdf = async function() {
         });
         
         pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-        pdf.save(`strateger-strategy-${Date.now()}.pdf`);
+        pdf.save(`Streger-strategy-${Date.now()}.pdf`);
     } catch (e) {
         console.error('PDF export failed:', e);
         window.showToast('PDF export failed: ' + e.message, 'error');
@@ -3460,7 +3460,7 @@ window.installPWA = function() {
     window._deferredInstallPrompt.prompt();
     window._deferredInstallPrompt.userChoice.then((choice) => {
         if (choice.outcome === 'accepted') {
-            window.showToast('Strateger installed! 🎉', 'success');
+            window.showToast('Streger installed! 🎉', 'success');
         }
         window._deferredInstallPrompt = null;
         const banner = document.getElementById('installBanner');
@@ -3630,7 +3630,7 @@ window.shareRaceSummary = function() {
     const raceMs = window.config.raceMs || (parseFloat(window.config.duration) * 3600000);
     const t = window.t || ((k) => k);
     
-    let text = `🏁 ${t('raceFinished')} - Strateger\n`;
+    let text = `🏁 ${t('raceFinished')} - Streger\n`;
     text += `⏱ ${window.formatTimeHMS(raceMs)} | 🛑 ${window.state.pitCount || 0} ${t('stopsHeader')}\n\n`;
     
     const ranked = window.drivers
@@ -3645,7 +3645,7 @@ window.shareRaceSummary = function() {
     text += `\n📊 strateger.netlify.app`;
     
     if (navigator.share) {
-        navigator.share({ title: 'Strateger Race Summary', text: text }).catch(() => {});
+        navigator.share({ title: 'Streger Race Summary', text: text }).catch(() => {});
     } else {
         navigator.clipboard.writeText(text).then(() => {
             window.showToast(t('copied') || 'Copied to clipboard!', 'success');

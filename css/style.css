@@ -51,22 +51,52 @@ body {
 [dir="rtl"] header {
     direction: ltr;
 }
-/* Keep numeric, timer, and input elements LTR */
+/* Keep numeric and timer values readable LTR */
 [dir="rtl"] [class*="font-mono"],
 [dir="rtl"] .driver-stint-timer,
 [dir="rtl"] .driver-race-timer,
 [dir="rtl"] .driver-data,
 [dir="rtl"] .driver-delta,
 [dir="rtl"] .cr-gap,
-[dir="rtl"] .cr-lap,
-[dir="rtl"] input,
-[dir="rtl"] select {
+[dir="rtl"] .cr-lap {
     direction: ltr;
 }
-/* Modals keep LTR layout */
+/* RTL languages: words start from right side */
+[dir="rtl"] #setupScreen,
+[dir="rtl"] #raceDashboard,
+[dir="rtl"] #previewScreen,
 [dir="rtl"] [id$="Modal"] > div,
-[dir="rtl"] #pitModal > div {
+[dir="rtl"] .label-text,
+[dir="rtl"] p,
+[dir="rtl"] h1,
+[dir="rtl"] h2,
+[dir="rtl"] h3,
+[dir="rtl"] h4,
+[dir="rtl"] h5,
+[dir="rtl"] h6,
+[dir="rtl"] li,
+[dir="rtl"] span {
+    direction: rtl;
+    text-align: right;
+}
+/* Text fields should follow RTL naturally */
+[dir="rtl"] input:not([type="number"]):not([type="time"]),
+[dir="rtl"] textarea,
+[dir="rtl"] select {
+    direction: rtl;
+    text-align: right;
+}
+/* Numeric and time inputs remain LTR */
+[dir="rtl"] input[type="number"],
+[dir="rtl"] input[type="time"] {
     direction: ltr;
+    text-align: left;
+}
+/* Non-RTL languages remain left aligned by default */
+[dir="ltr"] #setupScreen,
+[dir="ltr"] #raceDashboard,
+[dir="ltr"] #previewScreen {
+    text-align: left;
 }
 /* Overflow menu stays LTR */
 [dir="rtl"] #headerOverflowMenu {
@@ -256,6 +286,30 @@ header {
     #pitModal > * { max-width: 600px; margin: 0 auto; }
 }
 
+/* ==================== MOBILE LAYOUT (<=767px) ==================== */
+@media (max-width: 767px) {
+    body {
+        padding-bottom: calc(88px + var(--safe-bottom));
+    }
+    header {
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+    #setupScreen,
+    #raceDashboard {
+        padding-left: 8px;
+        padding-right: 8px;
+    }
+    #dashboardInfoBar {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
+        padding: 8px;
+    }
+    #googleActionsBar {
+        gap: 6px;
+    }
+}
+
 /* ==================== WIDE SCREEN SUPPORT (1025px+) ==================== */
 @media (min-width: 1025px) {
     body {
@@ -270,7 +324,7 @@ header {
     }
 
     #setupScreen, #raceDashboard {
-        max-width: 600px;
+        max-width: min(860px, calc(100vw - 48px));
         margin: 0 auto;
         background-color: var(--navy-950);
         box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
@@ -281,8 +335,15 @@ header {
     }
 
     header {
-        max-width: 600px;
+        max-width: min(860px, calc(100vw - 48px));
         margin: 0 auto;
+    }
+}
+
+/* ==================== LARGE DESKTOP (1440px+) ==================== */
+@media (min-width: 1440px) {
+    #setupScreen, #raceDashboard, header {
+        max-width: min(1080px, calc(100vw - 80px));
     }
 }
 
