@@ -744,8 +744,9 @@
             <button onclick="event.stopPropagation(); window.toggleDriverMode()" class="absolute top-2 left-2 z-10 text-white/40 hover:text-white/80 text-xl w-11 h-11 flex items-center justify-center rounded-full transition" style="top: max(8px, env(safe-area-inset-top, 0px)); left: max(8px, env(safe-area-inset-left, 0px));">
                 <i class="fas fa-times"></i>
             </button>
-            <!-- Race timer (top-right, safe-area aware) -->
+            <!-- Race timer + connection quality (top-right, safe-area aware) -->
             <div class="absolute top-2 right-2 z-10 flex items-center gap-2" style="top: max(8px, env(safe-area-inset-top, 0px)); right: max(8px, env(safe-area-inset-right, 0px));">
+                <div id="driverConnQuality" class="text-[10px] px-1.5 py-0.5 rounded-full font-bold border hidden" title="Connection quality">●</div>
                 <div id="driverDemoBadge" class="hidden text-[10px] bg-neon/20 text-neon border border-neon/50 px-1.5 py-0.5 rounded-full font-bold">DEMO</div>
                 <div id="driverRaceTimer" class="driver-race-timer">00:00:00</div>
             </div>
@@ -757,6 +758,15 @@
             </div>
             <!-- Tap hint -->
             <div id="driverTapHint" class="absolute bottom-3 inset-x-0 text-center text-white/25 text-[10px] font-bold uppercase tracking-widest" data-i18n="tapToPit">TAP TO ENTER PIT</div>
+            <!-- Auto pit status indicator -->
+            <div id="driverAutoPitStatus" class="absolute bottom-8 inset-x-0 text-center text-[9px] font-bold uppercase tracking-wider">
+                <span id="driverAutoPitBadge" class="pit-auto-badge active">🔗 AUTO PIT TRACKING</span>
+            </div>
+            <!-- Connection / troubleshoot info (hidden by default, shown when issues) -->
+            <div id="driverTroubleshoot" class="driver-troubleshoot hidden">
+                <strong>No data?</strong> Check: WiFi/4G on · Host race started · Correct Race ID<br>
+                Tap ✕ → re-enter ID → reconnect
+            </div>
             <!-- Next stint notification banner -->
             <div id="driverNextStintBanner" class="hidden absolute top-10 inset-x-0 mx-4 z-10 bg-black/80 border border-amber-500/50 rounded-lg px-3 py-2 text-center">
                 <div id="driverNextStintText" class="text-amber-400 text-sm font-bold"></div>

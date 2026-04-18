@@ -203,7 +203,60 @@ header {
     width: 100%;
 }
 
-/* ==================== WIDE SCREEN SUPPORT ==================== */
+/* ==================== TABLET LAYOUT (768-1024px) ==================== */
+@media (min-width: 768px) and (max-width: 1024px) {
+    body {
+        padding-bottom: 0;
+    }
+    #setupScreen, #raceDashboard {
+        max-width: 100%;
+        padding: 0 24px;
+    }
+    header {
+        max-width: 100%;
+        padding-left: 24px;
+        padding-right: 24px;
+    }
+    /* Dashboard info bar: more spacious on tablet */
+    #dashboardInfoBar {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        padding: 10px 24px;
+    }
+    /* Competitor table: show all columns, taller rows */
+    .competitor-row {
+        height: 38px;
+        min-height: 38px;
+        padding: 3px 10px;
+    }
+    .cr-pos  { font-size: 13px; width: 24px; }
+    .cr-kart { font-size: 11px; }
+    .cr-name { font-size: 14px; }
+    .cr-gap  { font-size: 13px; width: 68px; }
+    .cr-int  { font-size: 11px; width: 52px; }
+    .cr-lap  { font-size: 13px; width: 68px; }
+    .cr-avg  { font-size: 11px; width: 58px; }
+    .cr-laps { font-size: 10px; width: 28px; }
+    .cr-pits { font-size: 10px; width: 26px; }
+    /* Preview screen: wider content */
+    #previewScreen > div {
+        max-width: 100%;
+    }
+    /* Setup config grids: wider spacing */
+    .collapsible-section {
+        padding: 0 4px;
+    }
+    /* Driver mode: larger data on tablet */
+    .driver-emoji { font-size: min(12vw, 14vh); }
+    .driver-msg { font-size: min(7vw, 7vh); }
+    .driver-stint-timer { font-size: min(12vw, 14vh); }
+    .driver-data { font-size: min(5vw, 4.5vh); }
+    .driver-label { font-size: 2vw; }
+    /* Pit modal: wider */
+    #pitModal > * { max-width: 600px; margin: 0 auto; }
+}
+
+/* ==================== WIDE SCREEN SUPPORT (1025px+) ==================== */
 @media (min-width: 1025px) {
     body {
         background-color: #020617;
@@ -223,7 +276,6 @@ header {
         box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
         border-left: 1px solid #1e293b;
         border-right: 1px solid #1e293b;
-        /* גובה מינימלי למרכז המסך */
         min-height: 100vh;
         padding-bottom: 40px;
     }
@@ -232,6 +284,51 @@ header {
         max-width: 600px;
         margin: 0 auto;
     }
+}
+
+/* ==================== AUTO PIT DETECTION STATUS ==================== */
+.pit-auto-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+}
+.pit-auto-badge.active {
+    background: rgba(34, 211, 238, 0.15);
+    color: var(--ice);
+    border: 1px solid rgba(34, 211, 238, 0.3);
+}
+.pit-auto-badge.manual {
+    background: rgba(249, 115, 22, 0.15);
+    color: var(--fuel);
+    border: 1px solid rgba(249, 115, 22, 0.3);
+}
+
+/* Driver view troubleshoot banner */
+.driver-troubleshoot {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.7);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 8px;
+    padding: 6px 14px;
+    font-size: 10px;
+    color: rgba(255,255,255,0.5);
+    text-align: center;
+    z-index: 5;
+    max-width: 90%;
+    backdrop-filter: blur(4px);
+}
+.driver-troubleshoot strong {
+    color: var(--ice);
+    font-weight: 700;
 }
 
 /* ==================== INPUTS & UI ==================== */
