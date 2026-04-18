@@ -118,7 +118,9 @@ window.activateProLicense = async function(key) {
     const deviceId = window.getDeviceId();
 
     try {
-        const res = await fetch(window.APP_CONFIG.API_BASE + 'verify-license', {
+        const apiBase = (window.APP_CONFIG?.API_BASE || '').replace(/\/$/, '');
+        const verifyUrl = apiBase ? `${apiBase}/verify-license` : '/verify-license';
+        const res = await fetch(verifyUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
