@@ -869,3 +869,30 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     color: #ef4444 !important;
     border-color: #ef4444 !important;
 }
+
+/* ==================== LANDSCAPE COMPACT MODE ==================== */
+@media (orientation: landscape) and (max-height: 560px) {
+    header {
+        padding-top: 4px;
+        padding-bottom: 4px;
+    }
+    #dashboardInfoBar {
+        gap: 4px;
+        padding: 6px 8px;
+    }
+    .competitor-row {
+        height: 30px;
+        min-height: 30px;
+        padding: 1px 6px;
+    }
+    .cr-pos { font-size: 11px; width: 22px; }
+    .cr-kart { font-size: 10px; }
+    .cr-name { font-size: 12px; }
+    .cr-gap, .cr-lap { font-size: 11px; width: 58px; }
+    .cr-int, .cr-avg { font-size: 10px; width: 48px; }
+    .cr-laps, .cr-pits { font-size: 9px; width: 24px; }
+    #dashboardScrollArea {
+        padding: 4px;
+        gap: 4px;
+    }
+}

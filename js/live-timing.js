@@ -2,6 +2,18 @@
 // ⏱️ LIVE TIMING CONTROLLER
 // ==========================================
 
+function getLapWord(count) {
+    const lang = window.currentLang || localStorage.getItem('strateger_lang') || 'en';
+    if (lang === 'it') return count === 1 ? 'Giro' : 'Giri';
+    if (lang === 'he') return count === 1 ? 'הקפה' : 'הקפות';
+    return count === 1 ? 'lap' : 'laps';
+}
+
+function formatLapGapFromDiff(diff) {
+    if (!diff || diff < 1) return '';
+    return `+${diff} ${getLapWord(diff)}`;
+}
+
 // עדכון הגדרות החיפוש (צוות/נהג/מספר)
 window.updateSearchConfig = function() {
     const searchType = document.querySelector('input[name="searchType"]:checked')?.value || 'team';
@@ -390,7 +402,8 @@ window.updateLiveTimingUI = function() {
     const gapEl = document.getElementById('liveGap');
     if (gapEl) {
         if (window.liveData.position === 1) {
-            gapEl.innerText = 'LEADER';
+            const leaderLabel = window.t('leaderLabel');
+            gapEl.innerText = leaderLabel !== 'leaderLabel' ? leaderLabel : 'LEADER';
             gapEl.className = 'text-sm font-mono text-gold';
         } else {
             // Compute lap-based gap from competitors data
@@ -400,7 +413,7 @@ window.updateLiveTimingUI = function() {
             const leaderLaps = leader ? (leader.laps || leader.totalLaps || 0) : 0;
             const lapDiff = leaderLaps - ourLaps;
             if (lapDiff >= 1) {
-                gapEl.innerText = `+${lapDiff} ${lapDiff === 1 ? 'lap' : 'laps'}`;
+                gapEl.innerText = formatLapGapFromDiff(lapDiff);
                 gapEl.className = 'text-sm font-mono text-fuel';
             } else if (window.liveData.gapToLeader) {
                 const gapSec = (window.liveData.gapToLeader / 1000).toFixed(1);
@@ -592,7 +605,7 @@ window.updateCompetitorsTable = function() {
 
                 if (lapDiff >= 1) {
                     // Show +N laps
-                    const gapStr = `+${lapDiff}L`;
+                    const gapStr = formatLapGapFromDiff(lapDiff);
                     gapHTML = `<span class="${color}">${gapStr}</span>`;
                 } else if (gapMs > 0) {
                     // Same lap — show time gap in seconds
@@ -619,7 +632,7 @@ window.updateCompetitorsTable = function() {
                 const intMs = comp.interval ?? 0;
 
                 if (intLapDiff >= 1) {
-                    intHTML = `<span class="text-gray-500">${intLapDiff}L</span>`;
+                    intHTML = `<span class="text-gray-500">${formatLapGapFromDiff(intLapDiff).replace('+', '')}</span>`;
                 } else if (intMs > 0) {
                     const intSec = intMs / 1000;
                     intHTML = `<span class="text-gray-500">${intSec.toFixed(1)}s</span>`;
