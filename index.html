@@ -562,6 +562,7 @@
                     <div class="flex items-center gap-2">
                         <span class="sync-dot live-dot"></span> 
                         <span class="text-xs font-bold" data-i18n="live">LIVE</span>
+                        <span id="liveHeartbeat" class="text-[10px] text-gray-400">HB --</span>
                     </div>
                     <div class="flex items-center gap-1">
                         <button id="apexViewToggle" onclick="window.toggleApexIframe()" class="text-[10px] bg-navy-700 border border-gray-600 text-gray-300 px-2 py-0.5 rounded" title="Toggle original Apex view">🌐</button>
@@ -601,7 +602,7 @@
                 </div>
                 <div id="competitorsTable" class="mt-2 overflow-y-auto scroll-smooth scrollbar-thin" style="min-height:196px;height:280px;max-height:600px;resize:vertical;"></div>
                 <div id="apexIframeContainer" class="hidden mt-1">
-                    <iframe id="apexIframe" src="" class="w-full rounded" style="height:300px;border:none;background:#0a1120;" sandbox="allow-scripts allow-same-origin allow-forms allow-popups"></iframe>
+                    <iframe id="apexIframe" src="" class="w-full rounded" style="height:300px;border:none;background:#0a1120;" sandbox="allow-scripts allow-forms allow-popups"></iframe>
                 </div>
                 <div id="kartRankingPanel" class="hidden mt-1 p-2 bg-navy-950 rounded border border-gray-700/50"></div>
             </div>
@@ -1484,7 +1485,7 @@
     <script src="js/auth.js?v=5"></script>
     <script src="js/network.js?v=5"></script>
     <script src="js/strategy.js?v=5"></script>
-    <script src="js/live-timing.js?v=5"></script>
+    <script src="js/live-timing.js?v=6"></script>
     <script src="js/ui.js?v=5"></script>
     <script src="js/main.js?v=5"></script>
 </body>

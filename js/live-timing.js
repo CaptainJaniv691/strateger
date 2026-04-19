@@ -132,13 +132,20 @@ window.fetchLiveTimingFromProxy = async function() {
     // איחוד פרמטרים לחיפוש חכם
     const searchTerm = window.searchConfig.driverName || window.searchConfig.teamName || window.searchConfig.kartNumber || '';
     const searchType = window.searchConfig.kartNumber ? 'kart' : (window.searchConfig.driverName ? 'driver' : 'team');
+    const configSignature = `${url}|${searchType}|${searchTerm}`;
     
     // Check if already running with same config - don't restart
     const stats = window.liveTimingManager.getStats();
     const scraperRunning = !!(window.liveTimingManager.currentScraper && window.liveTimingManager.currentScraper.isRunning);
-    if ((stats && stats.isRunning) || scraperRunning) {
+    const hasSameConfig = window._liveTimingConfigSignature === configSignature;
+    if (((stats && stats.isRunning) || scraperRunning) && hasSameConfig) {
         console.log('[LiveTiming] Already running, skipping restart');
         return;
+    }
+
+    if ((stats && stats.isRunning) || scraperRunning) {
+        console.log('[LiveTiming] Config changed, restarting scraper');
+        window.liveTimingManager.stop();
     }
     
     window.updateProxyStatus("🔄 " + window.t('connecting'));
@@ -154,6 +161,9 @@ window.fetchLiveTimingFromProxy = async function() {
                 position: data.ourTeam?.position,
                 compCount: data.competitors?.length 
             });
+
+            window.liveData.heartbeatCount = (window.liveData.heartbeatCount || 0) + 1;
+            window.liveData.heartbeatAt = Date.now();
             
             if (data.ourTeam) {
                 window.liveData.previousPosition = window.liveData.position;
@@ -300,6 +310,8 @@ window.fetchLiveTimingFromProxy = async function() {
             }
         }
     });
+
+    window._liveTimingConfigSignature = configSignature;
 };
 
 window.parseTimeToMs = function(timeStr) {
@@ -368,6 +380,17 @@ window.updateLiveTimingUI = function() {
     if (hasData || window.liveTimingConfig.enabled) {
         if (panel) panel.classList.remove('hidden');
         if (indicator) indicator.classList.remove('hidden');
+    }
+
+    const heartbeatEl = document.getElementById('liveHeartbeat');
+    if (heartbeatEl) {
+        const count = window.liveData.heartbeatCount || 0;
+        const ageMs = window.liveData.heartbeatAt ? (Date.now() - window.liveData.heartbeatAt) : null;
+        const ageSec = ageMs == null ? '--' : Math.floor(ageMs / 1000);
+        heartbeatEl.innerText = `HB ${count} (${ageSec}s)`;
+        heartbeatEl.className = ageMs != null && ageMs > 7000
+            ? 'text-[10px] text-red-400'
+            : 'text-[10px] text-gray-400';
     }
     
     const posEl = document.getElementById('livePosition');
@@ -901,7 +924,7 @@ window.stopLiveTiming = function() {
     // איפוס נתונים
     window.liveData = { 
         position: null, previousPosition: null, lastLap: null, bestLap: null, 
-        laps: 0, gapToLeader: 0, competitors: [] 
+        laps: 0, gapToLeader: 0, competitors: [], heartbeatCount: 0, heartbeatAt: null
     };
     
     // Reset caches
@@ -930,6 +953,8 @@ window.stopLiveTiming = function() {
     if (carsEl) carsEl.innerText = '-';
     const changeEl = document.getElementById('livePositionChange');
     if (changeEl) { changeEl.innerText = ''; changeEl.className = 'text-[10px] position-same'; }
+    const heartbeatEl = document.getElementById('liveHeartbeat');
+    if (heartbeatEl) { heartbeatEl.innerText = 'HB --'; heartbeatEl.className = 'text-[10px] text-gray-400'; }
     const tableEl = document.getElementById('competitorsTable');
     if (tableEl) tableEl.innerHTML = '';
     const kartPanel = document.getElementById('kartRankingPanel');
