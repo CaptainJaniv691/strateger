@@ -565,6 +565,7 @@
                         <span id="liveHeartbeat" class="text-[10px] text-gray-400">HB --</span>
                     </div>
                     <div class="flex items-center gap-1">
+                        <button id="competitorsToggleBtn" onclick="window.toggleCompetitorsTable()" class="text-[10px] bg-navy-700 border border-gray-600 text-gray-300 px-2 py-0.5 rounded" title="Toggle competitors table">📋</button>
                         <button id="apexViewToggle" onclick="window.toggleApexIframe()" class="text-[10px] bg-navy-700 border border-gray-600 text-gray-300 px-2 py-0.5 rounded" title="Toggle original Apex view">🌐</button>
                         <button onclick="window.stopLiveTiming()" class="text-[10px] bg-red-900 text-white px-2 rounded" data-i18n="stop">Stop</button>
                     </div>
@@ -718,8 +719,8 @@
                         <span class="text-[9px] text-gray-500 uppercase font-bold px-1" data-i18n="penalty">Penalty</span>
                         <div class="flex gap-1">
                             <button id="penaltyBtnMinus5" onclick="window.adjustPitTime(-5)" class="penalty-btn bg-green-900/30 hover:bg-green-800 text-green-400 border border-green-600/30 px-2 py-1 rounded text-xs font-bold transition">-5</button>
-                            <button id="penaltyBtnPlus5" onclick="window.adjustPitTime(5)" class="penalty-btn bg-red-900/30 hover:bg-red-800 text-red-400 border border-red-600/30 px-2 py-1 rounded text-xs font-bold transition">+5</button>
-                            <button id="penaltyBtnPlus10" onclick="window.adjustPitTime(10)" class="penalty-btn bg-red-900/30 hover:bg-red-800 text-red-400 border border-red-600/30 px-2 py-1 rounded text-xs font-bold transition">+10</button>
+                            <button id="penaltyBtnPlus5" onclick="window.applyPitPenalty(5, 'Manual +5')" class="penalty-btn bg-red-900/30 hover:bg-red-800 text-red-400 border border-red-600/30 px-2 py-1 rounded text-xs font-bold transition">+5</button>
+                            <button id="penaltyBtnPlus10" onclick="window.applyPitPenalty(10, 'Manual +10')" class="penalty-btn bg-red-900/30 hover:bg-red-800 text-red-400 border border-red-600/30 px-2 py-1 rounded text-xs font-bold transition">+10</button>
                         </div>
                         <div id="dashboardPitAdjDisplay" class="bg-black/30 px-2 py-1 rounded text-ice font-mono font-bold text-xs min-w-[30px] text-center">0</div>
                     </div>
@@ -735,6 +736,11 @@
             </div>
         </div>
     </div>
+
+    <!-- Quick PIT access: keeps critical pit action reachable even when scrolling -->
+    <button id="quickPitFab" onclick="window.quickPitAction()" class="hidden fixed right-3 bottom-24 z-40 bg-red-600 hover:bg-red-500 text-white font-bold px-4 py-3 rounded-full shadow-[0_0_25px_rgba(239,68,68,0.45)] border border-red-400/50 text-sm">
+        🛑 PIT
+    </button>
 
     <!-- ==================== DRIVER MODE HUD ==================== -->
     <div id="driverModePanel" class="hidden fixed inset-0 z-40 flex flex-col bg-black">

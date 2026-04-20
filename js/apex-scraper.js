@@ -599,8 +599,8 @@ class ApexTimingScraper {
 
     detectColumnMapping(headerCells) {
         const patterns = [
-            { field: 'position',   re: /^(cla|pos|rnk|rank|platz|p\.?|#|classifica)$/i },
-            { field: 'kartNumber', re: /^(kart|no|n[°ºo.]?|num|nr|number|startnr|cart)$/i },
+            { field: 'position',   re: /^(cla|pos|rnk|rank|platz|p\.?|classifica|position)$/i },
+            { field: 'kartNumber', re: /^(kart|#|no|n[°ºo.]?|num|nr|number|startnr|cart|kart\s*#|car)$/i },
             { field: 'driverName', re: /^(team|name|nom|nome|fahrer|driver|pilota|pilote|concurrent|concorrente|conductor|competitor|equipe|squadra|mannschaft)$/i },
             { field: 'totalLaps',  re: /^(giri|laps?|nbgiri|nbtrs?|tours?|rdn|runden|vueltas?|tr|rondes?)$/i },
             { field: 'gap',        re: /^(distacco|gap|diff|dist|abst|abstand|[eé]cart|dif|ecart)$/i },
@@ -821,6 +821,7 @@ class ApexTimingScraper {
         };
 
         let skippedRows = 0;
+        const seenRowIds = new Set();
         for (const row of rows) {
             // Skip header / titles rows explicitly
             if (row.classList && (row.classList.contains('titles') || row.classList.contains('header'))) {
@@ -832,7 +833,17 @@ class ApexTimingScraper {
             const cells = row.querySelectorAll('td');
             if (cells.length < 5) continue;
 
-            const rowId = row.id || `r${nextComps.size}`;
+            const posForId = (parseInt(getCell(cells, 'position', 2), 10) || 0);
+            const kartForId = (getCell(cells, 'kartNumber', 3) || '').trim();
+            const driverForId = (getCell(cells, 'driverName', 4) || '').trim().toUpperCase();
+            const fallbackRowId = `rx_${posForId || 'x'}_${kartForId || 'x'}_${driverForId || 'x'}`;
+            const rowId = row.id || fallbackRowId;
+
+            if (seenRowIds.has(rowId)) {
+                skippedRows++;
+                continue;
+            }
+            seenRowIds.add(rowId);
 
             const comp = {
                 rowId: rowId,
@@ -905,6 +916,12 @@ class ApexTimingScraper {
             nextComps.set(rowId, this.mergeCompetitor(prevComps.get(rowId), comp));
         }
 
+        for (const existingId of Array.from(nextComps.keys())) {
+            if (!seenRowIds.has(existingId)) {
+                nextComps.delete(existingId);
+            }
+        }
+
         this.competitors = nextComps;
         this.log('INFO', `Grid merged with ${this.competitors.size} competitors (skipped ${skippedRows} non-data rows)`);
         if (this.competitors.size > 0) {
@@ -922,6 +939,7 @@ class ApexTimingScraper {
         const nextComps = new Map(prevComps);
         const cm = this.columnMap;
         let match;
+        const seenRowIds = new Set();
 
         while ((match = rowRegex.exec(html)) !== null) {
             const rowId = match[1];
@@ -998,7 +1016,15 @@ class ApexTimingScraper {
                 // else: preserve comp.inPit (from prevPitStates)
             }
 
+            if (seenRowIds.has(rowId)) continue;
+            seenRowIds.add(rowId);
             nextComps.set(rowId, this.mergeCompetitor(prevComps.get(rowId), comp));
+        }
+
+        for (const existingId of Array.from(nextComps.keys())) {
+            if (!seenRowIds.has(existingId)) {
+                nextComps.delete(existingId);
+            }
         }
 
         this.competitors = nextComps;
@@ -1025,20 +1051,48 @@ class ApexTimingScraper {
     emitUpdate() {
         if (!this.onUpdate || this.competitors.size === 0) return;
 
-        const allCompetitors = Array.from(this.competitors.values())
+        const allCompetitorsRaw = Array.from(this.competitors.values())
             .filter(c => c.position > 0) // Filter out invalid/header rows (position 0)
+            .sort((a, b) => (a.position || 999) - (b.position || 999));
+
+        const dedupeMap = new Map();
+        for (const c of allCompetitorsRaw) {
+            const key = c.kartNumber
+                ? `kart:${String(c.kartNumber).trim()}`
+                : (c.driverName
+                    ? `driver:${String(c.driverName).trim().toUpperCase()}`
+                    : `pos:${c.position}`);
+            const existing = dedupeMap.get(key);
+            if (!existing) {
+                dedupeMap.set(key, c);
+                continue;
+            }
+
+            const score = (c.lastLapMs > 0 ? 1 : 0) + (c.bestLapMs > 0 ? 1 : 0) + (c.totalLaps > 0 ? 1 : 0);
+            const existingScore = (existing.lastLapMs > 0 ? 1 : 0) + (existing.bestLapMs > 0 ? 1 : 0) + (existing.totalLaps > 0 ? 1 : 0);
+            if (score > existingScore) {
+                dedupeMap.set(key, c);
+            }
+        }
+
+        const allCompetitors = Array.from(dedupeMap.values())
             .sort((a, b) => (a.position || 999) - (b.position || 999));
 
         // Find our team using searchTerm + searchType for precision
         let ourTeam = null;
         const term = (this.searchTerm || '').toUpperCase().trim();
 
+        const parsedTermNum = parseInt(term, 10);
+        const hasNumericTerm = !Number.isNaN(parsedTermNum);
+
         if (term) {
             if (this.searchType === 'kart') {
                 // Kart search: ONLY match by kart number (exact or parsed int)
                 ourTeam = allCompetitors.find(c => {
-                    return (c.kartNumber || '').trim() === term ||
-                           String(parseInt(c.kartNumber)) === String(parseInt(term));
+                    const kartRaw = (c.kartNumber || '').trim();
+                    const kartNum = parseInt(kartRaw, 10);
+                    const hasKartNum = !Number.isNaN(kartNum);
+                    return kartRaw === term || (hasNumericTerm && hasKartNum && kartNum === parsedTermNum);
                 }) || null;
             } else if (this.searchType === 'driver') {
                 // Driver search: match driver/first/last name only
@@ -1054,7 +1108,10 @@ class ApexTimingScraper {
                     const nameMatch = (c.driverName || '').toUpperCase().includes(term);
                     const firstMatch = (c.firstName || '').toUpperCase().includes(term);
                     const lastMatch = (c.lastName || '').toUpperCase().includes(term);
-                    const kartMatch = (c.kartNumber || '').trim() === term || String(parseInt(c.kartNumber)) === String(parseInt(term));
+                    const kartRaw = (c.kartNumber || '').trim();
+                    const kartNum = parseInt(kartRaw, 10);
+                    const hasKartNum = !Number.isNaN(kartNum);
+                    const kartMatch = kartRaw === term || (hasNumericTerm && hasKartNum && kartNum === parsedTermNum);
                     return nameMatch || firstMatch || lastMatch || kartMatch;
                 }) || null;
             }

@@ -556,8 +556,14 @@ window.initHostPeer = function() {
                         window.updateViewerApprovalUI();
                     }
                     if (!window.state.isInPit && window.state.isRunning) {
-                        window.confirmPitEntry();
-                        if (typeof window.broadcast === 'function') window.broadcast();
+                        const liveTimingAuthoritative = !!(window.liveTimingConfig && window.liveTimingConfig.enabled);
+                        if (liveTimingAuthoritative) {
+                            window._driverPitIntent = { type: 'entry', at: Date.now(), driverIdx: data.driverIdx };
+                            window.showToast(window.t('waitingLiveTiming') || 'Waiting for live timing confirmation', 'info');
+                        } else {
+                            window.confirmPitEntry();
+                            if (typeof window.broadcast === 'function') window.broadcast();
+                        }
                     }
                 }
                 if (data.type === 'DRIVER_PIT_EXIT') {
@@ -569,8 +575,14 @@ window.initHostPeer = function() {
                     if (window.state.isInPit && window.state.isRunning) {
                         // Only allow exit if release timer is ready (green zone)
                         if (window.alertState && window.alertState.lastZone === 'go') {
-                            window.confirmPitExit();
-                            if (typeof window.broadcast === 'function') window.broadcast();
+                            const liveTimingAuthoritative = !!(window.liveTimingConfig && window.liveTimingConfig.enabled);
+                            if (liveTimingAuthoritative) {
+                                window._driverPitIntent = { type: 'exit', at: Date.now(), driverIdx: data.driverIdx };
+                                window.showToast(window.t('waitingLiveTiming') || 'Waiting for live timing confirmation', 'info');
+                            } else {
+                                window.confirmPitExit();
+                                if (typeof window.broadcast === 'function') window.broadcast();
+                            }
                         }
                     }
                 }

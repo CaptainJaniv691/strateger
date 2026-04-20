@@ -1008,6 +1008,7 @@ window.renderFrame = function() {
 
         updateWeatherUI();
         updateModeUI();
+        if (typeof window.updateQuickPitFab === 'function') window.updateQuickPitFab();
 
         // === Update live timing UI (needed for viewers who receive liveData via broadcast) ===
         if (typeof window.updateLiveTimingUI === 'function' && window.liveTimingConfig && window.liveTimingConfig.enabled) {
@@ -1300,6 +1301,67 @@ window.updatePitModalLogic = function() {
 // ==========================================
 
 window.currentPitAdjustment = 0;
+
+window.isLiveTimingFeedFresh = function(maxAgeMs = 8000) {
+    if (!window.liveData || !window.liveData.heartbeatAt) return false;
+    return (Date.now() - window.liveData.heartbeatAt) <= maxAgeMs;
+};
+
+window.updateQuickPitFab = function() {
+    const fab = document.getElementById('quickPitFab');
+    if (!fab) return;
+
+    const canOperate = window.state && window.state.isRunning && !window.state.isFinished && window.role !== 'viewer';
+    if (!canOperate) {
+        fab.classList.add('hidden');
+        return;
+    }
+
+    fab.classList.remove('hidden');
+    if (window.state.isInPit) {
+        fab.innerText = '✅ EXIT PIT';
+        fab.className = 'fixed right-3 bottom-24 z-40 bg-green-600 hover:bg-green-500 text-white font-bold px-4 py-3 rounded-full shadow-[0_0_25px_rgba(34,197,94,0.45)] border border-green-400/50 text-sm';
+    } else {
+        fab.innerText = '🛑 PIT';
+        fab.className = 'fixed right-3 bottom-24 z-40 bg-red-600 hover:bg-red-500 text-white font-bold px-4 py-3 rounded-full shadow-[0_0_25px_rgba(239,68,68,0.45)] border border-red-400/50 text-sm';
+    }
+};
+
+window.quickPitAction = function() {
+    if (!window.state || !window.state.isRunning || window.state.isFinished) return;
+    if (window.state.isInPit) {
+        const forceManual = !window.isLiveTimingFeedFresh(8000);
+        window.confirmPitExit(false, forceManual);
+        return;
+    }
+    window.confirmPitEntry(false);
+};
+
+window.applyPitPenalty = function(seconds, reason) {
+    const value = parseInt(seconds, 10) || 0;
+    if (value === 0) return;
+
+    window.adjustPitTime(value);
+    if (value < 0) return;
+
+    if (!window.liveData) window.liveData = {};
+    window.liveData.ourTeamPenalty = (window.liveData.ourTeamPenalty || 0) + 1;
+    window.liveData.ourTeamPenaltyTime = (window.liveData.ourTeamPenaltyTime || 0) + value;
+
+    if (!window.state._manualPenaltyLog) window.state._manualPenaltyLog = [];
+    window.state._manualPenaltyLog.push({
+        seconds: value,
+        reason: reason || 'Manual penalty',
+        at: (window.getSyncedNow && typeof window.getSyncedNow === 'function') ? window.getSyncedNow() : Date.now()
+    });
+
+    if (typeof window._fireStrategyNotification === 'function') {
+        window._fireStrategyNotification(`⚠️ Manual penalty +${value}s (${reason || 'Manual'})`, 'warning');
+    }
+    if (typeof window.showToast === 'function') {
+        window.showToast(`⚠️ Penalty logged: +${value}s`, 'warning', 5000);
+    }
+};
 
 window.adjustPitTime = function(seconds) {
     window.currentPitAdjustment += seconds;
@@ -1688,7 +1750,7 @@ window.getBoxMessage = function() {
     return t('boxNow');
 };
 
-window.confirmPitExit = function(autoDetected) {
+window.confirmPitExit = function(autoDetected, forceManual) {
     // Guard: race is finished — no pit actions allowed
     if (window.state.isFinished || (!window.state.isRunning && window.state.startTime)) return;
     // Guard: only exit if actually in pit
@@ -1698,11 +1760,17 @@ window.confirmPitExit = function(autoDetected) {
     if (!autoDetected && window.liveTimingConfig && window.liveTimingConfig.enabled && window.liveTimingManager) {
         const stats = window.liveTimingManager.getStats();
         if (stats && stats.isRunning) {
-            console.log('[PitExit] Manual pit exit blocked — live timing is authoritative');
-            if (typeof window._fireStrategyNotification === 'function') {
-                window._fireStrategyNotification('🔒 Pit exit is auto-tracked from live timing', 'info');
+            const liveFresh = window.isLiveTimingFeedFresh(8000);
+            if (!forceManual && liveFresh) {
+                console.log('[PitExit] Manual pit exit blocked — live timing is authoritative');
+                if (typeof window._fireStrategyNotification === 'function') {
+                    window._fireStrategyNotification('🔒 Pit exit is auto-tracked from live timing', 'info');
+                }
+                return;
             }
-            return;
+            if (typeof window._fireStrategyNotification === 'function') {
+                window._fireStrategyNotification('⚠️ Forced pit exit: live timing feed stale', 'warning');
+            }
         }
     }
 
@@ -2019,6 +2087,7 @@ window._driverPitPendingTimer = null;
 
 window.driverPitTap = function() {
     if (!window.state || !window.state.isRunning) return;
+    const liveTimingAuthoritative = !!(window.liveTimingConfig && window.liveTimingConfig.enabled);
     
     if (window.state.isInPit) {
         // Only allow exit if in green zone
@@ -2027,7 +2096,11 @@ window.driverPitTap = function() {
             if (window.role === 'client' && window.conn && window.conn.open) {
                 window.conn.send({ type: 'DRIVER_PIT_EXIT', driverIdx: window._myDriverIdx, timestamp: Date.now() });
             }
-            window.confirmPitExit();
+            if (window.role === 'client' && liveTimingAuthoritative) {
+                window.showToast(window.t('waitingLiveTiming') || 'Waiting for live timing confirmation', 'info');
+            } else {
+                window.confirmPitExit();
+            }
         }
     } else {
         // === Double-tap confirmation for pit entry ===
@@ -2060,14 +2133,14 @@ window.driverPitTap = function() {
             // Flash the zone background amber
             if (zone) zone.style.background = 'linear-gradient(180deg, rgba(245,158,11,0.25) 0%, rgba(0,0,0,1) 100%)';
             
-            // Auto-cancel after 4 seconds
+            // Auto-cancel after 15 seconds if no second confirmation tap
             if (window._driverPitPendingTimer) clearTimeout(window._driverPitPendingTimer);
             window._driverPitPendingTimer = setTimeout(() => {
                 window._driverPitPending = false;
                 // Restore normal display — renderFrame will handle it
                 if (tapHint) { tapHint.textContent = ''; tapHint.style.color = ''; }
                 if (zone) zone.style.background = '';
-            }, 4000);
+            }, 15000);
         } else {
             // ─── SECOND TAP: confirm pit entry ───
             window._driverPitPending = false;
@@ -2083,8 +2156,12 @@ window.driverPitTap = function() {
             if (window.role === 'client' && window.conn && window.conn.open) {
                 window.conn.send({ type: 'DRIVER_PIT_ENTRY', driverIdx: window._myDriverIdx, timestamp: Date.now() });
             }
-            
-            window.confirmPitEntry();
+
+            if (window.role === 'client' && liveTimingAuthoritative) {
+                window.showToast(window.t('waitingLiveTiming') || 'Waiting for live timing confirmation', 'info');
+            } else {
+                window.confirmPitEntry();
+            }
         }
     }
 };
@@ -2538,8 +2615,8 @@ window.updateDriverMode = function() {
             if (str.startsWith('00:')) str = str.substring(3);
             stintTimerEl.innerText = str;
             // Color by zone
-            if (stintMs > targetMs) stintTimerEl.style.color = '#ef4444';
-            else if (stintMs > targetMs - (window.getEstimatedLapMs() || 60000) * 2) stintTimerEl.style.color = '#facc15';
+            if (currentStintMs > targetMs) stintTimerEl.style.color = '#ef4444';
+            else if (currentStintMs > targetMs - (window.getEstimatedLapMs() || 60000) * 2) stintTimerEl.style.color = '#facc15';
             else stintTimerEl.style.color = '#ffffff';
         }
     }
