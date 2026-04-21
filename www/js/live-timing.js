@@ -2,6 +2,41 @@
 // ⏱️ LIVE TIMING CONTROLLER
 // ==========================================
 
+function getLapWord(count) {
+    const lang = window.currentLang || localStorage.getItem('strateger_lang') || 'en';
+    if (lang === 'it') return count === 1 ? 'Giro' : 'Giri';
+    if (lang === 'he') return count === 1 ? 'הקפה' : 'הקפות';
+    return count === 1 ? 'lap' : 'laps';
+}
+
+function formatLapGapFromDiff(diff) {
+    if (!diff || diff < 1) return '';
+    return `+${diff} ${getLapWord(diff)}`;
+}
+
+function dedupeLiveCompetitors(list) {
+    if (!Array.isArray(list) || list.length === 0) return [];
+    const map = new Map();
+    for (const c of list) {
+        const key = c.kart
+            ? `kart:${String(c.kart).trim()}`
+            : (c.name
+                ? `name:${String(c.name).trim().toUpperCase()}`
+                : `pos:${parseInt(c.position, 10) || 0}`);
+        if (!map.has(key)) {
+            map.set(key, c);
+            continue;
+        }
+        const prev = map.get(key);
+        const score = (c.lastLap ? 1 : 0) + (c.bestLap ? 1 : 0) + ((c.laps || c.totalLaps || 0) > 0 ? 1 : 0);
+        const prevScore = (prev.lastLap ? 1 : 0) + (prev.bestLap ? 1 : 0) + ((prev.laps || prev.totalLaps || 0) > 0 ? 1 : 0);
+        if (score > prevScore) {
+            map.set(key, c);
+        }
+    }
+    return Array.from(map.values()).sort((a, b) => (a.position || 999) - (b.position || 999));
+}
+
 // עדכון הגדרות החיפוש (צוות/נהג/מספר)
 window.updateSearchConfig = function() {
     const searchType = document.querySelector('input[name="searchType"]:checked')?.value || 'team';
@@ -120,12 +155,20 @@ window.fetchLiveTimingFromProxy = async function() {
     // איחוד פרמטרים לחיפוש חכם
     const searchTerm = window.searchConfig.driverName || window.searchConfig.teamName || window.searchConfig.kartNumber || '';
     const searchType = window.searchConfig.kartNumber ? 'kart' : (window.searchConfig.driverName ? 'driver' : 'team');
+    const configSignature = `${url}|${searchType}|${searchTerm}`;
     
     // Check if already running with same config - don't restart
     const stats = window.liveTimingManager.getStats();
-    if (stats && stats.isRunning) {
+    const scraperRunning = !!(window.liveTimingManager.currentScraper && window.liveTimingManager.currentScraper.isRunning);
+    const hasSameConfig = window._liveTimingConfigSignature === configSignature;
+    if (((stats && stats.isRunning) || scraperRunning) && hasSameConfig) {
         console.log('[LiveTiming] Already running, skipping restart');
         return;
+    }
+
+    if ((stats && stats.isRunning) || scraperRunning) {
+        console.log('[LiveTiming] Config changed, restarting scraper');
+        window.liveTimingManager.stop();
     }
     
     window.updateProxyStatus("🔄 " + window.t('connecting'));
@@ -141,6 +184,9 @@ window.fetchLiveTimingFromProxy = async function() {
                 position: data.ourTeam?.position,
                 compCount: data.competitors?.length 
             });
+
+            window.liveData.heartbeatCount = (window.liveData.heartbeatCount || 0) + 1;
+            window.liveData.heartbeatAt = Date.now();
             
             if (data.ourTeam) {
                 window.liveData.previousPosition = window.liveData.position;
@@ -164,6 +210,7 @@ window.fetchLiveTimingFromProxy = async function() {
                 // === Pit status from live timing ===
                 const wasInPit = window.liveData.ourTeamInPit;
                 window.liveData.ourTeamInPit = !!data.ourTeam.inPit;
+                const prevPitCount = window.liveData.ourTeamPitCount;
                 window.liveData.ourTeamPitCount = data.ourTeam.pitCount ?? null;
 
                 // Auto-detect pit entry from live timing — AUTHORITATIVE: live timing always wins
@@ -171,20 +218,40 @@ window.fetchLiveTimingFromProxy = async function() {
 
                 if (window.state && window.state.isRunning && !window.state.isInPit && data.ourTeam.inPit) {
                     // Live timing says we are in pit — override everything
-                    console.log('[LiveTiming] 🛑 AUTHORITATIVE PIT ENTRY from live data');
+                    console.log('[LiveTiming] 🛑 AUTHORITATIVE PIT ENTRY from live data (inPit=true)');
                     if (typeof window.confirmPitEntry === 'function') {
                         window.confirmPitEntry(true); // true = auto-detected, skip confirm dialog
+                        window._driverPitIntent = null;
+                    }
+                }
+                // Fallback: detect pit entry from pitCount increase (catches cases where inPit flag was missed between polls)
+                else if (window.state && window.state.isRunning && !window.state.isInPit
+                    && prevPitCount != null && data.ourTeam.pitCount != null
+                    && data.ourTeam.pitCount > prevPitCount) {
+                    console.log(`[LiveTiming] 🛑 PIT ENTRY detected via pitCount increase (${prevPitCount} → ${data.ourTeam.pitCount})`);
+                    window.liveData.ourTeamInPit = true; // Force so exit detection works
+                    window.liveData._pitEntryForcedAt = now; // Track when we forced entry
+                    if (typeof window.confirmPitEntry === 'function') {
+                        window.confirmPitEntry(true);
+                        window._driverPitIntent = null;
                     }
                 }
                 // Auto-detect pit exit from live timing — AUTHORITATIVE
                 if (window.state && window.state.isRunning && window.state.isInPit && !data.ourTeam.inPit && wasInPit === true) {
-                    console.log('[LiveTiming] ✅ AUTHORITATIVE PIT EXIT from live data');
-                    // Reset stint lap tracking for new stint
-                    window.liveData.stintLapHistory = [];
-                    window.liveData.stintBestLap = null;
-                    window.liveData.lastRecordedLap = null;
-                    if (typeof window.confirmPitExit === 'function') {
-                        window.confirmPitExit();
+                    // Guard: don't auto-exit if pit time is too short (< 20s) — prevents false exits from pitCount fallback
+                    const pitElapsed = window.state.pitStart ? (now - window.state.pitStart) : Infinity;
+                    if (pitElapsed >= 20000) {
+                        console.log('[LiveTiming] ✅ AUTHORITATIVE PIT EXIT from live data');
+                        // Reset stint lap tracking for new stint
+                        window.liveData.stintLapHistory = [];
+                        window.liveData.stintBestLap = null;
+                        window.liveData.lastRecordedLap = null;
+                        if (typeof window.confirmPitExit === 'function') {
+                            window.confirmPitExit(true); // true = auto-detected from live timing
+                            window._driverPitIntent = null;
+                        }
+                    } else {
+                        console.log(`[LiveTiming] ⏳ Pit exit suppressed — only ${Math.round(pitElapsed/1000)}s in pit (min 20s)`);
                     }
                 }
                 
@@ -202,7 +269,7 @@ window.fetchLiveTimingFromProxy = async function() {
                     
                     // Notify admin via strategy notification
                     if (typeof window._fireStrategyNotification === 'function') {
-                        const msg = `⚠️ PENALTY! ${newPenaltyTime > 0 ? `+${newPenaltyTime}s` : ''} ${penaltyMsg}`;
+                        const msg = `⚠️ PENALTY! ${newPenaltyTime > 0 ? `${newPenaltyTime} Lap` : ''} ${penaltyMsg}`;
                         window._fireStrategyNotification(msg, 'warning');
                     }
                     
@@ -222,11 +289,13 @@ window.fetchLiveTimingFromProxy = async function() {
                     }
                 }
             }
-            window.liveData.competitors = data.competitors || [];
+            window.liveData.competitors = dedupeLiveCompetitors(data.competitors || []);
 
             // === Race time from live timing (RaceFacer provides timeLeftSeconds) ===
             if (data.race && data.race.timeLeftSeconds != null) {
                 window.liveData.raceTimeLeftMs = data.race.timeLeftSeconds * 1000;
+                // Store the timestamp when we received this so we can count down locally between API updates
+                window.liveData._raceTimeReceivedAt = Date.now();
             }
             
             // Force enable if data arrived
@@ -254,8 +323,21 @@ window.fetchLiveTimingFromProxy = async function() {
         onError: (err, count) => {
             console.error("Scraper Error:", err);
             window.updateProxyStatus(`⚠️ Error ${count}: ${err.message}`);
+        },
+
+        onComment: (entry) => {
+            console.log(`[LiveTiming] 💬 Race comment: ${entry.text}`);
+            if (typeof window.showToast === 'function') {
+                window.showToast(`📢 ${entry.text}`, 'info', 8000);
+            }
+            // Also fire as strategy notification if race is running
+            if (window.state && window.state.isRunning && typeof window._fireStrategyNotification === 'function') {
+                window._fireStrategyNotification(`📢 ${entry.text}`, 'info');
+            }
         }
     });
+
+    window._liveTimingConfigSignature = configSignature;
 };
 
 window.parseTimeToMs = function(timeStr) {
@@ -325,6 +407,17 @@ window.updateLiveTimingUI = function() {
         if (panel) panel.classList.remove('hidden');
         if (indicator) indicator.classList.remove('hidden');
     }
+
+    const heartbeatEl = document.getElementById('liveHeartbeat');
+    if (heartbeatEl) {
+        const count = window.liveData.heartbeatCount || 0;
+        const ageMs = window.liveData.heartbeatAt ? (Date.now() - window.liveData.heartbeatAt) : null;
+        const ageSec = ageMs == null ? '--' : Math.floor(ageMs / 1000);
+        heartbeatEl.innerText = `HB ${count} (${ageSec}s)`;
+        heartbeatEl.className = ageMs != null && ageMs > 7000
+            ? 'text-[10px] text-red-400'
+            : 'text-[10px] text-gray-400';
+    }
     
     const posEl = document.getElementById('livePosition');
     if (posEl) posEl.innerText = window.liveData.position || '-';
@@ -354,26 +447,38 @@ window.updateLiveTimingUI = function() {
     const lapsEl = document.getElementById('liveLaps');
     if (lapsEl) lapsEl.innerText = window.liveData.laps != null ? window.liveData.laps : '-';
     
-    // Update gap to leader
+    // Update gap to leader — use lap count difference
     const gapEl = document.getElementById('liveGap');
     if (gapEl) {
         if (window.liveData.position === 1) {
-            gapEl.innerText = 'LEADER';
+            const leaderLabel = window.t('leaderLabel');
+            gapEl.innerText = leaderLabel !== 'leaderLabel' ? leaderLabel : 'LEADER';
             gapEl.className = 'text-sm font-mono text-gold';
-        } else if (window.liveData.gapToLeader) {
-            const gapSec = (window.liveData.gapToLeader / 1000).toFixed(1);
-            gapEl.innerText = `+${gapSec}s`;
-            gapEl.className = 'text-sm font-mono text-fuel';
         } else {
-            gapEl.innerText = '-';
-            gapEl.className = 'text-sm font-mono text-fuel';
+            // Compute lap-based gap from competitors data
+            const comps = window.liveData.competitors || [];
+            const leader = comps.find(c => c.position === 1);
+            const ourLaps = window.liveData.laps || 0;
+            const leaderLaps = leader ? (leader.laps || leader.totalLaps || 0) : 0;
+            const lapDiff = leaderLaps - ourLaps;
+            if (lapDiff >= 1) {
+                gapEl.innerText = formatLapGapFromDiff(lapDiff);
+                gapEl.className = 'text-sm font-mono text-fuel';
+            } else if (window.liveData.gapToLeader) {
+                const gapSec = (window.liveData.gapToLeader / 1000).toFixed(1);
+                gapEl.innerText = `+${gapSec}s`;
+                gapEl.className = 'text-sm font-mono text-fuel';
+            } else {
+                gapEl.innerText = '-';
+                gapEl.className = 'text-sm font-mono text-fuel';
+            }
         }
     }
     
     // Update total cars count
     const totalCarsEl = document.getElementById('liveTotalCars');
     if (totalCarsEl && window.liveData.competitors) {
-        totalCarsEl.innerText = window.liveData.competitors.length || '-';
+        totalCarsEl.innerText = dedupeLiveCompetitors(window.liveData.competitors).length || '-';
     }
     
     window.updateCompetitorsTable();
@@ -388,7 +493,7 @@ window.updateCompetitorsTable = function() {
     if (fresh && fresh.length > 0) {
         window._lastKnownCompetitors = fresh;
     }
-    const allCompetitors = window._lastKnownCompetitors;
+    const allCompetitors = dedupeLiveCompetitors(window._lastKnownCompetitors);
     if (!allCompetitors || allCompetitors.length === 0) {
         tableEl.innerHTML = `<div class="text-gray-500 text-center py-2">${window.t('waitingData')}</div>`;
         return;
@@ -400,11 +505,6 @@ window.updateCompetitorsTable = function() {
         tableEl.addEventListener('scroll', () => {
             if (window._ltScroll._programmaticScroll) return;
             window._ltScroll.userScrolled = true;
-            if (window._ltScroll.refocusTimer) clearTimeout(window._ltScroll.refocusTimer);
-            window._ltScroll.refocusTimer = setTimeout(() => {
-                window._ltScroll.userScrolled = false;
-                window._scrollToOurTeamRow();
-            }, 60000);
         }, { passive: true });
     }
 
@@ -423,9 +523,9 @@ window.updateCompetitorsTable = function() {
             row.className = 'competitor-row';
             row.dataset.compIdx = i;
             row.innerHTML = `<div class="cr-left">
-<span class="cr-pos"></span><span class="cr-kart"></span><span class="cr-name"></span><span class="cr-badges"></span>
+<span class="cr-pos"></span><span class="cr-kart"></span><span class="cr-cat"></span><span class="cr-name"></span><span class="cr-badges"></span>
 </div><div class="cr-right">
-<span class="cr-gap"></span><span class="cr-lap"></span>
+<span class="cr-laps"></span><span class="cr-pits"></span><span class="cr-gap"></span><span class="cr-int"></span><span class="cr-lap"></span><span class="cr-avg"></span>
 </div>`;
             frag.appendChild(row);
         }
@@ -478,57 +578,132 @@ window.updateCompetitorsTable = function() {
             if (kartEl.className !== kartCls) kartEl.className = kartCls;
         }
 
-        // ---- Name ----
+        // ---- Category badge (GOLD / SILVER / etc.) ----
+        const catEl = row.querySelector('.cr-cat');
+        if (catEl) {
+            const catVal = (comp.category || '').trim().toUpperCase();
+            if (catEl.textContent !== catVal) catEl.textContent = catVal;
+            let catCls = 'cr-cat';
+            if (catVal === 'GOLD') catCls += ' cat-gold';
+            else if (catVal === 'SILVER') catCls += ' cat-silver';
+            else if (catVal === 'BRONZE') catCls += ' cat-bronze';
+            else if (catVal) catCls += ' cat-other';
+            if (catEl.className !== catCls) catEl.className = catCls;
+        }
+
+        // ---- Name (rotate team ↔ driver every 5s) ----
         const nameEl = row.querySelector('.cr-name');
         if (nameEl) {
-            if (nameEl.textContent !== comp.name) nameEl.textContent = comp.name;
+            const teamStr = (comp.team || '').trim();
+            const driverStr = (comp.name || '').trim();
+            // Show team name primarily; rotate to driver name for 2s every 5s
+            const cycleMs = 5000;
+            const showDriver = teamStr && driverStr && teamStr !== driverStr
+                ? (Date.now() % cycleMs) > 3000   // 3s team, 2s driver
+                : false;
+            const displayName = showDriver ? driverStr : (teamStr || driverStr);
+            if (nameEl.textContent !== displayName) nameEl.textContent = displayName;
             const nameCls = isUs ? 'cr-name text-ice font-bold' : 'cr-name';
             if (nameEl.className !== nameCls) nameEl.className = nameCls;
         }
 
-        // ---- Badges (pit + penalty + good pace) ----
+        // ---- Badges (pit + penalty + top 3 lap) ----
         const badgesEl = row.querySelector('.cr-badges');
         if (badgesEl) {
             let badges = '';
             if (comp.inPit) badges += '<span class="badge-pit">PIT</span>';
-            if (comp.penalty && comp.penalty > 0) {
-                const penSec = comp.penaltyTime ? `${comp.penaltyTime}s` : '';
-                badges += `<span class="badge-penalty" title="${comp.penaltyReason || 'Penalty'}" style="background:rgba(239,68,68,0.3);color:#f87171;font-size:8px;padding:0 3px;border-radius:2px;margin-left:2px;">⚠${penSec}</span>`;
+            const penaltyVal = comp.penalty || comp.penaltyTime || 0;
+            if (penaltyVal > 0) {
+                const penLabel = comp.penaltyTime ? `${comp.penaltyTime} Lap` : '';
+                const reason = (comp.penaltyReason || 'Penalty').replace(/"/g, '&quot;');
+                badges += `<span class="badge-penalty" title="${reason}" style="background:rgba(239,68,68,0.3);color:#f87171;font-size:8px;padding:0 3px;border-radius:2px;margin-left:2px;">⚠${penLabel}</span>`;
             }
-            if (isGoodPace) badges += '<span class="badge-fast" title="' + (window.t('goodPace') || 'Good Pace') + '">⚡</span>';
+            // Only show ⚡ for top 3 fastest best-lap karts, not all "good pace"
+            if (comp.position <= 3 && isPB) badges += '<span class="badge-fast" title="Top 3">⚡</span>';
             if (badgesEl.innerHTML !== badges) badgesEl.innerHTML = badges;
         }
 
-        // ---- Gap from P1 (always from leader) ----
+        // ---- Gap from P1 (lap-count based) ----
         const gapEl = row.querySelector('.cr-gap');
         if (gapEl) {
             let gapHTML = '';
             if (comp.position === 1) {
                 gapHTML = '<span class="text-gold">P1</span>';
             } else {
+                const leader = allCompetitors.find(c => c.position === 1);
+                const leaderLaps = leader ? (leader.laps || leader.totalLaps || 0) : 0;
+                const compLaps = comp.laps || comp.totalLaps || 0;
+                const lapDiff = leaderLaps - compLaps;
                 const gapMs = comp.gap ?? comp.gapToLeader ?? 0;
-                if (gapMs > 0) {
+
+                // Determine color relative to our team
+                const ourLaps = ourTeam ? (ourTeam.laps || ourTeam.totalLaps || 0) : null;
+                const ourLapDiff = ourLaps != null ? (leaderLaps - ourLaps) : null;
+                let color = 'gap-neutral';
+                if (ourLapDiff != null) {
+                    if (lapDiff > ourLapDiff) color = 'gap-behind';
+                    else if (lapDiff < ourLapDiff) color = 'gap-ahead';
+                    else if (lapDiff === ourLapDiff) {
+                        // Same lap count — compare time gap
+                        const ourGapMs = ourTeam ? (ourTeam.gap ?? ourTeam.gapToLeader ?? 0) : 0;
+                        if (gapMs > ourGapMs) color = 'gap-behind';
+                        else if (gapMs < ourGapMs) color = 'gap-ahead';
+                        else color = 'gap-us';
+                    }
+                }
+
+                if (lapDiff >= 1) {
+                    // Show +N laps
+                    const gapStr = formatLapGapFromDiff(lapDiff);
+                    gapHTML = `<span class="${color}">${gapStr}</span>`;
+                } else if (gapMs > 0) {
+                    // Same lap — show time gap in seconds
                     const sec = gapMs / 1000;
-                    let gapStr;
-                    if (sec >= 60) {
-                        const m = Math.floor(sec / 60);
-                        const s = (sec % 60).toFixed(1);
-                        gapStr = `+${m}:${s.padStart(4, '0')}`;
-                    } else {
-                        gapStr = `+${sec.toFixed(1)}s`;
-                    }
-                    // Color: green if behind us, red if ahead, gray if we aren't found
-                    const ourGapMs = ourTeam ? (ourTeam.gap ?? ourTeam.gapToLeader ?? 0) : null;
-                    let color = 'gap-neutral';
-                    if (ourGapMs != null) {
-                        if (gapMs > ourGapMs) color = 'gap-behind';    // behind us (good)
-                        else if (gapMs < ourGapMs) color = 'gap-ahead'; // ahead of us (bad)
-                        else color = 'gap-us';                          // same = us
-                    }
+                    const gapStr = `+${sec.toFixed(1)}s`;
                     gapHTML = `<span class="${color}">${gapStr}</span>`;
                 }
             }
             if (gapEl.innerHTML !== gapHTML) gapEl.innerHTML = gapHTML;
+        }
+
+        // ---- Interval (gap to car ahead) — lap-count based ----
+        const intEl = row.querySelector('.cr-int');
+        if (intEl) {
+            let intHTML = '';
+            if (comp.position === 1) {
+                intHTML = '';
+            } else {
+                // Find car ahead
+                const carAhead = allCompetitors.find(c => c.position === comp.position - 1);
+                const aheadLaps = carAhead ? (carAhead.laps || carAhead.totalLaps || 0) : 0;
+                const compLaps = comp.laps || comp.totalLaps || 0;
+                const intLapDiff = aheadLaps - compLaps;
+                const intMs = comp.interval ?? 0;
+
+                if (intLapDiff >= 1) {
+                    intHTML = `<span class="text-gray-500">${formatLapGapFromDiff(intLapDiff).replace('+', '')}</span>`;
+                } else if (intMs > 0) {
+                    const intSec = intMs / 1000;
+                    intHTML = `<span class="text-gray-500">${intSec.toFixed(1)}s</span>`;
+                }
+            }
+            if (intEl.innerHTML !== intHTML) intEl.innerHTML = intHTML;
+        }
+
+        // ---- Laps count ----
+        const lapsRowEl = row.querySelector('.cr-laps');
+        if (lapsRowEl) {
+            const lapCount = comp.laps || comp.totalLaps || '';
+            const lapsTxt = lapCount ? `${lapCount}` : '';
+            if (lapsRowEl.textContent !== lapsTxt) lapsRowEl.textContent = lapsTxt;
+        }
+
+        // ---- Pit count ----
+        const pitsEl = row.querySelector('.cr-pits');
+        if (pitsEl) {
+            const pitCount = comp.pitCount ?? 0;
+            const pitsTxt = pitCount > 0 ? `P${pitCount}` : '';
+            if (pitsEl.textContent !== pitsTxt) pitsEl.textContent = pitsTxt;
         }
 
         // ---- Last lap + personal best glow ----
@@ -539,12 +714,15 @@ window.updateCompetitorsTable = function() {
             const lapCls = isPB ? 'cr-lap lap-pb' : 'cr-lap';
             if (lapEl.className !== lapCls) lapEl.className = lapCls;
         }
-    });
 
-    // ---- Auto-scroll to our team ----
-    if (!window._ltScroll.userScrolled && ourTeamRow) {
-        window._scrollToOurTeamRow();
-    }
+        // ---- Avg lap ----
+        const avgEl = row.querySelector('.cr-avg');
+        if (avgEl) {
+            const avgMs = comp.avgLap || 0;
+            const avgTxt = avgMs > 0 ? window.formatLapTime(avgMs) : '';
+            if (avgEl.textContent !== avgTxt) avgEl.textContent = avgTxt;
+        }
+    });
 
     // ---- Update kart ranking mini-panel ----
     window._updateKartRankingPanel();
@@ -566,16 +744,16 @@ window._updateKartStats = function(competitors) {
             stats[kart] = { bestLapMs: Infinity, recentLaps: [], team: '', pos: 0, laps: 0, inPit: false, pitCount: 0 };
         }
         const s = stats[kart];
-        s.team = c.name || s.team;
+        s.team = c.team || c.name || s.team;
         s.pos = c.position || s.pos;
         s.laps = c.laps || c.totalLaps || s.laps;
         s.inPit = !!c.inPit;
         if (c.pitCount != null) s.pitCount = c.pitCount;
 
-        if (c.bestLap && c.bestLap > 0 && c.bestLap < s.bestLapMs) {
+        if (c.bestLap && c.bestLap > 0 && c.bestLap < s.bestLapMs && c.bestLap >= 20000 && c.bestLap <= 180000) {
             s.bestLapMs = c.bestLap;
         }
-        if (c.lastLap && c.lastLap > 0) {
+        if (c.lastLap && c.lastLap > 0 && c.lastLap >= 20000 && c.lastLap <= 180000) {
             s.recentLaps.push(c.lastLap);
             if (s.recentLaps.length > 30) s.recentLaps.shift();
         }
@@ -713,9 +891,51 @@ window.startLiveTimingUpdates = function() {
         if (!window.demoState.competitors || window.demoState.competitors.length === 0) {
             window.initializeDemoCompetitors();
         }
-        window.liveTimingInterval = setInterval(window.updateDemoData, 1000);
+        if (window.liveTimingDemoTimer) clearTimeout(window.liveTimingDemoTimer);
+        const scheduleDemoTick = () => {
+            if (!window.__liveTimingStarted || !window.liveTimingConfig.demoMode) return;
+            window.updateDemoData();
+            const nextDelay = 750 + Math.floor(Math.random() * 550); // jitter for production-like cadence
+            window.liveTimingDemoTimer = setTimeout(scheduleDemoTick, nextDelay);
+        };
+        scheduleDemoTick();
     } else if (window.liveTimingConfig.url) {
         window.startProxyLiveTiming();
+    }
+};
+
+window.toggleApexIframe = function() {
+    const iframeContainer = document.getElementById('apexIframeContainer');
+    const tableContainer = document.getElementById('competitorsTable');
+    const statsGrids = document.querySelectorAll('#liveTimingPanel .grid');
+    const btn = document.getElementById('apexViewToggle');
+    if (!iframeContainer) return;
+
+    const showingIframe = !iframeContainer.classList.contains('hidden');
+
+    if (showingIframe) {
+        // Switch back to data view
+        iframeContainer.classList.add('hidden');
+        if (tableContainer) tableContainer.classList.toggle('hidden', window._competitorsTableOpen === false);
+        if (btn) {
+            btn.textContent = '🌐';
+            btn.classList.remove('bg-ice', 'text-navy-900');
+            btn.classList.add('bg-navy-700', 'text-gray-300');
+        }
+    } else {
+        // Switch to iframe view — lazy-load the URL
+        const iframeEl = document.getElementById('apexIframe');
+        const url = window.liveTimingConfig && window.liveTimingConfig.url;
+        if (iframeEl && url && !iframeEl.getAttribute('src')) {
+            iframeEl.setAttribute('src', url);
+        }
+        iframeContainer.classList.remove('hidden');
+        if (tableContainer) tableContainer.classList.add('hidden');
+        if (btn) {
+            btn.textContent = '📊';
+            btn.classList.remove('bg-navy-700', 'text-gray-300');
+            btn.classList.add('bg-ice', 'text-navy-900');
+        }
     }
 };
 
@@ -723,6 +943,10 @@ window.stopLiveTiming = function() {
     if (window.liveTimingManager) {
         window.liveTimingManager.stop();
         window.liveTimingManager = null;
+    }
+    if (window.liveTimingDemoTimer) {
+        clearTimeout(window.liveTimingDemoTimer);
+        window.liveTimingDemoTimer = null;
     }
     
     // Clear demo/live interval
@@ -737,7 +961,7 @@ window.stopLiveTiming = function() {
     // איפוס נתונים
     window.liveData = { 
         position: null, previousPosition: null, lastLap: null, bestLap: null, 
-        laps: 0, gapToLeader: 0, competitors: [] 
+        laps: 0, gapToLeader: 0, competitors: [], heartbeatCount: 0, heartbeatAt: null
     };
     
     // Reset caches
@@ -766,6 +990,8 @@ window.stopLiveTiming = function() {
     if (carsEl) carsEl.innerText = '-';
     const changeEl = document.getElementById('livePositionChange');
     if (changeEl) { changeEl.innerText = ''; changeEl.className = 'text-[10px] position-same'; }
+    const heartbeatEl = document.getElementById('liveHeartbeat');
+    if (heartbeatEl) { heartbeatEl.innerText = 'HB --'; heartbeatEl.className = 'text-[10px] text-gray-400'; }
     const tableEl = document.getElementById('competitorsTable');
     if (tableEl) tableEl.innerHTML = '';
     const kartPanel = document.getElementById('kartRankingPanel');
@@ -784,6 +1010,10 @@ window.stopLiveTimingUpdates = function() {
     if (window.liveTimingInterval) {
         clearInterval(window.liveTimingInterval);
         window.liveTimingInterval = null;
+    }
+    if (window.liveTimingDemoTimer) {
+        clearTimeout(window.liveTimingDemoTimer);
+        window.liveTimingDemoTimer = null;
     }
     window.__liveTimingStarted = false;
     window.stopProxyLiveTiming();
@@ -814,6 +1044,7 @@ window.startDemoMode = function() {
     }
 
     window.initializeDemoCompetitors();
+    window.demoState.nextCommentAt = 45000 + Math.random() * 45000;
     
     const statusEl = document.getElementById('liveTimingStatus');
     if (statusEl) {
@@ -823,13 +1054,18 @@ window.startDemoMode = function() {
 };
 
 window.initializeDemoCompetitors = function() {
-    const teamNames = [
+    const baseTeamNames = [
         'Your Team', 'Racing Stars', 'Speed Demons', 'Track Masters',
         'Nitro Force', 'Apex Racing', 'Thunder Karts', 'Pro Racers',
         'Fast Lane', 'Grid Warriors', 'Velocity', 'Turbo Squad',
         'Drift Kings', 'Iron Wheels', 'Storm Racing', 'Pole Hunters',
         'Circuit Wolves', 'Checkered Flag', 'Rev Limit', 'Slipstream'
     ];
+    const requestedGrid = Math.max(8, Math.min(40, parseInt(window.demoConfig?.gridSize || 20, 10)));
+    const teamNames = Array.from({ length: requestedGrid }, (_, idx) => {
+        if (idx < baseTeamNames.length) return baseTeamNames[idx];
+        return `Team ${idx + 1}`;
+    });
 
     const raceDurationMs = (window.config.duration || window.config.raceDuration || 0.5) * 3600000;
     const configStops = window.config.reqStops || window.config.stops || 2;
@@ -880,6 +1116,12 @@ window.initializeDemoCompetitors = function() {
             _lastSimTime: 0     // last wall-clock we simulated up to
         };
     });
+    window.demoState.safetyCar = {
+        active: false,
+        nextEventAt: 180000 + Math.random() * 240000,
+        until: 0
+    };
+    window.demoState.nextCommentAt = 45000 + Math.random() * 45000;
 };
 
 /**
@@ -892,6 +1134,15 @@ window.updateDemoData = function() {
     const now = Date.now();
     const raceStart = window.state.startTime;
     const raceElapsed = now - raceStart;
+    const raceMs = window.config.raceMs || (parseFloat(window.config.duration) * 3600000);
+    const chaos = window.demoConfig?.chaosLevel || 'normal';
+    const chaosFactor = chaos === 'high' ? 1.7 : (chaos === 'low' ? 0.7 : 1);
+
+    // Keep demo telemetry aligned with live feeds (clock + heartbeat freshness).
+    window.liveData.heartbeatCount = (window.liveData.heartbeatCount || 0) + 1;
+    window.liveData.heartbeatAt = now;
+    window.liveData.raceTimeLeftMs = Math.max(0, raceMs - raceElapsed);
+    window.liveData._raceTimeReceivedAt = now;
 
     // --- Rain simulation ---
     const rain = window.demoState.rain;
@@ -967,6 +1218,44 @@ window.updateDemoData = function() {
         }
     }
 
+    const safetyCar = window.demoState.safetyCar;
+    if (window.demoConfig?.safetyCar && safetyCar) {
+        if (!safetyCar.active && raceElapsed >= safetyCar.nextEventAt) {
+            safetyCar.active = true;
+            safetyCar.until = raceElapsed + (40000 + Math.random() * 50000);
+            if (typeof window._fireStrategyNotification === 'function') {
+                window._fireStrategyNotification('🚩 Safety Car deployed - reduced race pace', 'warning');
+            }
+            if (typeof window.showToast === 'function') {
+                window.showToast('🚩 Safety Car deployed', 'warning', 4500);
+            }
+        } else if (safetyCar.active && raceElapsed >= safetyCar.until) {
+            safetyCar.active = false;
+            safetyCar.nextEventAt = raceElapsed + (180000 + Math.random() * 240000);
+            if (typeof window._fireStrategyNotification === 'function') {
+                window._fireStrategyNotification('🟢 Green flag - racing resumed', 'info');
+            }
+        }
+    }
+
+    if (window.demoState.nextCommentAt != null && raceElapsed >= window.demoState.nextCommentAt) {
+        const comments = [
+            'Race control: keep pit lane clear',
+            'Track clear - green conditions',
+            'Incident in sector 2 under review',
+            'Pit window trend: increased activity',
+            'Reminder: respect pit exit line'
+        ];
+        const text = comments[Math.floor(Math.random() * comments.length)];
+        if (typeof window._fireStrategyNotification === 'function') {
+            window._fireStrategyNotification(`📢 ${text}`, 'info');
+        }
+        if (typeof window.showToast === 'function') {
+            window.showToast(`📢 ${text}`, 'info', 5000);
+        }
+        window.demoState.nextCommentAt = raceElapsed + 60000 + Math.random() * 90000;
+    }
+
     // --- Advance each competitor ---
     window.demoState.competitors.forEach(comp => {
         // Simulate laps until their elapsed time catches up to raceElapsed
@@ -1007,7 +1296,8 @@ window.updateDemoData = function() {
                 // Apply rain multiplier: base rain slowdown + per-team rain skill
                 const rainMult = rain ? rain.paceMultiplier : 1;
                 const teamRainMult = rainMult > 1.01 ? (1 + (rainMult - 1) * comp.rainSkill) : 1;
-                const lapTime = Math.max(comp.basePace * 0.92, (comp.basePace + gauss * comp.consistency) * tireMult * teamRainMult);
+                const safetyCarMult = (window.demoConfig?.safetyCar && safetyCar?.active) ? 1.18 : 1;
+                const lapTime = Math.max(comp.basePace * 0.92, (comp.basePace + gauss * comp.consistency) * tireMult * teamRainMult * safetyCarMult);
 
                 if (comp.elapsed + lapTime > raceElapsed) {
                     // Mid-lap: don't complete it yet
@@ -1065,7 +1355,7 @@ window.updateDemoData = function() {
     const demoCfg = window.demoConfig || { rain: true, penalties: true, tires: true };
     window.demoState.competitors.forEach(comp => {
         // Random penalty chance (~0.3% per update, roughly 1 per 5-6 min at 1Hz)
-        if (demoCfg.penalties && !comp._penaltyApplied && comp.laps > 5 && Math.random() < 0.003) {
+        if (demoCfg.penalties && !comp._penaltyApplied && comp.laps > 5 && Math.random() < (0.003 * chaosFactor)) {
             const penaltySec = [5, 10, 10, 15, 30][Math.floor(Math.random() * 5)];
             comp.penalty = (comp.penalty || 0) + 1;
             comp.penaltyTime = (comp.penaltyTime || 0) + penaltySec;
@@ -1073,6 +1363,14 @@ window.updateDemoData = function() {
             // Add penalty time to elapsed (time penalty = lost time)
             comp.elapsed += penaltySec * 1000;
             comp._penaltyApplied = true; // Max 1 penalty per team in demo
+        }
+
+        if (window.demoConfig?.incidents && comp.laps > 3 && Math.random() < (0.0015 * chaosFactor)) {
+            const incidentLoss = 3000 + Math.random() * 7000;
+            comp.elapsed += incidentLoss;
+            if (comp.isOurTeam && typeof window.showToast === 'function') {
+                window.showToast('💥 Minor incident: pace loss recorded', 'warning', 4200);
+            }
         }
 
         // Tire degradation: lap times get ~0.2% slower every 8 laps in a stint
@@ -1173,13 +1471,13 @@ window.updateDemoData = function() {
         if (ourTeam.penalty > (ourTeam._lastNotifiedPenalty || 0)) {
             ourTeam._lastNotifiedPenalty = ourTeam.penalty;
             if (typeof window._fireStrategyNotification === 'function') {
-                window._fireStrategyNotification(`⚠️ PENALTY! +${ourTeam.penaltyTime}s — ${ourTeam.penaltyReason}`, 'warning');
+                window._fireStrategyNotification(`⚠️ PENALTY! ${ourTeam.penaltyTime} Lap — ${ourTeam.penaltyReason}`, 'warning');
             }
             if (typeof window.playAlertBeep === 'function') {
                 window.playAlertBeep('warning');
             }
             if (typeof window.showToast === 'function') {
-                window.showToast(`⚠️ Penalty: +${ourTeam.penaltyTime}s (${ourTeam.penaltyReason})`, 'error', 8000);
+                window.showToast(`⚠️ Penalty: ${ourTeam.penaltyTime} Lap (${ourTeam.penaltyReason})`, 'error', 8000);
             }
         }
 
@@ -1188,4 +1486,13 @@ window.updateDemoData = function() {
 
     window.liveData.competitors = sorted;
     window.updateLiveTimingUI();
+};
+
+if (window._competitorsTableOpen == null) window._competitorsTableOpen = true;
+window.toggleCompetitorsTable = function() {
+    window._competitorsTableOpen = !window._competitorsTableOpen;
+    const table = document.getElementById('competitorsTable');
+    const btn = document.getElementById('competitorsToggleBtn');
+    if (table) table.classList.toggle('hidden', !window._competitorsTableOpen);
+    if (btn) btn.textContent = window._competitorsTableOpen ? '📋' : '🗂️';
 };

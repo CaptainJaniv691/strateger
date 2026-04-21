@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">Streger - Endurance Race Strategy</title>
+  <desc id="desc">Live race strategy, pit windows, and driver rotation by HOLYLAND RACING.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#041327"/>
+      <stop offset="100%" stop-color="#0b1f3f"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#a3e635"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="1040" cy="110" r="210" fill="#22d3ee" opacity="0.10"/>
+  <circle cx="180" cy="560" r="260" fill="#f97316" opacity="0.12"/>
+  <rect x="66" y="70" width="1068" height="490" rx="28" fill="#020617" fill-opacity="0.58" stroke="#22d3ee" stroke-opacity="0.28"/>
+
+  <text x="110" y="190" fill="#e2e8f0" font-family="Segoe UI, Arial, sans-serif" font-size="46" font-weight="800">STREGER</text>
+  <text x="110" y="236" fill="#22d3ee" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700">Endurance Race Command Center</text>
+
+  <text x="110" y="320" fill="#cbd5e1" font-family="Segoe UI, Arial, sans-serif" font-size="32" font-weight="600">Plan smarter pit windows.</text>
+  <text x="110" y="368" fill="#cbd5e1" font-family="Segoe UI, Arial, sans-serif" font-size="32" font-weight="600">Run cleaner driver rotations.</text>
+  <text x="110" y="416" fill="#cbd5e1" font-family="Segoe UI, Arial, sans-serif" font-size="32" font-weight="600">Win with live strategy control.</text>
+
+  <rect x="110" y="455" width="480" height="56" rx="12" fill="url(#accent)"/>
+  <text x="136" y="492" fill="#05202b" font-family="Segoe UI, Arial, sans-serif" font-size="26" font-weight="800">Built by HOLYLAND RACING</text>
+</svg>

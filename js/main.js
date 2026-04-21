@@ -117,7 +117,164 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.role === 'host' && typeof window.startOnboarding === 'function') {
         setTimeout(() => window.startOnboarding(), 800);
     }
+
+    // Non-blocking i18n audit to spot missing keys across languages/pages.
+    if (typeof window.auditTranslationCoverage === 'function') {
+        setTimeout(() => {
+            const report = window.auditTranslationCoverage();
+            const hasDomGaps = (report.missingInEnFromDom || []).length > 0;
+            const langGaps = Object.entries(report.missingByLanguage || {})
+                .map(([lang, arr]) => `${lang}:${arr.length}`)
+                .join(' | ');
+            console.info('[i18n] coverage', { used: report.usedKeyCount, base: report.baseKeyCount, langGaps, missingInEnFromDom: report.missingInEnFromDom });
+            if (hasDomGaps && typeof window.showToast === 'function') {
+                window.showToast('⚠️ i18n: missing translation keys detected, see console report', 'warning', 5000);
+            }
+        }, 1200);
+    }
+
+    const qs = new URLSearchParams(window.location.search);
+    if (qs.get('broadcast') === '1') {
+        setTimeout(() => {
+            if (typeof window.toggleBroadcastMode === 'function') window.toggleBroadcastMode(true);
+        }, 400);
+    }
 });
+
+// ==========================================
+// 📺 BROADCAST MODE
+// ==========================================
+
+window.updateBroadcastBranding = function() {
+    const headline = (document.getElementById('broadcastHeadlineInput')?.value || 'HOLYLAND RACING LIVE').trim();
+    const s1 = (document.getElementById('broadcastSponsor1')?.value || 'Sponsor 1').trim();
+    const s2 = (document.getElementById('broadcastSponsor2')?.value || 'Sponsor 2').trim();
+    const s3 = (document.getElementById('broadcastSponsor3')?.value || 'Sponsor 3').trim();
+
+    const pack = { headline, sponsors: [s1, s2, s3] };
+    localStorage.setItem('strateger_broadcast_branding', JSON.stringify(pack));
+
+    const headlineEl = document.getElementById('broadcastHeadlinePreview');
+    if (headlineEl) headlineEl.innerText = headline;
+
+    const deck = document.getElementById('broadcastSponsorDeck');
+    if (deck) {
+        deck.innerHTML = pack.sponsors.map((txt) => `<div class="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm">${txt || 'Sponsor'}</div>`).join('');
+    }
+};
+
+window.loadBroadcastBranding = function() {
+    try {
+        const raw = localStorage.getItem('strateger_broadcast_branding');
+        if (!raw) {
+            window.updateBroadcastBranding();
+            return;
+        }
+        const parsed = JSON.parse(raw);
+        const headlineInput = document.getElementById('broadcastHeadlineInput');
+        const s1 = document.getElementById('broadcastSponsor1');
+        const s2 = document.getElementById('broadcastSponsor2');
+        const s3 = document.getElementById('broadcastSponsor3');
+        if (headlineInput) headlineInput.value = parsed.headline || 'HOLYLAND RACING LIVE';
+        if (s1) s1.value = parsed.sponsors?.[0] || '';
+        if (s2) s2.value = parsed.sponsors?.[1] || '';
+        if (s3) s3.value = parsed.sponsors?.[2] || '';
+        window.updateBroadcastBranding();
+    } catch {
+        window.updateBroadcastBranding();
+    }
+};
+
+window.copyBroadcastLink = async function() {
+    const base = `${window.location.origin}/broadcast.html`;
+    const params = new URLSearchParams();
+    if (window.myId && window.role === 'host') params.set('join', window.myId);
+    const url = `${base}?${params.toString()}`;
+    try {
+        await navigator.clipboard.writeText(url);
+        if (typeof window.showToast === 'function') window.showToast(`📺 ${window.t ? window.t('broadcastLinkCopied') : 'Broadcast link copied'}`, 'success', 2800);
+    } catch {
+        if (typeof window.showToast === 'function') window.showToast(url, 'info', 5000);
+    }
+};
+
+window.toggleBroadcastMode = function(forceState) {
+    const panel = document.getElementById('broadcastPanel');
+    if (!panel) return;
+    const shouldShow = (typeof forceState === 'boolean') ? forceState : panel.classList.contains('hidden');
+    panel.classList.toggle('hidden', !shouldShow);
+    if (shouldShow) {
+        window.loadBroadcastBranding();
+        window.updateBroadcastScreen();
+    }
+};
+
+window.updateBroadcastScreen = function() {
+    const panel = document.getElementById('broadcastPanel');
+    if (!panel || panel.classList.contains('hidden')) return;
+
+    const raceTimeEl = document.getElementById('broadcastRaceTime');
+    const posEl = document.getElementById('broadcastPos');
+    const lastEl = document.getElementById('broadcastLast');
+    const bestEl = document.getElementById('broadcastBest');
+    const curEl = document.getElementById('broadcastCurrentDriver');
+    const nextEl = document.getElementById('broadcastNextDriver');
+    const statusEl = document.getElementById('broadcastPitStatus');
+    const hbEl = document.getElementById('broadcastHeartbeat');
+    const tableEl = document.getElementById('broadcastLeaderboard');
+
+    const now = (window.getSyncedNow && typeof window.getSyncedNow === 'function') ? window.getSyncedNow() : Date.now();
+    const raceMs = window.config?.raceMs || (parseFloat(window.config?.duration || 0) * 3600000);
+    if (raceTimeEl) {
+        if (window.state?.isRunning && raceMs > 0) {
+            const elapsed = Math.max(0, now - window.state.startTime);
+            raceTimeEl.innerText = window.formatTimeHMS(Math.min(raceMs, elapsed));
+        } else {
+            raceTimeEl.innerText = '00:00:00';
+        }
+    }
+
+    if (posEl) posEl.innerText = (window.liveData?.position ?? '-').toString();
+    if (lastEl) lastEl.innerText = window.liveData?.lastLap ? window.msToTime(window.liveData.lastLap) : '-';
+    if (bestEl) bestEl.innerText = window.liveData?.bestLap ? window.msToTime(window.liveData.bestLap) : '-';
+
+    const curr = window.drivers?.[window.state?.currentDriverIdx || 0];
+    const next = window.drivers?.[window.state?.nextDriverIdx || 0];
+    if (curEl) curEl.innerText = curr?.name || '---';
+    if (nextEl) nextEl.innerText = next?.name || '---';
+
+    if (statusEl) {
+        const inPit = !!window.state?.isInPit;
+        statusEl.innerText = inPit ? (window.t ? window.t('inPits') : 'IN PITS') : (window.t ? window.t('onTrack') : 'ON TRACK');
+        statusEl.className = inPit ? 'text-xl font-bold text-red-400' : 'text-xl font-bold text-green-400';
+    }
+
+    if (hbEl) {
+        const hb = window.liveData?.heartbeatCount;
+        hbEl.innerText = (hb == null) ? 'HB --' : `HB ${hb}`;
+    }
+
+    if (tableEl) {
+        const list = Array.isArray(window.liveData?.competitors) ? window.liveData.competitors.slice(0, 8) : [];
+        if (!list.length) {
+            tableEl.innerHTML = `<div class="text-sm text-gray-400">${window.t ? window.t('waitingData') : 'Waiting for data...'}</div>`;
+        } else {
+            tableEl.innerHTML = list.map((c, i) => {
+                const name = c.name || c.driver || `Team ${i + 1}`;
+                const lap = c.lastLap ? window.msToTime(c.lastLap) : '-';
+                const gap = (typeof c.gapToLeader !== 'undefined' && c.gapToLeader !== null)
+                    ? (c.gapToLeader > 0 ? `+${window.msToTime(c.gapToLeader)}` : '-')
+                    : '-';
+                return `<div class="grid grid-cols-[40px_1fr_85px_70px] gap-2 items-center px-2 py-1.5 rounded bg-white/5 border border-white/5 text-sm">
+                    <span class="font-black text-ice">P${c.position || (i + 1)}</span>
+                    <span class="truncate">${name}</span>
+                    <span class="font-mono text-gray-300">${lap}</span>
+                    <span class="font-mono text-fuel text-end">${gap}</span>
+                </div>`;
+            }).join('');
+        }
+    }
+};
 
 // ==========================================
 // 👀 VIEWER NAME ENTRY
@@ -319,11 +476,16 @@ window.showDemoConfig = function() {
 window.confirmDemoStart = function() {
     // Read user feature choices into demoConfig
     window.demoConfig = {
+        raceLength: document.getElementById('demoRaceLength')?.value || 'endurance',
+        gridSize: parseInt(document.getElementById('demoGridSize')?.value || '20', 10),
+        chaosLevel: document.getElementById('demoChaosLevel')?.value || 'normal',
         rain: document.getElementById('demoFeatRain')?.checked ?? true,
         penalties: document.getElementById('demoFeatPenalties')?.checked ?? true,
         tires: document.getElementById('demoFeatTires')?.checked ?? true,
         squads: document.getElementById('demoFeatSquads')?.checked ?? false,
         fuel: document.getElementById('demoFeatFuel')?.checked ?? false,
+        safetyCar: document.getElementById('demoFeatSafetyCar')?.checked ?? true,
+        incidents: document.getElementById('demoFeatIncidents')?.checked ?? true,
     };
     // Close the config modal
     const modal = document.getElementById('demoConfigModal');
@@ -343,15 +505,23 @@ window.startDemoRace = function() {
     const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
     const setChecked = (id, val) => { const el = document.getElementById(id); if (el) el.checked = val; };
 
-    setVal('raceDuration', '0.5');       // 30 minutes
-    setVal('reqPitStops', '2');          // 2 mandatory pit stops
-    setVal('minStint', '5');             // min stint 5 min
-    setVal('maxStint', '15');            // max stint 15 min
+    const profileMap = {
+        sprint: { duration: 0.5, stops: 2, minStint: 5, maxStint: 15 },
+        club: { duration: 1, stops: 3, minStint: 8, maxStint: 22 },
+        endurance: { duration: 3, stops: 6, minStint: 18, maxStint: 40 },
+        pro: { duration: 6, stops: 10, minStint: 25, maxStint: 55 }
+    };
+    const profile = profileMap[window.demoConfig?.raceLength] || profileMap.endurance;
+
+    setVal('raceDuration', String(profile.duration));
+    setVal('reqPitStops', String(profile.stops));
+    setVal('minStint', String(profile.minStint));
+    setVal('maxStint', String(profile.maxStint));
     setVal('minPitTime', '60');          // 1 minute pit time
     setVal('pitClosedStart', '2');       // pit closed first 2 min
     setVal('pitClosedEnd', '2');         // pit closed last 2 min
     setVal('minDriverTime', '0');        // no min driver total
-    setVal('maxDriverTime', '15');       // max 15 min per driver
+    setVal('maxDriverTime', String(Math.max(15, Math.round((profile.duration * 60) / 2))));
     setVal('releaseBuffer', '5');        // 5 sec buffer alert
     setChecked('allowDouble', false);    // no double stints
     setChecked('trackFuel', window.demoConfig?.fuel ?? false);  // fuel based on demo config
@@ -376,24 +546,29 @@ window.startDemoRace = function() {
     const demoDrivers = [
         { name: 'Alex', color: '#22d3ee' },   // ice blue
         { name: 'Jordan', color: '#f59e0b' },  // amber
-        { name: 'Sam', color: '#10b981' }       // green
+        { name: 'Sam', color: '#10b981' },
+        { name: 'Noa', color: '#f472b6' },
+        { name: 'Lior', color: '#a78bfa' },
+        { name: 'Mia', color: '#38bdf8' }
     ];
+
+    const targetDrivers = Math.min(6, Math.max(3, Math.ceil((window.demoConfig?.gridSize || 20) / 6)));
 
     // Ensure we have the right number of driver rows
     const rows = document.querySelectorAll('.driver-row');
-    if (rows.length < demoDrivers.length) {
-        while (document.querySelectorAll('.driver-row').length < demoDrivers.length) {
+    if (rows.length < targetDrivers) {
+        while (document.querySelectorAll('.driver-row').length < targetDrivers) {
             if (typeof window.addDriverField === 'function') window.addDriverField();
         }
     }
     // Remove excess rows
-    while (document.querySelectorAll('.driver-row').length > demoDrivers.length) {
+    while (document.querySelectorAll('.driver-row').length > targetDrivers) {
         if (typeof window.removeDriverField === 'function') window.removeDriverField();
     }
 
     // Fill driver names and colors
     document.querySelectorAll('.driver-row').forEach((row, i) => {
-        const driver = demoDrivers[i];
+        const driver = demoDrivers[i % demoDrivers.length];
         if (!driver) return;
         const nameInput = row.querySelector('input[type="text"]');
         if (nameInput) nameInput.value = driver.name;
@@ -876,6 +1051,7 @@ window.renderFrame = function() {
                 const el = document.getElementById(id);
                 if (el) { el.disabled = true; el.style.pointerEvents = 'none'; el.classList.add('opacity-40'); }
             });
+            if (typeof window.updateBroadcastScreen === 'function') window.updateBroadcastScreen();
             return;
         }
         if (remainingSec <= 0) {
@@ -1009,6 +1185,7 @@ window.renderFrame = function() {
         updateWeatherUI();
         updateModeUI();
         if (typeof window.updateQuickPitFab === 'function') window.updateQuickPitFab();
+        if (typeof window.updateBroadcastScreen === 'function') window.updateBroadcastScreen();
 
         // === Update live timing UI (needed for viewers who receive liveData via broadcast) ===
         if (typeof window.updateLiveTimingUI === 'function' && window.liveTimingConfig && window.liveTimingConfig.enabled) {

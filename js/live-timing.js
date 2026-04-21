@@ -1054,13 +1054,18 @@ window.startDemoMode = function() {
 };
 
 window.initializeDemoCompetitors = function() {
-    const teamNames = [
+    const baseTeamNames = [
         'Your Team', 'Racing Stars', 'Speed Demons', 'Track Masters',
         'Nitro Force', 'Apex Racing', 'Thunder Karts', 'Pro Racers',
         'Fast Lane', 'Grid Warriors', 'Velocity', 'Turbo Squad',
         'Drift Kings', 'Iron Wheels', 'Storm Racing', 'Pole Hunters',
         'Circuit Wolves', 'Checkered Flag', 'Rev Limit', 'Slipstream'
     ];
+    const requestedGrid = Math.max(8, Math.min(40, parseInt(window.demoConfig?.gridSize || 20, 10)));
+    const teamNames = Array.from({ length: requestedGrid }, (_, idx) => {
+        if (idx < baseTeamNames.length) return baseTeamNames[idx];
+        return `Team ${idx + 1}`;
+    });
 
     const raceDurationMs = (window.config.duration || window.config.raceDuration || 0.5) * 3600000;
     const configStops = window.config.reqStops || window.config.stops || 2;
@@ -1111,6 +1116,11 @@ window.initializeDemoCompetitors = function() {
             _lastSimTime: 0     // last wall-clock we simulated up to
         };
     });
+    window.demoState.safetyCar = {
+        active: false,
+        nextEventAt: 180000 + Math.random() * 240000,
+        until: 0
+    };
     window.demoState.nextCommentAt = 45000 + Math.random() * 45000;
 };
 
@@ -1125,6 +1135,8 @@ window.updateDemoData = function() {
     const raceStart = window.state.startTime;
     const raceElapsed = now - raceStart;
     const raceMs = window.config.raceMs || (parseFloat(window.config.duration) * 3600000);
+    const chaos = window.demoConfig?.chaosLevel || 'normal';
+    const chaosFactor = chaos === 'high' ? 1.7 : (chaos === 'low' ? 0.7 : 1);
 
     // Keep demo telemetry aligned with live feeds (clock + heartbeat freshness).
     window.liveData.heartbeatCount = (window.liveData.heartbeatCount || 0) + 1;
@@ -1206,6 +1218,26 @@ window.updateDemoData = function() {
         }
     }
 
+    const safetyCar = window.demoState.safetyCar;
+    if (window.demoConfig?.safetyCar && safetyCar) {
+        if (!safetyCar.active && raceElapsed >= safetyCar.nextEventAt) {
+            safetyCar.active = true;
+            safetyCar.until = raceElapsed + (40000 + Math.random() * 50000);
+            if (typeof window._fireStrategyNotification === 'function') {
+                window._fireStrategyNotification('🚩 Safety Car deployed - reduced race pace', 'warning');
+            }
+            if (typeof window.showToast === 'function') {
+                window.showToast('🚩 Safety Car deployed', 'warning', 4500);
+            }
+        } else if (safetyCar.active && raceElapsed >= safetyCar.until) {
+            safetyCar.active = false;
+            safetyCar.nextEventAt = raceElapsed + (180000 + Math.random() * 240000);
+            if (typeof window._fireStrategyNotification === 'function') {
+                window._fireStrategyNotification('🟢 Green flag - racing resumed', 'info');
+            }
+        }
+    }
+
     if (window.demoState.nextCommentAt != null && raceElapsed >= window.demoState.nextCommentAt) {
         const comments = [
             'Race control: keep pit lane clear',
@@ -1264,7 +1296,8 @@ window.updateDemoData = function() {
                 // Apply rain multiplier: base rain slowdown + per-team rain skill
                 const rainMult = rain ? rain.paceMultiplier : 1;
                 const teamRainMult = rainMult > 1.01 ? (1 + (rainMult - 1) * comp.rainSkill) : 1;
-                const lapTime = Math.max(comp.basePace * 0.92, (comp.basePace + gauss * comp.consistency) * tireMult * teamRainMult);
+                const safetyCarMult = (window.demoConfig?.safetyCar && safetyCar?.active) ? 1.18 : 1;
+                const lapTime = Math.max(comp.basePace * 0.92, (comp.basePace + gauss * comp.consistency) * tireMult * teamRainMult * safetyCarMult);
 
                 if (comp.elapsed + lapTime > raceElapsed) {
                     // Mid-lap: don't complete it yet
@@ -1322,7 +1355,7 @@ window.updateDemoData = function() {
     const demoCfg = window.demoConfig || { rain: true, penalties: true, tires: true };
     window.demoState.competitors.forEach(comp => {
         // Random penalty chance (~0.3% per update, roughly 1 per 5-6 min at 1Hz)
-        if (demoCfg.penalties && !comp._penaltyApplied && comp.laps > 5 && Math.random() < 0.003) {
+        if (demoCfg.penalties && !comp._penaltyApplied && comp.laps > 5 && Math.random() < (0.003 * chaosFactor)) {
             const penaltySec = [5, 10, 10, 15, 30][Math.floor(Math.random() * 5)];
             comp.penalty = (comp.penalty || 0) + 1;
             comp.penaltyTime = (comp.penaltyTime || 0) + penaltySec;
@@ -1330,6 +1363,14 @@ window.updateDemoData = function() {
             // Add penalty time to elapsed (time penalty = lost time)
             comp.elapsed += penaltySec * 1000;
             comp._penaltyApplied = true; // Max 1 penalty per team in demo
+        }
+
+        if (window.demoConfig?.incidents && comp.laps > 3 && Math.random() < (0.0015 * chaosFactor)) {
+            const incidentLoss = 3000 + Math.random() * 7000;
+            comp.elapsed += incidentLoss;
+            if (comp.isOurTeam && typeof window.showToast === 'function') {
+                window.showToast('💥 Minor incident: pace loss recorded', 'warning', 4200);
+            }
         }
 
         // Tire degradation: lap times get ~0.2% slower every 8 laps in a stint

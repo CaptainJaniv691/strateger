@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Streger Broadcast - Sponsor & Viewer Live Screen</title>
+    <meta name="description" content="Dedicated Streger broadcast page for sponsors and viewers with clean live race visuals, leaderboard, and branded presentation.">
+    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+    <link rel="canonical" href="https://streger.app/broadcast.html">
+
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Streger Broadcast - Sponsor-Ready Live Race Screen">
+    <meta property="og:description" content="Open a clean live race view for sponsors, spectators, and event screens in one click.">
+    <meta property="og:url" content="https://streger.app/broadcast.html">
+    <meta property="og:image" content="/icons/og-streger-broadcast.svg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Streger Broadcast sponsor and viewer live race screen">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Streger Broadcast - Live Race Screen For Sponsors">
+    <meta name="twitter:description" content="Share your race status with polished branding and real-time metrics.">
+    <meta name="twitter:image" content="/icons/og-streger-broadcast.svg">
+    <meta name="twitter:image:alt" content="Streger Broadcast social preview image">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-[#070d1b] text-white">
+    <main class="max-w-6xl mx-auto p-4 space-y-4">
+        <section class="bg-gradient-to-r from-cyan-900/40 to-blue-900/30 border border-cyan-500/30 rounded-2xl p-4">
+            <h1 class="text-2xl font-black tracking-wide">STREGER BROADCAST</h1>
+            <p class="text-sm text-gray-300 mt-1">Official sponsor and viewer screen by HOLYLAND RACING.</p>
+            <div class="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2 mt-3">
+                <input id="raceIdInput" type="text" class="w-full rounded-lg bg-black/25 border border-white/20 px-3 py-2 text-sm" placeholder="Enter Race ID (join code)">
+                <button id="openBtn" class="rounded-lg bg-cyan-400 text-[#021225] font-bold px-4 py-2 text-sm hover:bg-cyan-300 transition">Open Broadcast</button>
+            </div>
+            <div class="text-xs text-gray-400 mt-2">Tip: if you opened this page from a host share link, it loads automatically.</div>
+        </section>
+
+        <section class="bg-black/30 border border-white/10 rounded-2xl overflow-hidden">
+            <iframe id="broadcastFrame" title="Streger Broadcast" class="w-full" style="height: calc(100vh - 220px); min-height: 480px;" src=""></iframe>
+        </section>
+    </main>
+
+    <script>
+        function buildSrc(raceId) {
+            const params = new URLSearchParams();
+            if (raceId) params.set('join', raceId.trim());
+            params.set('broadcast', '1');
+            return `index.html?${params.toString()}`;
+        }
+
+        function openBroadcast() {
+            const raceId = document.getElementById('raceIdInput').value || '';
+            const frame = document.getElementById('broadcastFrame');
+            frame.src = buildSrc(raceId);
+        }
+
+        document.getElementById('openBtn').addEventListener('click', openBroadcast);
+        document.getElementById('raceIdInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') openBroadcast();
+        });
+
+        const qs = new URLSearchParams(window.location.search);
+        const join = qs.get('join') || '';
+        if (join) document.getElementById('raceIdInput').value = join;
+        openBroadcast();
+    </script>
+</body>
+</html>

@@ -118,7 +118,9 @@ window.activateProLicense = async function(key) {
     const deviceId = window.getDeviceId();
 
     try {
-        const res = await fetch(window.APP_CONFIG.API_BASE + 'verify-license', {
+        const apiBase = (window.APP_CONFIG?.API_BASE || '').replace(/\/$/, '');
+        const verifyUrl = apiBase ? `${apiBase}/verify-license` : '/verify-license';
+        const res = await fetch(verifyUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
@@ -255,9 +257,9 @@ window.translations = {
     en: {
         ltSearchType: "Filter By:", ltTeam: "Team", ltDriver: "Driver", ltKart: "Kart #", ltPlaceholder: "Enter search value...",
         previewTitle: "Strategy Preview", addToCalendar: "Add to Google Calendar", timeline: "Timeline", driverSchedule: "Driver Schedule", totalTime: "Total Time", close: "Close",
-        googleLogin: "Login with Google", eventCreated: "Event created successfully!", eventError: "Failed to create event", raceEventTitle: "Endurance Race (Strateger)",
+        googleLogin: "Login with Google", eventCreated: "Event created successfully!", eventError: "Failed to create event", raceEventTitle: "Endurance Race (Streger)",
         errImpossible: "Impossible Strategy!", errAvgHigh: "Avg stint > Max Stint. Increase Stops or Max Stint.", errAvgLow: "Avg stint < Min Stint. Decrease Stops or Min Stint.",
-        appTitle: "STRATEGER", appSubtitle: "Endurance Race Strategy Manager", generalInfo: "General Info", advancedConstraints: "Advanced Constraints", driverConfig: "Drivers", aiTitle: "AI Strategy",
+        appTitle: "Streger", appSubtitle: "Endurance Race Strategy Manager", generalInfo: "General Info", advancedConstraints: "Advanced Constraints", driverConfig: "Drivers", aiTitle: "AI Strategy",
         lblDuration: "Duration (Hours)", lblStops: "Req. Stops", lblMinStint: "Min Stint (min)", lblMaxStint: "Max Stint (min)", lblPitTime: "Pit Time (sec)", lblPitClosedStart: "🚫 Closed Start (min)", lblPitClosedEnd: "🚫 Closed End (min)",
         lblMinDrive: "Min Driver Total (min)", lblMaxDrive: "Max Driver Total (min)", lblBuffer: "Pit Alert / Buffer (s)", lblDoubles: "Allow Doubles", lblSquads: "Use Squads", lblFuel: "Fuel", lblFuelTank: "Fuel Tank (min)",
         addDriver: "+ Add", generateStrategy: "Generate Strategy (AI)", previewStrategy: "Preview Strategy", startRace: "Start Race", loadSaved: "Load Saved Race",
@@ -354,7 +356,7 @@ window.translations = {
         lblSquadWindowStart: "Window Start", lblSquadWindowEnd: "Window End",
         squadOff: "Off", squad2: "2 Squads", squad3: "3 Squads", squad4: "4 Squads",
         lblAppearance: "🎨 Appearance", lblPageBg: "Page Background", lblColorThemes: "Color Themes",
-        laps: "LAPS", gap: "GAP", totalCompetitors: "CARS", waitingData: "Waiting for data...",
+        laps: "LAPS", gap: "GAP", totalCompetitors: "CARS", waitingData: "Waiting for data...", leaderLabel: "LEADER",
         boxThisLap: "🏁 BOX THIS LAP", boxNextLap: "📢 BOX NEXT LAP", stayOut: "STAY OUT", onTrack: "ON TRACK", inPit: "IN PIT",
         driverEntryHint: "Enter the race ID to connect", driverEntryLabel: "Race ID", driverConnect: "Connect as Driver", driverIdTooShort: "ID is too short", joinAsDriver: "Join as Driver", backToSetup: "← Back to Setup",
         nextStintIn: "Your next stint in", stayAwake: "Stay awake", sleepOk: "You can sleep", yourStints: "Your Stints", noStintsFound: "No stints found for you", wakeUpAlert: "⏰ Wake up! Your stint is coming",
@@ -363,7 +365,7 @@ window.translations = {
         proFeature: "Pro Feature", proUpgradeTitle: "⭐ Upgrade to Pro", proUpgradeMsg: "Unlock Live Timing, AI Strategy, Squads, unlimited drivers & themes, and more!", proActivate: "Activate License", proDeactivate: "Deactivate", proEnterKey: "Enter license key...", proInvalidKey: "Invalid license key", proActivated: "⭐ Pro Activated!", proBadge: "PRO", proRequired: "requires Pro", proHaveCoupon: "🎟️ Have a coupon code?", proApplyCoupon: "Apply",
         undoPit: "Undo Pit", undoPitToast: "Pit entry undone", undoCountdown: "Undo",
         exportPdf: "Export PDF", exportImage: "Share as Image", exportingPdf: "Generating PDF...",
-        onboardTitle1: "Welcome to Strateger!", onboardDesc1: "Your pit strategy assistant for endurance karting. Set up your first race in 3 easy steps.",
+        onboardTitle1: "Welcome to Streger!", onboardDesc1: "Your pit strategy assistant for endurance karting. Set up your first race in 3 easy steps.",
         onboardTitle2: "Set Up Your Race", onboardDesc2: "Enter race duration, required pit stops & min/max stint times at the top. Then add your drivers below — pick a starter and assign squads if you have night shifts.",
         onboardTitle3: "Preview & Fine-Tune", onboardDesc3: "Tap 'Preview Strategy' to see your full stint timeline. Drag stints to reorder, adjust durations, or save your plan to the cloud for later.",
         onboardTitle4: "Go Race!", onboardDesc4: "Hit 'Start Race' and the live dashboard takes over — track stint timers, get pit-window alerts, share a live link with your team, and manage driver swaps in real time.",
@@ -377,9 +379,9 @@ window.translations = {
     he: {
         ltSearchType: "סנן לפי:", ltTeam: "קבוצה", ltDriver: "נהג", ltKart: "מספר קארט", ltPlaceholder: "הכנס ערך לחיפוש...",
         previewTitle: "תצוגה מקדימה", addToCalendar: "הוסף ליומן גוגל", timeline: "ציר זמן", driverSchedule: "לוח זמנים לנהגים", totalTime: "זמן כולל", close: "סגור",
-        googleLogin: "התחבר עם Google", eventCreated: "האירוע נוצר בהצלחה!", eventError: "שגיאה ביצירת האירוע", raceEventTitle: "מירוץ סיבולת (Strateger)",
+        googleLogin: "התחבר עם Google", eventCreated: "האירוע נוצר בהצלחה!", eventError: "שגיאה ביצירת האירוע", raceEventTitle: "מירוץ סיבולת (Streger)",
         errImpossible: "אסטרטגיה לא אפשרית!", errAvgHigh: "ממוצע סטינט גבוה מהמקסימום. הוסף עצירות או הגדל מקסימום.", errAvgLow: "ממוצע סטינט נמוך מהמינימום. הפחת עצירות או הקטן מינימום.",
-        appTitle: "STRATEGER", appSubtitle: "ניהול אסטרטגיה למירוצי סיבולת", generalInfo: "הגדרות כלליות", advancedConstraints: "אילוצים מתקדמים", driverConfig: "נהגים", aiTitle: "אסטרטגיה חכמה (AI)",
+        appTitle: "Streger", appSubtitle: "ניהול אסטרטגיה למירוצי סיבולת", generalInfo: "הגדרות כלליות", advancedConstraints: "אילוצים מתקדמים", driverConfig: "נהגים", aiTitle: "אסטרטגיה חכמה (AI)",
         lblDuration: "משך (שעות)", lblStops: "עצירות חובה", lblMinStint: "מינימום סטינט (דק')", lblMaxStint: "מקסימום סטינט (דק')", lblPitTime: "זמן פיטס (שניות)", lblPitClosedStart: "🚫 סגור בהתחלה (דק')", lblPitClosedEnd: "🚫 סגור בסוף (דק')",
         lblMinDrive: "מינימום לנהג (דק')", lblMaxDrive: "מקסימום לנהג (דק')", lblBuffer: "התראה מראש (שניות)", lblDoubles: "אפשר דאבל סטינט", lblSquads: "שימוש בחוליות", lblFuel: "דלק", lblFuelTank: "מיכל דלק (דק')",
         addDriver: "+ הוסף", generateStrategy: "צור אסטרטגיה (AI)", previewStrategy: "תצוגה מקדימה", startRace: "התחל מירוץ", loadSaved: "טען מירוץ",
@@ -474,13 +476,13 @@ window.translations = {
         lblSquadWindowStart: "תחילת חלון", lblSquadWindowEnd: "סוף חלון",
         squadOff: "כבוי", squad2: "2 חוליות", squad3: "3 חוליות", squad4: "4 חוליות",
         lblAppearance: "🎨 מראה", lblPageBg: "רקע עמוד", lblColorThemes: "ערכות נושא צבע",
-        laps: "הקפות", gap: "פער", totalCompetitors: "מכוניות", waitingData: "ממתין לנתונים...",
+        laps: "הקפות", gap: "פער", totalCompetitors: "מכוניות", waitingData: "ממתין לנתונים...", leaderLabel: "מוביל",
         boxThisLap: "🏁 היכנס להקפה הזו", boxNextLap: "📢 היכנס בהקפה הבאה", stayOut: "הישאר בחוץ", onTrack: "על המסלול", inPit: "בפיטס",
         driverEntryHint: "הזן את קוד המירוץ להתחברות", driverEntryLabel: "קוד מירוץ", driverConnect: "התחבר כנהג", driverIdTooShort: "הקוד קצר מדי", joinAsDriver: "הצטרף כנהג", backToSetup: "← חזרה להגדרות",
         nextStintIn: "הסטינט הבא שלך בעוד", stayAwake: "הישאר ער", sleepOk: "אפשר לישון", yourStints: "הסטינטים שלך", noStintsFound: "לא נמצאו סטינטים עבורך", wakeUpAlert: "⏰ התעורר! הסטינט שלך מתקרב",
         viewerNameHint: "הכנס את שמך כדי להצטרף למירוץ", viewerNameLabel: "השם שלך", requestToJoin: "בקש להצטרף", waitingForApproval: "ממתין לאישור מנהל...", waitingForApprovalHint: "מנהל המירוץ יאשר את בקשתך", viewerNameTooShort: "השם חייב להכיל לפחות 2 תווים",
         proFeature: "תכונת Pro", proUpgradeTitle: "⭐ שדרג ל-Pro", proUpgradeMsg: "שחרר תזמון חי, אסטרטגיית AI, חוליות, נהגים וערכות נושא ללא הגבלה, ועוד!", proActivate: "הפעל רישיון", proDeactivate: "בטל", proEnterKey: "הכנס מפתח רישיון...", proInvalidKey: "מפתח רישיון לא תקין", proActivated: "⭐ Pro הופעל!", proBadge: "PRO", proRequired: "דרוש Pro", proHaveCoupon: "🎟️ יש לך קוד קופון?", proApplyCoupon: "החל",
-        onboardTitle1: "ברוכים הבאים ל-Strateger!", onboardDesc1: "העוזר האישי שלך לאסטרטגיית פיטים במירוצי סיבולת. הגדר את המירוץ הראשון שלך ב-3 צעדים פשוטים.",
+        onboardTitle1: "ברוכים הבאים ל-Streger!", onboardDesc1: "העוזר האישי שלך לאסטרטגיית פיטים במירוצי סיבולת. הגדר את המירוץ הראשון שלך ב-3 צעדים פשוטים.",
         onboardTitle2: "הגדר את המירוץ", onboardDesc2: "הזן משך מירוץ, עצירות פיט נדרשות וזמני סטינט מינימום/מקסימום למעלה. אחר כך הוסף נהגים — בחר מתניע והקצה חוליות אם יש לך משמרות לילה.",
         onboardTitle3: "תצוגה מקדימה וכיוונון", onboardDesc3: "לחץ על 'תצוגה מקדימה' כדי לראות את ציר הזמן המלא. גרור סטינטים לסידור מחדש, שנה משכי זמן, או שמור את התוכנית לענן.",
         onboardTitle4: "צא למירוץ!", onboardDesc4: "לחץ 'התחל מירוץ' והדשבורד החי נכנס לפעולה — עקוב אחרי טיימרים, קבל התראות פיט, שתף קישור חי עם הצוות, ונהל החלפות נהגים בזמן אמת.",
@@ -599,12 +601,12 @@ window.translations = {
         nextStintIn: "Votre prochain stint dans", stayAwake: "Restez éveillé", sleepOk: "Vous pouvez dormir", yourStints: "Vos Stints", noStintsFound: "Aucun stint trouvé pour vous", wakeUpAlert: "⏰ Réveillez-vous! Votre stint approche",
         viewerNameHint: "Entrez votre nom pour rejoindre la course", viewerNameLabel: "Votre Nom", requestToJoin: "Demander à rejoindre", waitingForApproval: "En attente d'approbation...", waitingForApprovalHint: "L'administrateur de la course approuvera votre demande", viewerNameTooShort: "Le nom doit contenir au moins 2 caractères",
         proFeature: "Fonction Pro", proUpgradeTitle: "⭐ Passer à Pro", proUpgradeMsg: "Débloquez le Chronométrage Live, la Stratégie IA, les Équipes, pilotes & thèmes illimités, et plus !", proActivate: "Activer la licence", proDeactivate: "Désactiver", proEnterKey: "Entrez la clé de licence...", proInvalidKey: "Clé de licence invalide", proActivated: "⭐ Pro Activé !", proBadge: "PRO", proRequired: "nécessite Pro", proHaveCoupon: "🎟️ Vous avez un code promo ?", proApplyCoupon: "Appliquer",
-        onboardTitle1: "Bienvenue sur Strateger !", onboardDesc1: "Votre assistant stratégie pour les courses d'endurance en karting. Configurez votre première course en 3 étapes.",
+        onboardTitle1: "Bienvenue sur Streger !", onboardDesc1: "Votre assistant stratégie pour les courses d'endurance en karting. Configurez votre première course en 3 étapes.",
         onboardTitle2: "Configurez votre course", onboardDesc2: "Entrez la durée, les arrêts obligatoires et les temps de stint min/max en haut. Ajoutez vos pilotes en dessous — choisissez un départ et assignez des équipes pour les relais de nuit.",
         onboardTitle3: "Aperçu et ajustements", onboardDesc3: "Appuyez sur 'Aperçu' pour voir le plan complet des stints. Glissez-déposez pour réorganiser, ajustez les durées ou sauvegardez dans le cloud.",
         onboardTitle4: "En piste !", onboardDesc4: "Lancez la course et le tableau de bord prend le relais — suivez les chronos, recevez les alertes pit, partagez un lien live avec votre équipe et gérez les relais en temps réel.",
         onboardSkip: "Passer", onboardNext: "Suivant", onboardDone: "C'est parti !",
-        appTitle: "STRATEGER",
+        appTitle: "Streger",
         aiOptimize: "Optimiser la stratégie IA",
         raceFinished: "COURSE TERMINÉE", totalPitTime: "Temps au stand", raceStart: "Départ", pitLog: "Journal des arrêts", drove: "Conduit", pitNoun: "Stand", driveNoun: "Conduite", stints: "Relais", avgStint: "Moy.",
         demoSelectFeatures: "Sélectionnez les fonctions Pro à tester", demoLiveTimingDesc: "Classement simulé de 20 équipes", demoRainLabel: "Simulation de pluie", demoRainDesc: "Événements de pluie avec changement de rythme", demoPenaltyDesc: "Pénalités aléatoires et ajouts de temps", demoTiresLabel: "Dégradation des pneus", demoTiresDesc: "Les temps au tour augmentent au fil du relais", demoSquadsLabel: "Équipes", demoSquadsDesc: "Groupes de pilotes avec rotation", demoFuelLabel: "Gestion du carburant", demoFuelDesc: "Suivre le carburant et ravitaillement",
@@ -714,12 +716,12 @@ window.translations = {
         nextStintIn: "Seu próximo stint em", stayAwake: "Fique acordado", sleepOk: "Pode dormir", yourStints: "Seus Stints", noStintsFound: "Nenhum stint encontrado para você", wakeUpAlert: "⏰ Acorde! Seu stint está chegando",
         viewerNameHint: "Digite seu nome para participar da corrida", viewerNameLabel: "Seu Nome", requestToJoin: "Solicitar Entrada", waitingForApproval: "Aguardando aprovação...", waitingForApprovalHint: "O administrador da corrida aprovará sua solicitação", viewerNameTooShort: "O nome deve ter pelo menos 2 caracteres",
         proFeature: "Recurso Pro", proUpgradeTitle: "⭐ Atualizar para Pro", proUpgradeMsg: "Desbloqueie Cronometragem Ao Vivo, Estratégia IA, Esquadrões, pilotos e temas ilimitados, e mais!", proActivate: "Ativar licença", proDeactivate: "Desativar", proEnterKey: "Digite a chave de licença...", proInvalidKey: "Chave de licença inválida", proActivated: "⭐ Pro Ativado!", proBadge: "PRO", proRequired: "requer Pro", proHaveCoupon: "🎟️ Tem um código de cupom?", proApplyCoupon: "Aplicar",
-        onboardTitle1: "Bem-vindo ao Strateger!", onboardDesc1: "Seu assistente de estratégia de pit para corridas de endurance de kart. Configure sua primeira corrida em 3 passos simples.",
+        onboardTitle1: "Bem-vindo ao Streger!", onboardDesc1: "Seu assistente de estratégia de pit para corridas de endurance de kart. Configure sua primeira corrida em 3 passos simples.",
         onboardTitle2: "Configure sua corrida", onboardDesc2: "Insira duração da corrida, paradas obrigatórias e tempos de stint mín/máx no topo. Adicione seus pilotos abaixo — escolha quem larga e atribua equipes para turnos noturnos.",
         onboardTitle3: "Visualize e ajuste", onboardDesc3: "Toque em 'Visualizar Estratégia' para ver o cronograma completo. Arraste stints para reordenar, ajuste durações ou salve seu plano na nuvem.",
         onboardTitle4: "Hora da corrida!", onboardDesc4: "Aperte 'Iniciar Corrida' e o painel ao vivo assume — acompanhe cronômetros, receba alertas de pit, compartilhe um link ao vivo com a equipe e gerencie trocas de pilotos em tempo real.",
         onboardSkip: "Pular", onboardNext: "Próximo", onboardDone: "Vamos lá!",
-        appTitle: "STRATEGER",
+        appTitle: "Streger",
         aiOptimize: "Otimizar Estratégia IA",
         raceFinished: "CORRIDA ENCERRADA", totalPitTime: "Tempo no Box", raceStart: "Início", pitLog: "Registo de Paragens", drove: "Dirigiu", pitNoun: "Box", driveNoun: "Condução", stints: "Stints", avgStint: "Média",
         demoSelectFeatures: "Selecione recursos Pro para testar", demoLiveTimingDesc: "Classificação simulada de 20 equipes", demoRainLabel: "Simulação de chuva", demoRainDesc: "Eventos de chuva aleatórios com mudança de ritmo", demoPenaltyDesc: "Penalidades aleatórias e adições de tempo", demoTiresLabel: "Degradação de pneus", demoTiresDesc: "Tempos de volta aumentam ao longo do stint", demoSquadsLabel: "Esquadrões", demoSquadsDesc: "Grupos de pilotos com rotação", demoFuelLabel: "Gestão de combustível", demoFuelDesc: "Acompanhar combustível e reabastecer",
@@ -834,12 +836,12 @@ window.translations = {
         nextStintIn: "Ваш следующий стинт через", stayAwake: "Не спите", sleepOk: "Можно спать", yourStints: "Ваши стинты", noStintsFound: "Стинты для вас не найдены", wakeUpAlert: "⏰ Проснитесь! Ваш стинт скоро",
         viewerNameHint: "Введите имя, чтобы присоединиться к гонке", viewerNameLabel: "Ваше имя", requestToJoin: "Запросить доступ", waitingForApproval: "Ожидание одобрения...", waitingForApprovalHint: "Администратор гонки одобрит ваш запрос", viewerNameTooShort: "Имя должно содержать минимум 2 символа",
         proFeature: "Функция Pro", proUpgradeTitle: "⭐ Обновить до Pro", proUpgradeMsg: "Разблокируйте Live Timing, ИИ-стратегию, группы, безлимитных пилотов и темы, и многое другое!", proActivate: "Активировать лицензию", proDeactivate: "Деактивировать", proEnterKey: "Введите лицензионный ключ...", proInvalidKey: "Неверный лицензионный ключ", proActivated: "⭐ Pro Активирован!", proBadge: "PRO", proRequired: "требуется Pro", proHaveCoupon: "🎟️ Есть купон?", proApplyCoupon: "Применить",
-        onboardTitle1: "Добро пожаловать в Strateger!", onboardDesc1: "Ваш помощник по стратегии пит-стопов для картинговых гонок на выносливость. Настройте первую гонку за 3 простых шага.",
+        onboardTitle1: "Добро пожаловать в Streger!", onboardDesc1: "Ваш помощник по стратегии пит-стопов для картинговых гонок на выносливость. Настройте первую гонку за 3 простых шага.",
         onboardTitle2: "Настройте гонку", onboardDesc2: "Введите длительность, обязательные пит-стопы и мин/макс время стинта вверху. Добавьте пилотов ниже — выберите стартового и назначьте группы для ночных смен.",
         onboardTitle3: "Предпросмотр и корректировка", onboardDesc3: "Нажмите 'Предпросмотр' чтобы увидеть полный план стинтов. Перетаскивайте для изменения порядка, корректируйте длительность или сохраните план в облаке.",
         onboardTitle4: "На старт!", onboardDesc4: "Нажмите 'Старт' и панель управления заработает — следите за таймерами, получайте оповещения о пит-стопах, делитесь ссылкой с командой и управляйте сменами пилотов в реальном времени.",
         onboardSkip: "Пропустить", onboardNext: "Далее", onboardDone: "Поехали!",
-        appTitle: "STRATEGER",
+        appTitle: "Streger",
         aiOptimize: "Оптимизировать стратегию (ИИ)",
         raceFinished: "ГОНКА ЗАВЕРШЕНА", totalPitTime: "Время в боксах", raceStart: "Старт", pitLog: "Журнал пит-стопов", drove: "Ехал", pitNoun: "Пит", driveNoun: "Езда", stints: "Стинты", avgStint: "Сред.",
         demoSelectFeatures: "Выберите Pro-функции для тестирования", demoLiveTimingDesc: "Таблица 20 команд", demoRainLabel: "Симуляция дождя", demoRainDesc: "Случайные осадки с изменением темпа", demoPenaltyDesc: "Случайные штрафы и добавление времени", demoTiresLabel: "Износ шин", demoTiresDesc: "Время круга увеличивается в течение стинта", demoSquadsLabel: "Группы", demoSquadsDesc: "Группы гонщиков с ротацией", demoFuelLabel: "Управление топливом", demoFuelDesc: "Отслеживание топлива и дозаправка",
@@ -953,12 +955,12 @@ window.translations = {
         nextStintIn: "فترتك القادمة خلال", stayAwake: "ابقَ مستيقظاً", sleepOk: "يمكنك النوم", yourStints: "فتراتك", noStintsFound: "لم يتم العثور على فترات لك", wakeUpAlert: "⏰ استيقظ! فترتك قادمة",
         viewerNameHint: "أدخل اسمك للانضمام إلى السباق", viewerNameLabel: "اسمك", requestToJoin: "طلب الانضمام", waitingForApproval: "في انتظار الموافقة...", waitingForApprovalHint: "سيوافق مدير السباق على طلبك", viewerNameTooShort: "يجب أن يحتوي الاسم على حرفين على الأقل",
         proFeature: "ميزة Pro", proUpgradeTitle: "⭐ ترقية إلى Pro", proUpgradeMsg: "افتح التوقيت المباشر، استراتيجية الذكاء الاصطناعي، الفرق، سائقين وأنماط غير محدودة، والمزيد!", proActivate: "تفعيل الترخيص", proDeactivate: "إلغاء التفعيل", proEnterKey: "أدخل مفتاح الترخيص...", proInvalidKey: "مفتاح ترخيص غير صالح", proActivated: "⭐ تم تفعيل Pro!", proBadge: "PRO", proRequired: "يتطلب Pro", proHaveCoupon: "🎟️ هل لديك رمز قسيمة؟", proApplyCoupon: "تطبيق",
-        onboardTitle1: "مرحباً بك في Strateger!", onboardDesc1: "مساعدك في استراتيجية البيت لسباقات التحمل بالكارت. أعد سباقك الأول في 3 خطوات سهلة.",
+        onboardTitle1: "مرحباً بك في Streger!", onboardDesc1: "مساعدك في استراتيجية البيت لسباقات التحمل بالكارت. أعد سباقك الأول في 3 خطوات سهلة.",
         onboardTitle2: "إعداد السباق", onboardDesc2: "أدخل مدة السباق، التوقفات المطلوبة وأوقات الفترات الدنيا/القصوى في الأعلى. أضف السائقين أدناه — اختر من يبدأ وعيّن الفرق للمناوبات الليلية.",
         onboardTitle3: "معاينة وضبط", onboardDesc3: "اضغط 'معاينة الاستراتيجية' لرؤية الجدول الزمني الكامل. اسحب الفترات لإعادة الترتيب، عدّل المدد أو احفظ خطتك في السحابة.",
         onboardTitle4: "انطلق!", onboardDesc4: "اضغط 'ابدأ السباق' ولوحة القيادة الحية تتولى الأمر — تتبع المؤقتات، واستلم تنبيهات البيت، وشارك رابطاً مباشراً مع فريقك وأدر تبديلات السائقين في الوقت الفعلي.",
         onboardSkip: "تخطي", onboardNext: "التالي", onboardDone: "هيا بنا!",
-        appTitle: "STRATEGER",
+        appTitle: "Streger",
         aiOptimize: "تحسين الاستراتيجية بالذكاء الاصطناعي",
         raceFinished: "انتهى السباق", totalPitTime: "وقت التوقف", raceStart: "البداية", pitLog: "سجل التوقفات", drove: "قاد", pitNoun: "توقف", driveNoun: "قيادة", stints: "فترات", avgStint: "متوسط",
         demoSelectFeatures: "اختر ميزات Pro للاختبار", demoLiveTimingDesc: "لوحة تصنيف 20 فريقاً", demoRainLabel: "محاكاة المطر", demoRainDesc: "أحداث مطر عشوائية مع تغيير الإيقاع", demoPenaltyDesc: "عقوبات عشوائية وإضافات زمنية", demoTiresLabel: "تآكل الإطارات", demoTiresDesc: "أوقات اللفة تزداد خلال الفترة", demoSquadsLabel: "الفرق", demoSquadsDesc: "مجموعات السائقين مع التناوب", demoFuelLabel: "إدارة الوقود", demoFuelDesc: "تتبع الوقود والتوقف للتزويد",
@@ -1072,12 +1074,12 @@ window.translations = {
         nextStintIn: "Tu próximo stint en", stayAwake: "Mantente despierto", sleepOk: "Puedes dormir", yourStints: "Tus Stints", noStintsFound: "No se encontraron stints para ti", wakeUpAlert: "⏰ ¡Despierta! Tu stint se acerca",
         viewerNameHint: "Ingresa tu nombre para unirte a la carrera", viewerNameLabel: "Tu Nombre", requestToJoin: "Solicitar Unirse", waitingForApproval: "Esperando aprobación...", waitingForApprovalHint: "El administrador de la carrera aprobará tu solicitud", viewerNameTooShort: "El nombre debe tener al menos 2 caracteres",
         proFeature: "Función Pro", proUpgradeTitle: "⭐ Actualizar a Pro", proUpgradeMsg: "¡Desbloquea Cronometraje en Vivo, Estrategia IA, Escuadrones, pilotos y temas ilimitados, y más!", proActivate: "Activar licencia", proDeactivate: "Desactivar", proEnterKey: "Ingresa la clave de licencia...", proInvalidKey: "Clave de licencia inválida", proActivated: "⭐ ¡Pro Activado!", proBadge: "PRO", proRequired: "requiere Pro", proHaveCoupon: "🎟️ ¿Tienes un código de cupón?", proApplyCoupon: "Aplicar",
-        onboardTitle1: "¡Bienvenido a Strateger!", onboardDesc1: "Tu asistente de estrategia de boxes para carreras de resistencia en karting. Configura tu primera carrera en 3 pasos sencillos.",
+        onboardTitle1: "¡Bienvenido a Streger!", onboardDesc1: "Tu asistente de estrategia de boxes para carreras de resistencia en karting. Configura tu primera carrera en 3 pasos sencillos.",
         onboardTitle2: "Configura tu carrera", onboardDesc2: "Ingresa la duración, paradas obligatorias y tiempos de stint mín/máx arriba. Añade tus pilotos abajo — elige quién sale y asigna escuadras para los turnos nocturnos.",
         onboardTitle3: "Vista previa y ajustes", onboardDesc3: "Pulsa 'Vista previa' para ver el plan completo de stints. Arrastra para reordenar, ajusta duraciones o guarda tu plan en la nube.",
         onboardTitle4: "¡A correr!", onboardDesc4: "Pulsa 'Iniciar Carrera' y el panel en vivo toma el control — sigue los cronómetros, recibe alertas de boxes, comparte un enlace en vivo con tu equipo y gestiona los cambios de piloto en tiempo real.",
         onboardSkip: "Saltar", onboardNext: "Siguiente", onboardDone: "¡Vamos!",
-        appTitle: "STRATEGER",
+        appTitle: "Streger",
         aiOptimize: "Optimizar estrategia IA",
         raceFinished: "CARRERA TERMINADA", totalPitTime: "Tiempo en boxes", raceStart: "Inicio", pitLog: "Registro de paradas", drove: "Condujo", pitNoun: "Box", driveNoun: "Conducción", stints: "Tramos", avgStint: "Prom.",
         demoSelectFeatures: "Selecciona funciones Pro para probar", demoLiveTimingDesc: "Clasificación simulada de 20 equipos", demoRainLabel: "Simulación de lluvia", demoRainDesc: "Eventos de lluvia aleatorios con cambio de ritmo", demoPenaltyDesc: "Penalizaciones aleatorias y adiciones de tiempo", demoTiresLabel: "Degradación de neumáticos", demoTiresDesc: "Los tiempos de vuelta aumentan durante el tramo", demoSquadsLabel: "Escuadrones", demoSquadsDesc: "Grupos de pilotos con rotación", demoFuelLabel: "Gestión de combustible", demoFuelDesc: "Seguimiento del combustible y repostaje",
@@ -1133,18 +1135,18 @@ window.translations = {
         lblSquadWindowStart: "Inizio finestra", lblSquadWindowEnd: "Fine finestra",
         squadOff: "Disattivato", squad2: "2 Squadre", squad3: "3 Squadre", squad4: "4 Squadre",
         lblAppearance: "🎨 Aspetto", lblPageBg: "Sfondo pagina", lblColorThemes: "Temi colore",
-        laps: "GIRI", gap: "DISTACCO", totalCompetitors: "AUTO", waitingData: "In attesa di dati...",
+        laps: "GIRI", gap: "DISTACCO", totalCompetitors: "AUTO", waitingData: "In attesa di dati...", leaderLabel: "LEADER",
         boxThisLap: "🏁 BOX QUESTO GIRO", boxNextLap: "📢 BOX PROSSIMO GIRO", stayOut: "RIMANI IN PISTA", onTrack: "IN PISTA", inPit: "AI BOX",
         driverEntryHint: "Inserisci l'ID gara per connetterti", driverEntryLabel: "ID gara", driverConnect: "Connetti come pilota", driverIdTooShort: "L'ID è troppo corto", joinAsDriver: "Unisciti come pilota", backToSetup: "← Torna alle impostazioni",
         nextStintIn: "Il tuo prossimo stint tra", stayAwake: "Resta sveglio", sleepOk: "Puoi dormire", yourStints: "I Tuoi Stint", noStintsFound: "Nessuno stint trovato per te", wakeUpAlert: "⏰ Svegliati! Il tuo stint si avvicina",
         viewerNameHint: "Inserisci il tuo nome per unirti alla gara", viewerNameLabel: "Il Tuo Nome", requestToJoin: "Richiedi di unirti", waitingForApproval: "In attesa di approvazione...", waitingForApprovalHint: "L'amministratore della gara approverà la tua richiesta", viewerNameTooShort: "Il nome deve avere almeno 2 caratteri",
         proFeature: "Funzione Pro", proUpgradeTitle: "⭐ Passa a Pro", proUpgradeMsg: "Sblocca Cronometraggio Live, Strategia IA, Squadre, piloti e temi illimitati, e altro!", proActivate: "Attiva licenza", proDeactivate: "Disattiva", proEnterKey: "Inserisci la chiave di licenza...", proInvalidKey: "Chiave di licenza non valida", proActivated: "⭐ Pro Attivato!", proBadge: "PRO", proRequired: "richiede Pro", proHaveCoupon: "🎟️ Hai un codice coupon?", proApplyCoupon: "Applica",
-        onboardTitle1: "Benvenuto su Strateger!", onboardDesc1: "Il tuo assistente strategico per le gare di endurance in kart. Configura la tua prima gara in 3 semplici passi.",
+        onboardTitle1: "Benvenuto su Streger!", onboardDesc1: "Il tuo assistente strategico per le gare di endurance in kart. Configura la tua prima gara in 3 semplici passi.",
         onboardTitle2: "Configura la gara", onboardDesc2: "Inserisci durata, soste obbligatorie e tempi stint min/max in alto. Aggiungi i tuoi piloti sotto — scegli chi parte e assegna le squadre per i turni notturni.",
         onboardTitle3: "Anteprima e regolazioni", onboardDesc3: "Tocca 'Anteprima Strategia' per vedere il piano completo. Trascina gli stint per riordinare, modifica le durate o salva il piano nel cloud.",
         onboardTitle4: "Si corre!", onboardDesc4: "Premi 'Inizia Gara' e la dashboard live prende il comando — monitora i timer, ricevi avvisi pit, condividi un link live con il team e gestisci i cambi pilota in tempo reale.",
         onboardSkip: "Salta", onboardNext: "Avanti", onboardDone: "Andiamo!",
-        appTitle: "STRATEGER",
+        appTitle: "Streger",
         aiOptimize: "Ottimizza strategia IA",
         raceFinished: "GARA TERMINATA", totalPitTime: "Tempo ai box", raceStart: "Partenza", pitLog: "Registro soste", drove: "Guidato", pitNoun: "Box", driveNoun: "Guida", stints: "Stint", avgStint: "Media",
         demoSelectFeatures: "Seleziona le funzioni Pro da testare", demoLiveTimingDesc: "Classifica simulata di 20 squadre", demoRainLabel: "Simulazione pioggia", demoRainDesc: "Eventi pioggia casuali con cambio di ritmo", demoPenaltyDesc: "Penalità casuali e aggiunte di tempo", demoTiresLabel: "Degrado gomme", demoTiresDesc: "I tempi sul giro aumentano durante lo stint", demoSquadsLabel: "Squadre", demoSquadsDesc: "Gruppi di piloti con rotazione", demoFuelLabel: "Gestione carburante", demoFuelDesc: "Monitorare il carburante e rifornimento",
@@ -1256,12 +1258,12 @@ window.translations = {
         nextStintIn: "შენი შემდეგი სტინტი", stayAwake: "დარჩი ფხიზლად", sleepOk: "შეგიძლია დაიძინო", yourStints: "შენი სტინტები", noStintsFound: "სტინტები ვერ მოიძებნა", wakeUpAlert: "⏰ გაიღვიძე! შენი სტინტი ახლოვდება",
         viewerNameHint: "შეიყვანე სახელი რბოლაში შესაერთებლად", viewerNameLabel: "შენი სახელი", requestToJoin: "მოითხოვე შეერთება", waitingForApproval: "მოლოდინში ადმინის თანხმობაზე...", waitingForApprovalHint: "რბოლის ადმინისტრატორი დაამტკიცებს თქვენს მოთხოვნას", viewerNameTooShort: "სახელი უნდა შეიცავდეს მინიმუმ 2 სიმბოლოს",
         proFeature: "Pro ფუნქცია", proUpgradeTitle: "⭐ გადასვლა Pro-ზე", proUpgradeMsg: "გახსენით ლაივ ქრონომეტრაჟი, AI სტრატეგია, ჯგუფები, შეუზღუდავი მძღოლები და თემები, და სხვა!", proActivate: "ლიცენზიის გააქტიურება", proDeactivate: "გაუქმება", proEnterKey: "შეიყვანეთ ლიცენზიის გასაღები...", proInvalidKey: "არასწორი ლიცენზიის გასაღები", proActivated: "⭐ Pro გააქტიურებულია!", proBadge: "PRO", proRequired: "საჭიროებს Pro-ს", proHaveCoupon: "🎟️ გაქვთ კუპონის კოდი?", proApplyCoupon: "გამოყენება",
-        onboardTitle1: "კეთილი იყოს თქვენი მობრძანება Strateger-ში!", onboardDesc1: "თქვენი პიტ-სტრატეგიის ასისტენტი გამძლეობის კარტინგის რბოლებისთვის. დააყენეთ პირველი რბოლა 3 მარტივ ნაბიჯში.",
+        onboardTitle1: "კეთილი იყოს თქვენი მობრძანება Streger-ში!", onboardDesc1: "თქვენი პიტ-სტრატეგიის ასისტენტი გამძლეობის კარტინგის რბოლებისთვის. დააყენეთ პირველი რბოლა 3 მარტივ ნაბიჯში.",
         onboardTitle2: "დააყენეთ რბოლა", onboardDesc2: "შეიყვანეთ რბოლის ხანგრძლივობა, სავალდებულო გაჩერებები და სტინტის მინ/მაქს დროები ზემოთ. დაამატეთ მძღოლები ქვემოთ — აირჩიეთ სტარტერი და მიანიჭეთ ჯგუფები ღამის ცვლებისთვის.",
         onboardTitle3: "წინასწარი ხედვა და კორექტირება", onboardDesc3: "დააჭირეთ 'სტრატეგიის ნახვა' სრული გეგმის სანახავად. გადაათრიეთ სტინტები თანმიმდევრობის შესაცვლელად, შეცვალეთ ხანგრძლივობა ან შეინახეთ ღრუბელში.",
         onboardTitle4: "რბოლაზე!", onboardDesc4: "დააჭირეთ 'რბოლის დაწყება' და ლაივ დაფა ჩაირთვება — თვალი ადევნეთ ტაიმერებს, მიიღეთ პიტ-შეტყობინებები, გააზიარეთ ლინკი გუნდთან და მართეთ მძღოლთა ცვლა რეალურ დროში.",
         onboardSkip: "გამოტოვება", onboardNext: "შემდეგი", onboardDone: "წავედით!",
-        appTitle: "STRATEGER",
+        appTitle: "Streger",
         aiOptimize: "AI სტრატეგიის ოპტიმიზაცია",
         raceFinished: "რბოლა დასრულდა", totalPitTime: "პიტის დრო", raceStart: "სტარტი", pitLog: "პიტ-სტოპების ჟურნალი", drove: "მართა", pitNoun: "პიტი", driveNoun: "რბოლა", stints: "სტინტები", avgStint: "საშ.",
         demoSelectFeatures: "აირჩიეთ Pro ფუნქციები ტესტირებისთვის", demoLiveTimingDesc: "20 გუნდის სიმულაცია", demoRainLabel: "წვიმის სიმულაცია", demoRainDesc: "შემთხვევითი წვიმის მოვლენები ტემპის ცვლილებით", demoPenaltyDesc: "შემთხვევითი ჯარიმები და დროის დამატება", demoTiresLabel: "საბურავების ცვეთა", demoTiresDesc: "წრის დრო იზრდება სტინტის განმავლობაში", demoSquadsLabel: "ჯგუფები", demoSquadsDesc: "მძღოლების ჯგუფები როტაციით", demoFuelLabel: "საწვავის მართვა", demoFuelDesc: "საწვავის დონის თვალყურის დევნება",
@@ -1323,12 +1325,12 @@ window.translations = {
         nextStintIn: "Dein nächster Stint in", stayAwake: "Bleib wach", sleepOk: "Du kannst schlafen", yourStints: "Deine Stints", noStintsFound: "Keine Stints für dich gefunden", wakeUpAlert: "⏰ Aufwachen! Dein Stint kommt",
         viewerNameHint: "Gib deinen Namen ein, um dem Rennen beizutreten", viewerNameLabel: "Dein Name", requestToJoin: "Beitritt anfragen", waitingForApproval: "Warte auf Genehmigung...", waitingForApprovalHint: "Der Rennadministrator wird deine Anfrage genehmigen", viewerNameTooShort: "Name muss mindestens 2 Zeichen haben",
         proFeature: "Pro-Funktion", proUpgradeTitle: "⭐ Auf Pro upgraden", proUpgradeMsg: "Schalte Live-Zeitmessung, KI-Strategie, Staffeln, unbegrenzte Fahrer & Themes und mehr frei!", proActivate: "Lizenz aktivieren", proDeactivate: "Deaktivieren", proEnterKey: "Lizenzschlüssel eingeben...", proInvalidKey: "Ungültiger Lizenzschlüssel", proActivated: "⭐ Pro Aktiviert!", proBadge: "PRO", proRequired: "erfordert Pro", proHaveCoupon: "🎟️ Haben Sie einen Gutscheincode?", proApplyCoupon: "Anwenden",
-        onboardTitle1: "Willkommen bei Strateger!", onboardDesc1: "Dein Boxenstrategie-Assistent für Langstrecken-Kartrennen. Richte dein erstes Rennen in 3 einfachen Schritten ein.",
+        onboardTitle1: "Willkommen bei Streger!", onboardDesc1: "Dein Boxenstrategie-Assistent für Langstrecken-Kartrennen. Richte dein erstes Rennen in 3 einfachen Schritten ein.",
         onboardTitle2: "Rennen einrichten", onboardDesc2: "Gib Renndauer, Pflichtstopps und Stint-Zeiten (min/max) oben ein. Füge deine Fahrer unten hinzu — wähle den Startfahrer und weise Staffeln für Nachtschichten zu.",
         onboardTitle3: "Vorschau & Feintuning", onboardDesc3: "Tippe auf 'Strategie-Vorschau' für den kompletten Stint-Plan. Ziehe Stints zum Umordnen, passe Dauern an oder speichere deinen Plan in der Cloud.",
         onboardTitle4: "Los geht's!", onboardDesc4: "Drücke 'Rennen starten' und das Live-Dashboard übernimmt — verfolge Timer, erhalte Box-Warnungen, teile einen Live-Link mit deinem Team und manage Fahrerwechsel in Echtzeit.",
         onboardSkip: "Überspringen", onboardNext: "Weiter", onboardDone: "Auf geht's!",
-        appTitle: "STRATEGER",
+        appTitle: "Streger",
         aiOptimize: "KI-Strategie optimieren",
         raceFinished: "RENNEN BEENDET", totalPitTime: "Boxenzeit", raceStart: "Start", pitLog: "Boxenstopp-Protokoll", drove: "Gefahren", pitNoun: "Box", driveNoun: "Fahrt", stints: "Stints", avgStint: "Ø",
         demoSelectFeatures: "Pro-Funktionen zum Testen auswählen", demoLiveTimingDesc: "Simulierte 20-Team-Rangliste", demoRainLabel: "Regensimulation", demoRainDesc: "Zufällige Regenereignisse mit Tempowechsel", demoPenaltyDesc: "Zufällige Strafen und Zeitzuschläge", demoTiresLabel: "Reifenverschleiß", demoTiresDesc: "Rundenzeiten steigen im Laufe des Stints", demoSquadsLabel: "Staffeln", demoSquadsDesc: "Fahrergruppen mit Rotation", demoFuelLabel: "Kraftstoffmanagement", demoFuelDesc: "Kraftstoffstand verfolgen und tanken",
@@ -1389,13 +1391,13 @@ window.translations = {
         driverEntryHint: "レースIDを入力して接続", driverEntryLabel: "レースID", driverConnect: "ドライバーとして接続", driverIdTooShort: "IDが短すぎます", joinAsDriver: "ドライバーとして参加", backToSetup: "← セットアップに戻る",
         nextStintIn: "次のスティントまで", stayAwake: "起きていて", sleepOk: "寝ても大丈夫", yourStints: "あなたのスティント", noStintsFound: "スティントが見つかりません", wakeUpAlert: "⏰ 起きて！スティントが近づいています",
         viewerNameHint: "レースに参加するために名前を入力してください", viewerNameLabel: "あなたの名前", requestToJoin: "参加をリクエスト", waitingForApproval: "承認を待っています...", waitingForApprovalHint: "レース管理者があなたのリクエストを承認します", viewerNameTooShort: "名前は2文字以上必要です",
-        onboardTitle1: "Strategerへようこそ！", onboardDesc1: "耐久カートレース用のピット戦略アシスタントです。3つの簡単なステップで最初のレースをセットアップしましょう。",
+        onboardTitle1: "Stregerへようこそ！", onboardDesc1: "耐久カートレース用のピット戦略アシスタントです。3つの簡単なステップで最初のレースをセットアップしましょう。",
         onboardTitle2: "レースを設定", onboardDesc2: "上部でレース時間、必須ピットストップ数、スティントの最小/最大時間を入力。下にドライバーを追加 — スターターを選び、夜間シフト用にスクワッドを割り当てます。",
         proFeature: "Pro機能", proUpgradeTitle: "⭐ Proにアップグレード", proUpgradeMsg: "ライブタイミング、AI戦略、スクワッド、無制限のドライバーとテーマなどをアンロック！", proActivate: "ライセンスを有効化", proDeactivate: "無効化", proEnterKey: "ライセンスキーを入力...", proInvalidKey: "無効なライセンスキー", proActivated: "⭐ Pro有効化！", proBadge: "PRO", proRequired: "Proが必要", proHaveCoupon: "🎟️ クーポンコードをお持ちですか？", proApplyCoupon: "適用",
         onboardTitle3: "プレビューと調整", onboardDesc3: "「戦略プレビュー」をタップして完全なスティント計画を確認。ドラッグで並べ替え、時間を調整、またはクラウドに保存できます。",
         onboardTitle4: "レーススタート！", onboardDesc4: "「レース開始」を押すとライブダッシュボードが起動 — タイマーを追跡、ピットアラートを受信、チームとライブリンクを共有、ドライバー交代をリアルタイムで管理。",
         onboardSkip: "スキップ", onboardNext: "次へ", onboardDone: "始めよう！",
-        appTitle: "STRATEGER",
+        appTitle: "Streger",
         aiOptimize: "AI戦略最適化",
         raceFinished: "レース終了", totalPitTime: "ピット時間", raceStart: "スタート", pitLog: "ピットストップ記録", drove: "走行", pitNoun: "ピット", driveNoun: "走行", stints: "スティント", avgStint: "平均",
         demoSelectFeatures: "テストするPro機能を選択", demoLiveTimingDesc: "20チームのシミュレーション", demoRainLabel: "雨のシミュレーション", demoRainDesc: "ランダムな降雨イベントとペース変化", demoPenaltyDesc: "ランダムなペナルティと加算時間", demoTiresLabel: "タイヤ劣化", demoTiresDesc: "スティント中にラップタイムが増加", demoSquadsLabel: "スクワッド", demoSquadsDesc: "ドライバーグループのローテーション", demoFuelLabel: "燃料管理", demoFuelDesc: "燃料レベルの追跡と給油",
@@ -1508,12 +1510,12 @@ window.translations = {
         nextStintIn: "Το επόμενο stint σας σε", stayAwake: "Μείνε ξύπνιος", sleepOk: "Μπορείς να κοιμηθείς", yourStints: "Τα Stint σας", noStintsFound: "Δεν βρέθηκαν stint για εσάς", wakeUpAlert: "⏰ Ξύπνα! Το stint σου πλησιάζει",
         viewerNameHint: "Εισάγετε το όνομά σας για να συμμετάσχετε στον αγώνα", viewerNameLabel: "Το Όνομά σας", requestToJoin: "Αίτημα Συμμετοχής", waitingForApproval: "Αναμονή έγκρισης...", waitingForApprovalHint: "Ο διαχειριστής του αγώνα θα εγκρίνει το αίτημά σας", viewerNameTooShort: "Το όνομα πρέπει να έχει τουλάχιστον 2 χαρακτήρες",
         proFeature: "Λειτουργία Pro", proUpgradeTitle: "⭐ Αναβάθμιση σε Pro", proUpgradeMsg: "Ξεκλειδώστε Live Χρονομέτρηση, AI Στρατηγική, Ομάδες, απεριόριστους οδηγούς & θέματα, και πολλά άλλα!", proActivate: "Ενεργοποίηση άδειας", proDeactivate: "Απενεργοποίηση", proEnterKey: "Εισάγετε κλειδί άδειας...", proInvalidKey: "Μη έγκυρο κλειδί άδειας", proActivated: "⭐ Pro Ενεργοποιήθηκε!", proBadge: "PRO", proRequired: "απαιτεί Pro", proHaveCoupon: "🎟️ Έχετε κωδικό κουπονιού;", proApplyCoupon: "Εφαρμογή",
-        onboardTitle1: "Καλωσήρθατε στο Strateger!", onboardDesc1: "Ο βοηθός στρατηγικής pit για αγώνες αντοχής καρτ. Ρυθμίστε τον πρώτο σας αγώνα σε 3 εύκολα βήματα.",
+        onboardTitle1: "Καλωσήρθατε στο Streger!", onboardDesc1: "Ο βοηθός στρατηγικής pit για αγώνες αντοχής καρτ. Ρυθμίστε τον πρώτο σας αγώνα σε 3 εύκολα βήματα.",
         onboardTitle2: "Ρυθμίστε τον αγώνα", onboardDesc2: "Εισάγετε διάρκεια, υποχρεωτικές στάσεις και ελάχ./μέγ. χρόνους stint στο πάνω μέρος. Προσθέστε τους οδηγούς σας κάτω — επιλέξτε ποιος ξεκινά και αναθέστε ομάδες για τις νυχτερινές βάρδιες.",
         onboardTitle3: "Προεπισκόπηση & ρυθμίσεις", onboardDesc3: "Πατήστε 'Προεπισκόπηση' για να δείτε το πλήρες πλάνο stint. Σύρετε για αναδιάταξη, ρυθμίστε τις διάρκειες ή αποθηκεύστε το πλάνο στο cloud.",
         onboardTitle4: "Ξεκινάμε!", onboardDesc4: "Πατήστε 'Εκκίνηση' και το live dashboard αναλαμβάνει — παρακολουθήστε χρονόμετρα, λάβετε ειδοποιήσεις pit, μοιραστείτε σύνδεσμο με την ομάδα σας και διαχειριστείτε αλλαγές οδηγών σε πραγματικό χρόνο.",
         onboardSkip: "Παράλειψη", onboardNext: "Επόμενο", onboardDone: "Πάμε!",
-        appTitle: "STRATEGER",
+        appTitle: "Streger",
         aiOptimize: "Βελτιστοποίηση AI Στρατηγικής",
         raceFinished: "ΑΓΩΝΑΣ ΟΛΟΚΛΗΡΩΘΗΚΕ", totalPitTime: "Χρόνος Pit", raceStart: "Εκκίνηση", pitLog: "Αρχείο Pit Stop", drove: "Οδήγησε", pitNoun: "Pit", driveNoun: "Οδήγηση", stints: "Stints", avgStint: "Μέσος",
         demoSelectFeatures: "Επιλέξτε λειτουργίες Pro για δοκιμή", demoLiveTimingDesc: "Προσομοίωση 20 ομάδων", demoRainLabel: "Προσομοίωση βροχής", demoRainDesc: "Τυχαία γεγονότα βροχής με αλλαγή ρυθμού", demoPenaltyDesc: "Τυχαίες ποινές και προσθήκες χρόνου", demoTiresLabel: "Φθορά ελαστικών", demoTiresDesc: "Οι χρόνοι γύρου αυξάνονται κατά τη διάρκεια του stint", demoSquadsLabel: "Ομάδες", demoSquadsDesc: "Ομάδες οδηγών με εναλλαγή", demoFuelLabel: "Διαχείριση καυσίμου", demoFuelDesc: "Παρακολούθηση καυσίμου και ανεφοδιασμός",
@@ -1522,6 +1524,459 @@ window.translations = {
         undoPit: "Αναίρεση Pit", undoPitToast: "Είσοδος pit αναιρέθηκε", undoCountdown: "Αναίρεση",
         exportPdf: "Εξαγωγή PDF", exportImage: "Κοινοποίηση Εικόνας", exportingPdf: "Δημιουργία PDF...",
     }
+};
+
+// Ensure recently added UI keys exist and provide a safe fallback for all languages.
+(function ensureTranslationCoverage() {
+    if (!window.translations || !window.translations.en) return;
+
+    const required = {
+        builtBy: 'Built by HOLYLAND RACING',
+        termsOfUse: 'Terms of Use',
+        privacyPolicy: 'Privacy Policy',
+        termsIntro: 'Streger is provided to support race strategy operations. You are responsible for operational decisions during events.',
+        termsData: 'Do not upload sensitive personal data beyond what is required for team coordination.',
+        termsLiability: 'HOLYLAND RACING is not liable for race outcomes or losses resulting from connectivity, timing-source, or user-input issues.',
+        privacyIntro: 'Streger stores race configuration, session state, and user preferences to provide continuity and collaboration.',
+        privacyStorage: 'Data is stored locally and, when enabled, via connected cloud services (for example Google and backend APIs).',
+        privacyContact: 'For privacy requests, contact HOLYLAND RACING through the in-app Contact Us channel.',
+        demoRaceLength: 'Race Length',
+        demoLenSprint: 'Sprint 30m',
+        demoLenClub: 'Club 1h',
+        demoLenEndurance: 'Endurance 3h',
+        demoLenPro: 'Pro 6h',
+        demoGridSize: 'Grid Size',
+        demoChaosLevel: 'Challenge',
+        demoChaosLow: 'Low',
+        demoChaosNormal: 'Normal',
+        demoChaosHigh: 'High',
+        demoSafetyCarLabel: 'Safety Car Events',
+        demoSafetyCarDesc: 'Temporary neutralization with slower pace',
+        demoIncidentsLabel: 'On-track Incidents',
+        demoIncidentsDesc: 'Random incidents that affect specific teams',
+        broadcast: 'Broadcast',
+        broadcastTitle: 'STREGER BROADCAST',
+        broadcastBy: 'By HOLYLAND RACING',
+        broadcastShare: 'Share View',
+        broadcastLeaderboard: 'Top Competitors',
+        broadcastBranding: 'Branding & Sponsors',
+        broadcastHeadline: 'Headline',
+        broadcastHeadlinePlaceholder: 'HOLYLAND RACING LIVE',
+        broadcastSponsor1Placeholder: 'Sponsor 1',
+        broadcastSponsor2Placeholder: 'Sponsor 2',
+        broadcastSponsor3Placeholder: 'Sponsor 3',
+        broadcastLinkCopied: 'Broadcast link copied'
+    };
+
+    const localized = {
+        he: {
+            builtBy: 'נבנה על ידי HOLYLAND RACING', termsOfUse: 'תנאי שימוש', privacyPolicy: 'מדיניות פרטיות',
+            termsIntro: 'Streger מיועדת לתמיכה בתפעול אסטרטגיית מירוץ. האחריות על החלטות תפעול בזמן אירוע היא של הצוות.',
+            termsData: 'אין להעלות מידע אישי רגיש מעבר לנדרש לתיאום הצוות.',
+            termsLiability: 'HOLYLAND RACING אינה אחראית לתוצאות מירוץ או לנזקים הנובעים מתקלות קישוריות, מקור תזמון או קלט משתמש.',
+            privacyIntro: 'Streger שומרת תצורת מירוץ, מצב סשן והעדפות משתמש לצורך רציפות ושיתוף פעולה.',
+            privacyStorage: 'הנתונים נשמרים מקומית, ובמידת הצורך גם בשירותי ענן מחוברים (למשל Google ו-API backend).',
+            privacyContact: 'לפניות פרטיות ניתן ליצור קשר עם HOLYLAND RACING דרך Contact Us באפליקציה.',
+            demoRaceLength: 'משך מירוץ', demoLenSprint: 'ספרינט 30דק', demoLenClub: 'מועדון 1ש', demoLenEndurance: 'אנדורנס 3ש', demoLenPro: 'פרו 6ש',
+            demoGridSize: 'גודל גריד', demoChaosLevel: 'רמת אתגר', demoChaosLow: 'נמוכה', demoChaosNormal: 'רגילה', demoChaosHigh: 'גבוהה',
+            demoSafetyCarLabel: 'אירועי Safety Car', demoSafetyCarDesc: 'ניטרול זמני עם קצב איטי יותר', demoIncidentsLabel: 'תקריות מסלול', demoIncidentsDesc: 'אירועים אקראיים שמשפיעים על קבוצות ספציפיות',
+            broadcast: 'שידור', broadcastTitle: 'שידור STREGER', broadcastBy: 'מבית HOLYLAND RACING', broadcastShare: 'שתף צפייה', broadcastLeaderboard: 'מובילי המסלול', broadcastBranding: 'מיתוג וספונסרים', broadcastHeadline: 'כותרת', broadcastHeadlinePlaceholder: 'HOLYLAND RACING בשידור חי', broadcastSponsor1Placeholder: 'ספונסר 1', broadcastSponsor2Placeholder: 'ספונסר 2', broadcastSponsor3Placeholder: 'ספונסר 3', broadcastLinkCopied: 'קישור השידור הועתק'
+        },
+        fr: {
+            builtBy: 'Concu par HOLYLAND RACING', termsOfUse: "Conditions d'utilisation", privacyPolicy: 'Politique de confidentialite',
+            termsIntro: 'Streger est fourni pour la strategie de course. Les decisions operationnelles restent sous votre responsabilite.',
+            termsData: 'Ne televersez pas de donnees personnelles sensibles au-dela du besoin de coordination.',
+            termsLiability: 'HOLYLAND RACING n est pas responsable des resultats de course ni des pertes liees a la connectivite, au timing ou a la saisie utilisateur.',
+            privacyIntro: 'Streger stocke la configuration de course, l etat de session et les preferences utilisateur pour assurer la continuite.',
+            privacyStorage: 'Les donnees sont stockees localement et, si active, via des services cloud connectes.',
+            privacyContact: 'Pour toute demande de confidentialite, contactez HOLYLAND RACING via Contact Us.',
+            demoRaceLength: 'Duree de course', demoLenSprint: 'Sprint 30 min', demoLenClub: 'Club 1 h', demoLenEndurance: 'Endurance 3 h', demoLenPro: 'Pro 6 h',
+            demoGridSize: 'Taille de grille', demoChaosLevel: 'Niveau de challenge', demoChaosLow: 'Faible', demoChaosNormal: 'Normal', demoChaosHigh: 'Eleve',
+            demoSafetyCarLabel: 'Evenements Safety Car', demoSafetyCarDesc: 'Neutralisation temporaire avec rythme reduit', demoIncidentsLabel: 'Incidents piste', demoIncidentsDesc: 'Incidents aleatoires impactant certaines equipes',
+            broadcast: 'Diffusion', broadcastTitle: 'DIFFUSION STREGER', broadcastBy: 'Par HOLYLAND RACING', broadcastShare: 'Partager la vue', broadcastLeaderboard: 'Top concurrents', broadcastBranding: 'Marque et sponsors', broadcastHeadline: 'Titre', broadcastHeadlinePlaceholder: 'HOLYLAND RACING EN DIRECT', broadcastSponsor1Placeholder: 'Sponsor 1', broadcastSponsor2Placeholder: 'Sponsor 2', broadcastSponsor3Placeholder: 'Sponsor 3', broadcastLinkCopied: 'Lien de diffusion copie'
+        },
+        pt: {
+            builtBy: 'Construido por HOLYLAND RACING', termsOfUse: 'Termos de uso', privacyPolicy: 'Politica de privacidade',
+            termsIntro: 'O Streger e fornecido para operacao de estrategia de corrida. As decisoes operacionais sao responsabilidade da equipe.',
+            termsData: 'Nao envie dados pessoais sensiveis alem do necessario para coordenacao da equipe.',
+            termsLiability: 'A HOLYLAND RACING nao se responsabiliza por resultados de corrida ou perdas por conectividade, fonte de tempo ou entrada do usuario.',
+            privacyIntro: 'O Streger armazena configuracao da corrida, estado da sessao e preferencias do usuario para continuidade.',
+            privacyStorage: 'Os dados sao armazenados localmente e, quando ativado, em servicos de nuvem conectados.',
+            privacyContact: 'Para solicitacoes de privacidade, contate a HOLYLAND RACING pelo Contact Us.',
+            demoRaceLength: 'Duracao da corrida', demoLenSprint: 'Sprint 30m', demoLenClub: 'Clube 1h', demoLenEndurance: 'Endurance 3h', demoLenPro: 'Pro 6h',
+            demoGridSize: 'Tamanho do grid', demoChaosLevel: 'Nivel de desafio', demoChaosLow: 'Baixo', demoChaosNormal: 'Normal', demoChaosHigh: 'Alto',
+            demoSafetyCarLabel: 'Eventos de Safety Car', demoSafetyCarDesc: 'Neutralizacao temporaria com ritmo mais lento', demoIncidentsLabel: 'Incidentes na pista', demoIncidentsDesc: 'Incidentes aleatorios que afetam equipes especificas',
+            broadcast: 'Transmissao', broadcastTitle: 'TRANSMISSAO STREGER', broadcastBy: 'Por HOLYLAND RACING', broadcastShare: 'Compartilhar visao', broadcastLeaderboard: 'Principais competidores', broadcastBranding: 'Marca e patrocinadores', broadcastHeadline: 'Manchete', broadcastHeadlinePlaceholder: 'HOLYLAND RACING AO VIVO', broadcastSponsor1Placeholder: 'Patrocinador 1', broadcastSponsor2Placeholder: 'Patrocinador 2', broadcastSponsor3Placeholder: 'Patrocinador 3', broadcastLinkCopied: 'Link da transmissao copiado'
+        },
+        ru: {
+            builtBy: 'Создано HOLYLAND RACING', termsOfUse: 'Условия использования', privacyPolicy: 'Политика конфиденциальности',
+            termsIntro: 'Streger предназначен для поддержки гоночной стратегии. Операционные решения во время гонки принимает команда.',
+            termsData: 'Не загружайте чувствительные персональные данные сверх необходимого для координации команды.',
+            termsLiability: 'HOLYLAND RACING не несет ответственности за результаты гонки и убытки из-за связи, тайминга или пользовательского ввода.',
+            privacyIntro: 'Streger хранит конфигурацию гонки, состояние сессии и пользовательские настройки для непрерывной работы.',
+            privacyStorage: 'Данные хранятся локально и, при включении, через подключенные облачные сервисы.',
+            privacyContact: 'По вопросам конфиденциальности свяжитесь с HOLYLAND RACING через Contact Us.',
+            demoRaceLength: 'Длительность гонки', demoLenSprint: 'Спринт 30м', demoLenClub: 'Клуб 1ч', demoLenEndurance: 'Эндюранс 3ч', demoLenPro: 'Про 6ч',
+            demoGridSize: 'Размер решетки', demoChaosLevel: 'Сложность', demoChaosLow: 'Низкая', demoChaosNormal: 'Нормальная', demoChaosHigh: 'Высокая',
+            demoSafetyCarLabel: 'События Safety Car', demoSafetyCarDesc: 'Временная нейтрализация с более медленным темпом', demoIncidentsLabel: 'Инциденты на трассе', demoIncidentsDesc: 'Случайные инциденты, влияющие на отдельные команды',
+            broadcast: 'Трансляция', broadcastTitle: 'ТРАНСЛЯЦИЯ STREGER', broadcastBy: 'От HOLYLAND RACING', broadcastShare: 'Поделиться видом', broadcastLeaderboard: 'Лидеры', broadcastBranding: 'Брендинг и спонсоры', broadcastHeadline: 'Заголовок', broadcastHeadlinePlaceholder: 'HOLYLAND RACING В ЭФИРЕ', broadcastSponsor1Placeholder: 'Спонсор 1', broadcastSponsor2Placeholder: 'Спонсор 2', broadcastSponsor3Placeholder: 'Спонсор 3', broadcastLinkCopied: 'Ссылка на трансляцию скопирована'
+        },
+        ar: {
+            builtBy: 'تم التطوير بواسطة HOLYLAND RACING', termsOfUse: 'شروط الاستخدام', privacyPolicy: 'سياسة الخصوصية',
+            termsIntro: 'تم توفير Streger لدعم تشغيل استراتيجية السباق. قرارات التشغيل اثناء الحدث تقع على عاتق الفريق.',
+            termsData: 'يرجى عدم رفع بيانات شخصية حساسة اكثر من المطلوب لتنسيق الفريق.',
+            termsLiability: 'لا تتحمل HOLYLAND RACING مسؤولية نتائج السباق او الخسائر الناتجة عن الاتصال او مصدر التوقيت او ادخال المستخدم.',
+            privacyIntro: 'يقوم Streger بحفظ اعدادات السباق وحالة الجلسة وتفضيلات المستخدم لاستمرارية العمل.',
+            privacyStorage: 'يتم تخزين البيانات محليا وعبر خدمات سحابية متصلة عند التفعيل.',
+            privacyContact: 'لطلبات الخصوصية، تواصل مع HOLYLAND RACING عبر Contact Us داخل التطبيق.',
+            demoRaceLength: 'مدة السباق', demoLenSprint: 'سبرينت 30د', demoLenClub: 'نادي 1س', demoLenEndurance: 'تحمل 3س', demoLenPro: 'احترافي 6س',
+            demoGridSize: 'حجم الشبكة', demoChaosLevel: 'مستوى التحدي', demoChaosLow: 'منخفض', demoChaosNormal: 'عادي', demoChaosHigh: 'مرتفع',
+            demoSafetyCarLabel: 'احداث سيارة الامان', demoSafetyCarDesc: 'تحييد مؤقت بوتيرة ابطأ', demoIncidentsLabel: 'حوادث المضمار', demoIncidentsDesc: 'حوادث عشوائية تؤثر على فرق محددة',
+            broadcast: 'بث', broadcastTitle: 'بث STREGER', broadcastBy: 'بواسطة HOLYLAND RACING', broadcastShare: 'مشاركة العرض', broadcastLeaderboard: 'افضل المتنافسين', broadcastBranding: 'الهوية والرعاة', broadcastHeadline: 'العنوان', broadcastHeadlinePlaceholder: 'HOLYLAND RACING مباشر', broadcastSponsor1Placeholder: 'الراعي 1', broadcastSponsor2Placeholder: 'الراعي 2', broadcastSponsor3Placeholder: 'الراعي 3', broadcastLinkCopied: 'تم نسخ رابط البث'
+        },
+        es: {
+            builtBy: 'Creado por HOLYLAND RACING', termsOfUse: 'Terminos de uso', privacyPolicy: 'Politica de privacidad',
+            termsIntro: 'Streger se proporciona para apoyar la estrategia de carrera. Las decisiones operativas durante el evento son responsabilidad del equipo.',
+            termsData: 'No cargues datos personales sensibles mas alla de lo necesario para la coordinacion.',
+            termsLiability: 'HOLYLAND RACING no es responsable de resultados de carrera ni perdidas por conectividad, fuente de tiempos o entrada de usuario.',
+            privacyIntro: 'Streger almacena configuracion de carrera, estado de sesion y preferencias del usuario para continuidad.',
+            privacyStorage: 'Los datos se almacenan localmente y, cuando aplica, en servicios en la nube conectados.',
+            privacyContact: 'Para solicitudes de privacidad, contacta a HOLYLAND RACING mediante Contact Us.',
+            demoRaceLength: 'Duracion de carrera', demoLenSprint: 'Sprint 30m', demoLenClub: 'Club 1h', demoLenEndurance: 'Endurance 3h', demoLenPro: 'Pro 6h',
+            demoGridSize: 'Tamano de parrilla', demoChaosLevel: 'Nivel de desafio', demoChaosLow: 'Bajo', demoChaosNormal: 'Normal', demoChaosHigh: 'Alto',
+            demoSafetyCarLabel: 'Eventos de Safety Car', demoSafetyCarDesc: 'Neutralizacion temporal con ritmo mas lento', demoIncidentsLabel: 'Incidentes en pista', demoIncidentsDesc: 'Incidentes aleatorios que afectan equipos especificos',
+            broadcast: 'Transmision', broadcastTitle: 'TRANSMISION STREGER', broadcastBy: 'Por HOLYLAND RACING', broadcastShare: 'Compartir vista', broadcastLeaderboard: 'Top competidores', broadcastBranding: 'Marca y patrocinadores', broadcastHeadline: 'Titular', broadcastHeadlinePlaceholder: 'HOLYLAND RACING EN VIVO', broadcastSponsor1Placeholder: 'Patrocinador 1', broadcastSponsor2Placeholder: 'Patrocinador 2', broadcastSponsor3Placeholder: 'Patrocinador 3', broadcastLinkCopied: 'Enlace de transmision copiado'
+        },
+        it: {
+            builtBy: 'Creato da HOLYLAND RACING', termsOfUse: 'Termini di utilizzo', privacyPolicy: 'Informativa sulla privacy',
+            termsIntro: 'Streger e fornito per supportare la strategia di gara. Le decisioni operative durante l evento sono responsabilita del team.',
+            termsData: 'Non caricare dati personali sensibili oltre quanto necessario al coordinamento del team.',
+            termsLiability: 'HOLYLAND RACING non e responsabile per risultati di gara o perdite dovute a connettivita, fonte tempi o input utente.',
+            privacyIntro: 'Streger memorizza configurazione gara, stato sessione e preferenze utente per garantire continuita.',
+            privacyStorage: 'I dati sono salvati localmente e, quando attivo, tramite servizi cloud collegati.',
+            privacyContact: 'Per richieste privacy, contatta HOLYLAND RACING tramite Contact Us.',
+            demoRaceLength: 'Durata gara', demoLenSprint: 'Sprint 30m', demoLenClub: 'Club 1h', demoLenEndurance: 'Endurance 3h', demoLenPro: 'Pro 6h',
+            demoGridSize: 'Dimensione griglia', demoChaosLevel: 'Livello sfida', demoChaosLow: 'Basso', demoChaosNormal: 'Normale', demoChaosHigh: 'Alto',
+            demoSafetyCarLabel: 'Eventi Safety Car', demoSafetyCarDesc: 'Neutralizzazione temporanea con ritmo ridotto', demoIncidentsLabel: 'Incidenti in pista', demoIncidentsDesc: 'Incidenti casuali che influenzano team specifici',
+            broadcast: 'Broadcast', broadcastTitle: 'BROADCAST STREGER', broadcastBy: 'Di HOLYLAND RACING', broadcastShare: 'Condividi vista', broadcastLeaderboard: 'Top concorrenti', broadcastBranding: 'Branding e sponsor', broadcastHeadline: 'Titolo', broadcastHeadlinePlaceholder: 'HOLYLAND RACING LIVE', broadcastSponsor1Placeholder: 'Sponsor 1', broadcastSponsor2Placeholder: 'Sponsor 2', broadcastSponsor3Placeholder: 'Sponsor 3', broadcastLinkCopied: 'Link broadcast copiato'
+        },
+        ka: {
+            builtBy: 'შექმნილია HOLYLAND RACING-ის მიერ', termsOfUse: 'გამოყენების პირობები', privacyPolicy: 'კონფიდენციალურობის პოლიტიკა',
+            termsIntro: 'Streger შექმნილია რბოლის სტრატეგიის დასახმარებლად. ღონისძიების დროს ოპერაციულ გადაწყვეტილებებზე პასუხისმგებელია გუნდი.',
+            termsData: 'გთხოვთ არ ატვირთოთ მგრძნობიარე პერსონალური მონაცემები, გარდა აუცილებელისა გუნდის კოორდინაციისთვის.',
+            termsLiability: 'HOLYLAND RACING არ არის პასუხისმგებელი რბოლის შედეგებზე ან დანაკარგებზე, რომლებიც გამოწვეულია კავშირით, ტაიმინგის წყაროთი ან მომხმარებლის შეყვანით.',
+            privacyIntro: 'Streger ინახავს რბოლის კონფიგურაციას, სესიის მდგომარეობას და მომხმარებლის პრეფერენციებს უწყვეტობისთვის.',
+            privacyStorage: 'მონაცემები ინახება ლოკალურად და, საჭიროების შემთხვევაში, დაკავშირებულ cloud სერვისებში.',
+            privacyContact: 'კონფიდენციალურობის მოთხოვნებისთვის დაგვიკავშირდით Contact Us არხით HOLYLAND RACING-ში.',
+            demoRaceLength: 'რბოლის ხანგრძლივობა', demoLenSprint: 'სპრინტი 30წთ', demoLenClub: 'კლუბი 1სთ', demoLenEndurance: 'ენდურანსი 3სთ', demoLenPro: 'პრო 6სთ',
+            demoGridSize: 'გრიდის ზომა', demoChaosLevel: 'სირთულის დონე', demoChaosLow: 'დაბალი', demoChaosNormal: 'ნორმალური', demoChaosHigh: 'მაღალი',
+            demoSafetyCarLabel: 'Safety Car მოვლენები', demoSafetyCarDesc: 'დროებითი ნეიტრალიზაცია დაბალი ტემპით', demoIncidentsLabel: 'ტრეკის ინციდენტები', demoIncidentsDesc: 'შემთხვევითი ინციდენტები, რომლებიც კონკრეტულ გუნდებზე მოქმედებს',
+            broadcast: 'ბროდქასტი', broadcastTitle: 'STREGER ბროდქასტი', broadcastBy: 'HOLYLAND RACING', broadcastShare: 'ხედის გაზიარება', broadcastLeaderboard: 'ლიდერები', broadcastBranding: 'ბრენდინგი და სპონსორები', broadcastHeadline: 'სათაური', broadcastHeadlinePlaceholder: 'HOLYLAND RACING ლაივი', broadcastSponsor1Placeholder: 'სპონსორი 1', broadcastSponsor2Placeholder: 'სპონსორი 2', broadcastSponsor3Placeholder: 'სპონსორი 3', broadcastLinkCopied: 'ბროდქასტის ბმული დაკოპირდა'
+        },
+        de: {
+            builtBy: 'Erstellt von HOLYLAND RACING', termsOfUse: 'Nutzungsbedingungen', privacyPolicy: 'Datenschutzrichtlinie',
+            termsIntro: 'Streger unterstuetzt die Rennstrategie. Operative Entscheidungen wahrend des Events liegen beim Team.',
+            termsData: 'Bitte keine sensiblen personenbezogenen Daten hochladen, die uber die Teamkoordination hinausgehen.',
+            termsLiability: 'HOLYLAND RACING haftet nicht fur Rennergebnisse oder Verluste durch Konnektivitat, Zeitquelle oder Benutzereingaben.',
+            privacyIntro: 'Streger speichert Rennkonfiguration, Sitzungsstatus und Nutzereinstellungen fur Kontinuitat.',
+            privacyStorage: 'Daten werden lokal gespeichert und bei Aktivierung uber verbundene Cloud-Dienste verarbeitet.',
+            privacyContact: 'Bei Datenschutzanfragen kontaktieren Sie HOLYLAND RACING uber Contact Us.',
+            demoRaceLength: 'Renndauer', demoLenSprint: 'Sprint 30m', demoLenClub: 'Club 1h', demoLenEndurance: 'Endurance 3h', demoLenPro: 'Pro 6h',
+            demoGridSize: 'Grid-Grosse', demoChaosLevel: 'Schwierigkeitsgrad', demoChaosLow: 'Niedrig', demoChaosNormal: 'Normal', demoChaosHigh: 'Hoch',
+            demoSafetyCarLabel: 'Safety-Car-Ereignisse', demoSafetyCarDesc: 'Zeitweise Neutralisierung mit langsamerem Tempo', demoIncidentsLabel: 'Streckenereignisse', demoIncidentsDesc: 'Zufallige Vorfalle mit Einfluss auf einzelne Teams',
+            broadcast: 'Broadcast', broadcastTitle: 'STREGER BROADCAST', broadcastBy: 'Von HOLYLAND RACING', broadcastShare: 'Ansicht teilen', broadcastLeaderboard: 'Top-Teilnehmer', broadcastBranding: 'Branding und Sponsoren', broadcastHeadline: 'Headline', broadcastHeadlinePlaceholder: 'HOLYLAND RACING LIVE', broadcastSponsor1Placeholder: 'Sponsor 1', broadcastSponsor2Placeholder: 'Sponsor 2', broadcastSponsor3Placeholder: 'Sponsor 3', broadcastLinkCopied: 'Broadcast-Link kopiert'
+        },
+        ja: {
+            builtBy: 'HOLYLAND RACING により開発', termsOfUse: '利用規約', privacyPolicy: 'プライバシーポリシー',
+            termsIntro: 'Streger はレース戦略運用を支援するためのツールです。イベント中の運用判断はチームの責任です。',
+            termsData: 'チーム連携に必要な範囲を超える機微な個人情報はアップロードしないでください。',
+            termsLiability: 'HOLYLAND RACING は、接続・計時ソース・ユーザー入力に起因する結果や損失に責任を負いません。',
+            privacyIntro: 'Streger は継続利用のためにレース設定、セッション状態、ユーザー設定を保存します。',
+            privacyStorage: 'データはローカルに保存され、必要時には接続されたクラウドサービスでも処理されます。',
+            privacyContact: 'プライバシーに関するお問い合わせはアプリ内 Contact Us から HOLYLAND RACING へご連絡ください。',
+            demoRaceLength: 'レース時間', demoLenSprint: 'スプリント 30分', demoLenClub: 'クラブ 1時間', demoLenEndurance: '耐久 3時間', demoLenPro: 'プロ 6時間',
+            demoGridSize: 'グリッド数', demoChaosLevel: '難易度', demoChaosLow: '低', demoChaosNormal: '標準', demoChaosHigh: '高',
+            demoSafetyCarLabel: 'セーフティカーイベント', demoSafetyCarDesc: '一時的にペースを落とす中立化', demoIncidentsLabel: 'コース上のインシデント', demoIncidentsDesc: '特定チームに影響するランダムインシデント',
+            broadcast: '配信', broadcastTitle: 'STREGER 配信', broadcastBy: 'HOLYLAND RACING', broadcastShare: '視聴リンク共有', broadcastLeaderboard: '上位コンペティター', broadcastBranding: 'ブランドとスポンサー', broadcastHeadline: '見出し', broadcastHeadlinePlaceholder: 'HOLYLAND RACING ライブ', broadcastSponsor1Placeholder: 'スポンサー 1', broadcastSponsor2Placeholder: 'スポンサー 2', broadcastSponsor3Placeholder: 'スポンサー 3', broadcastLinkCopied: '配信リンクをコピーしました'
+        },
+        el: {
+            builtBy: 'Δημιουργηθηκε απο HOLYLAND RACING', termsOfUse: 'Οροι χρησης', privacyPolicy: 'Πολιτικη απορρητου',
+            termsIntro: 'Το Streger παρεχεται για υποστηριξη στρατηγικης αγωνα. Οι λειτουργικες αποφασεις κατα τη διαρκεια του αγωνα ανηκουν στην ομαδα.',
+            termsData: 'Μην ανεβαζετε ευαισθητα προσωπικα δεδομενα περαν των απαραιτητων για συντονισμο ομαδας.',
+            termsLiability: 'Η HOLYLAND RACING δεν ευθυνεται για αποτελεσματα αγωνα ή απωλειες απο συνδεσιμοτητα, πηγη χρονομετρησης ή εισαγωγη χρηστη.',
+            privacyIntro: 'Το Streger αποθηκευει ρυθμισεις αγωνα, κατασταση συνεδριας και προτιμησεις χρηστη για συνεχεια.',
+            privacyStorage: 'Τα δεδομενα αποθηκευονται τοπικα και, οταν ενεργοποιηθει, μεσω συνδεδεμενων cloud υπηρεσιων.',
+            privacyContact: 'Για αιτηματα απορρητου επικοινωνηστε με την HOLYLAND RACING απο το Contact Us.',
+            demoRaceLength: 'Διαρκεια αγωνα', demoLenSprint: 'Sprint 30λ', demoLenClub: 'Club 1ω', demoLenEndurance: 'Endurance 3ω', demoLenPro: 'Pro 6ω',
+            demoGridSize: 'Μεγεθος grid', demoChaosLevel: 'Επιπεδο προκλησης', demoChaosLow: 'Χαμηλο', demoChaosNormal: 'Κανονικο', demoChaosHigh: 'Υψηλο',
+            demoSafetyCarLabel: 'Γεγονοτα Safety Car', demoSafetyCarDesc: 'Προσωρινη ουδετεροποιηση με χαμηλοτερο ρυθμο', demoIncidentsLabel: 'Περιστατικα πιστας', demoIncidentsDesc: 'Τυχαια περιστατικα που επηρεαζουν συγκεκριμενες ομαδες',
+            broadcast: 'Μεταδοση', broadcastTitle: 'STREGER ΜΕΤΑΔΟΣΗ', broadcastBy: 'Απο HOLYLAND RACING', broadcastShare: 'Κοινοποιηση προβολης', broadcastLeaderboard: 'Κορυφαιοι ανταγωνιστες', broadcastBranding: 'Branding και χορηγοι', broadcastHeadline: 'Τιτλος', broadcastHeadlinePlaceholder: 'HOLYLAND RACING LIVE', broadcastSponsor1Placeholder: 'Χορηγος 1', broadcastSponsor2Placeholder: 'Χορηγος 2', broadcastSponsor3Placeholder: 'Χορηγος 3', broadcastLinkCopied: 'Ο συνδεσμος μεταδοσης αντιγραφηκε'
+        }
+    };
+
+    Object.entries(required).forEach(([k, v]) => {
+        if (!window.translations.en[k]) window.translations.en[k] = v;
+    });
+
+    Object.entries(localized).forEach(([lang, patch]) => {
+        if (!window.translations[lang]) return;
+        Object.entries(patch).forEach(([k, v]) => {
+            window.translations[lang][k] = v;
+        });
+    });
+
+    Object.keys(window.translations).forEach((lang) => {
+        const dict = window.translations[lang];
+        Object.keys(required).forEach((k) => {
+            if (dict[k] == null) dict[k] = window.translations.en[k];
+        });
+    });
+})();
+
+// Broad tone uplift for core product copy across all supported languages.
+(function applyGlobalTranslationPolish() {
+    if (!window.translations) return;
+
+    const polish = {
+        en: {
+            appSubtitle: 'Professional Endurance Race Command Center',
+            generateStrategy: 'Generate Smart Strategy (AI)',
+            previewStrategy: 'Preview Strategy Timeline',
+            startRace: 'Launch Race Control',
+            loadSaved: 'Resume Saved Session',
+            strategyOutlook: 'STRATEGY OUTLOOK',
+            timeLeft: 'TIME REMAINING',
+            demoSelectFeatures: 'Select race experiences to simulate',
+            demoLiveTimingDesc: 'Live-style leaderboard with dynamic race flow',
+            demoRainDesc: 'Weather shifts that impact pace and decisions',
+            demoPenaltyDesc: 'Race control penalties and time loss events',
+            demoTiresDesc: 'Stint-based pace drop from tire wear',
+            demoSquadsDesc: 'Rotating driver squads for endurance operations',
+            demoFuelDesc: 'Fuel windows, tank range, and pit planning',
+            onboardDesc1: 'Streger gives your team live race control for endurance karting with clearer decisions and faster coordination.',
+            onboardDesc2: 'Set race duration, pit constraints, and driver lineup. Then tune stints to match your event rules.',
+            onboardDesc3: 'Use preview to validate every stint, adjust sequencing, and align your team before green flag.',
+            onboardDesc4: 'Run the race with live alerts, pit timing guidance, and shareable links for drivers and viewers.',
+            raceFinished: 'RACE COMPLETE'
+        },
+        he: {
+            appSubtitle: 'מרכז שליטה מקצועי למירוצי סיבולת',
+            generateStrategy: 'צור אסטרטגיה חכמה (AI)',
+            previewStrategy: 'תצוגת ציר זמן אסטרטגי',
+            startRace: 'הפעל מרכז שליטה למירוץ',
+            loadSaved: 'המשך סשן שמור',
+            strategyOutlook: 'מבט אסטרטגי',
+            timeLeft: 'זמן נותר',
+            demoSelectFeatures: 'בחר חוויות מירוץ לסימולציה',
+            demoLiveTimingDesc: 'טבלת דירוג בסגנון לייב עם דינמיקת מירוץ',
+            demoRainDesc: 'שינויי מזג אוויר שמשפיעים על קצב והחלטות',
+            demoPenaltyDesc: 'עונשי בקרת מירוץ ואיבוד זמן',
+            demoTiresDesc: 'ירידת קצב לאורך סטינט עקב שחיקת צמיגים',
+            demoSquadsDesc: 'רוטציית חוליות נהגים לתפעול סיבולת',
+            demoFuelDesc: 'חלונות דלק, טווח מיכל ותכנון פיטס',
+            onboardDesc1: 'Streger נותנת לצוות שלך שליטה חיה וברורה יותר במירוץ סיבולת עם קבלת החלטות מהירה.',
+            onboardDesc2: 'הגדר משך מירוץ, אילוצי פיטס והרכב נהגים, ואז כוון סטינטים לפי חוקי האירוע.',
+            onboardDesc3: 'השתמש בתצוגה המקדימה כדי לאמת כל סטינט, לעדכן רצף ולהכין את הצוות לזינוק.',
+            onboardDesc4: 'נהל את המירוץ עם התראות חיות, הנחיות פיטס וקישורי שיתוף לצוות ולצופים.',
+            raceFinished: 'המירוץ הסתיים'
+        },
+        fr: {
+            appSubtitle: 'Centre de commandement professionnel pour l endurance',
+            generateStrategy: 'Generer une strategie intelligente (IA)',
+            previewStrategy: 'Apercu de la timeline strategie',
+            startRace: 'Lancer le controle course',
+            loadSaved: 'Reprendre la session sauvegardee',
+            timeLeft: 'TEMPS RESTANT',
+            demoSelectFeatures: 'Choisissez les experiences a simuler',
+            demoLiveTimingDesc: 'Classement type live avec dynamique de course',
+            demoRainDesc: 'Meteo evolutive avec impact sur le rythme',
+            demoPenaltyDesc: 'Penalites de direction de course et perte de temps',
+            demoTiresDesc: 'Baisse de performance par usure des pneus',
+            demoSquadsDesc: 'Rotation des groupes pilotes en endurance',
+            demoFuelDesc: 'Fenetres carburant, autonomie et plan pit',
+            raceFinished: 'COURSE TERMINEE'
+        },
+        pt: {
+            appSubtitle: 'Centro profissional de comando para corridas de endurance',
+            generateStrategy: 'Gerar estrategia inteligente (IA)',
+            previewStrategy: 'Visualizar linha do tempo da estrategia',
+            startRace: 'Iniciar controle de corrida',
+            loadSaved: 'Retomar sessao salva',
+            timeLeft: 'TEMPO RESTANTE',
+            demoSelectFeatures: 'Selecione as experiencias para simular',
+            demoLiveTimingDesc: 'Leaderboard em estilo ao vivo com fluxo dinamico',
+            demoRainDesc: 'Mudancas de clima que afetam ritmo e decisoes',
+            demoPenaltyDesc: 'Penalidades da direcao e perda de tempo',
+            demoTiresDesc: 'Queda de ritmo por desgaste dos pneus',
+            demoSquadsDesc: 'Rotacao de grupos de pilotos no endurance',
+            demoFuelDesc: 'Janelas de combustivel, autonomia e plano de box',
+            raceFinished: 'CORRIDA FINALIZADA'
+        },
+        ru: {
+            appSubtitle: 'Профессиональный центр управления гонкой на выносливость',
+            generateStrategy: 'Сгенерировать умную стратегию (ИИ)',
+            previewStrategy: 'Просмотр таймлайна стратегии',
+            startRace: 'Запустить управление гонкой',
+            loadSaved: 'Продолжить сохраненную сессию',
+            timeLeft: 'ОСТАЛОСЬ ВРЕМЕНИ',
+            demoSelectFeatures: 'Выберите сценарии для симуляции',
+            demoLiveTimingDesc: 'Лайв-таблица с динамикой гонки',
+            demoRainDesc: 'Погодные изменения, влияющие на темп',
+            demoPenaltyDesc: 'Штрафы дирекции гонки и потеря времени',
+            demoTiresDesc: 'Падение темпа из-за износа шин',
+            demoSquadsDesc: 'Ротация групп пилотов в endurance',
+            demoFuelDesc: 'Окна топлива, запас хода и план пит-стопов',
+            raceFinished: 'ГОНКА ЗАВЕРШЕНА'
+        },
+        ar: {
+            appSubtitle: 'مركز قيادة احترافي لسباقات التحمل',
+            generateStrategy: 'انشاء استراتيجية ذكية (AI)',
+            previewStrategy: 'معاينة الخط الزمني للاستراتيجية',
+            startRace: 'تشغيل مركز التحكم بالسباق',
+            loadSaved: 'استئناف الجلسة المحفوظة',
+            timeLeft: 'الوقت المتبقي',
+            demoSelectFeatures: 'اختر تجارب السباق للمحاكاة',
+            demoLiveTimingDesc: 'لوحة ترتيب مباشرة بتدفق سباق ديناميكي',
+            demoRainDesc: 'تغيرات طقس تؤثر على الوتيرة والقرارات',
+            demoPenaltyDesc: 'عقوبات ادارة السباق وخسارة زمن',
+            demoTiresDesc: 'تراجع الوتيرة بسبب تآكل الاطارات',
+            demoSquadsDesc: 'تدوير مجموعات السائقين لسباقات التحمل',
+            demoFuelDesc: 'نوافذ الوقود ومدى الخزان وخطة التوقف',
+            raceFinished: 'انتهى السباق'
+        },
+        es: {
+            appSubtitle: 'Centro de mando profesional para carreras de resistencia',
+            generateStrategy: 'Generar estrategia inteligente (IA)',
+            previewStrategy: 'Vista previa de la linea de estrategia',
+            startRace: 'Iniciar control de carrera',
+            loadSaved: 'Reanudar sesion guardada',
+            timeLeft: 'TIEMPO RESTANTE',
+            demoSelectFeatures: 'Selecciona experiencias para simular',
+            demoLiveTimingDesc: 'Tabla tipo live con flujo de carrera dinamico',
+            demoRainDesc: 'Cambios de clima que impactan ritmo y decisiones',
+            demoPenaltyDesc: 'Penalizaciones de direccion y perdida de tiempo',
+            demoTiresDesc: 'Caida de ritmo por desgaste de neumaticos',
+            demoSquadsDesc: 'Rotacion de grupos de pilotos en endurance',
+            demoFuelDesc: 'Ventanas de combustible, autonomia y plan de boxes',
+            raceFinished: 'CARRERA FINALIZADA'
+        },
+        it: {
+            appSubtitle: 'Centro di comando professionale per gare endurance',
+            generateStrategy: 'Genera strategia intelligente (AI)',
+            previewStrategy: 'Anteprima timeline strategica',
+            startRace: 'Avvia controllo gara',
+            loadSaved: 'Riprendi sessione salvata',
+            timeLeft: 'TEMPO RIMANENTE',
+            demoSelectFeatures: 'Seleziona le esperienze da simulare',
+            demoLiveTimingDesc: 'Classifica live con dinamica gara realistica',
+            demoRainDesc: 'Cambi meteo che influenzano ritmo e scelte',
+            demoPenaltyDesc: 'Penalita direzione gara e perdita tempo',
+            demoTiresDesc: 'Calo passo dovuto all usura gomme',
+            demoSquadsDesc: 'Rotazione gruppi piloti per endurance',
+            demoFuelDesc: 'Finestre carburante, autonomia e piano pit',
+            raceFinished: 'GARA CONCLUSA'
+        },
+        ka: {
+            appSubtitle: 'პროფესიონალური საკონტროლო ცენტრი ენდურანს რბოლებისთვის',
+            generateStrategy: 'შექმენი ჭკვიანი სტრატეგია (AI)',
+            previewStrategy: 'სტრატეგიის ტაიმლაინის წინასწარი ნახვა',
+            startRace: 'გაუშვი რბოლის კონტროლი',
+            loadSaved: 'შენახული სესიის გაგრძელება',
+            timeLeft: 'დარჩენილი დრო',
+            demoSelectFeatures: 'აირჩიე სიმულაციის გამოცდილებები',
+            demoLiveTimingDesc: 'ლაივ სტილის ლიდერბორდი დინამიკური რბოლით',
+            demoRainDesc: 'ამინდის ცვლილებები, რომლებიც ტემპს ცვლის',
+            demoPenaltyDesc: 'რბოლის კონტროლის ჯარიმები და დროის დაკარგვა',
+            demoTiresDesc: 'ტემპის ვარდნა საბურავების ცვეთით',
+            demoSquadsDesc: 'მძღოლების ჯგუფური როტაცია endurance რეჟიმში',
+            demoFuelDesc: 'საწვავის ფანჯრები, რეზერვი და pit გეგმა',
+            raceFinished: 'რბოლა დასრულდა'
+        },
+        de: {
+            appSubtitle: 'Professionelles Race-Control-Center fur Endurance',
+            generateStrategy: 'Intelligente Strategie generieren (KI)',
+            previewStrategy: 'Strategie-Timeline anzeigen',
+            startRace: 'Race Control starten',
+            loadSaved: 'Gespeicherte Session fortsetzen',
+            timeLeft: 'VERBLEIBENDE ZEIT',
+            demoSelectFeatures: 'Wahle die zu simulierenden Rennszenarien',
+            demoLiveTimingDesc: 'Live-Rangliste mit dynamischem Rennverlauf',
+            demoRainDesc: 'Wetterwechsel mit Einfluss auf Pace und Entscheidungen',
+            demoPenaltyDesc: 'Rennleitungsstrafen und Zeitverlust',
+            demoTiresDesc: 'Pace-Abfall durch Reifenverschleiss',
+            demoSquadsDesc: 'Rotation von Fahrergruppen fur Endurance',
+            demoFuelDesc: 'Tankfenster, Reichweite und Boxenplanung',
+            raceFinished: 'RENNEN BEENDET'
+        },
+        ja: {
+            appSubtitle: '耐久レース向けプロフェッショナル指令センター',
+            generateStrategy: 'スマート戦略を生成 (AI)',
+            previewStrategy: '戦略タイムラインを確認',
+            startRace: 'レースコントロール開始',
+            loadSaved: '保存セッションを再開',
+            timeLeft: '残り時間',
+            demoSelectFeatures: 'シミュレーションする体験を選択',
+            demoLiveTimingDesc: '動的レースフロー付きのライブ順位表示',
+            demoRainDesc: 'ペースと判断に影響する天候変化',
+            demoPenaltyDesc: 'レースコントロール罰則とタイムロス',
+            demoTiresDesc: 'タイヤ摩耗によるペース低下',
+            demoSquadsDesc: '耐久運用向けドライバーグループ交代',
+            demoFuelDesc: '燃料ウィンドウ、航続、ピット計画',
+            raceFinished: 'レース終了'
+        },
+        el: {
+            appSubtitle: 'Επαγγελματικο κεντρο ελεγχου για αγωνες αντοχης',
+            generateStrategy: 'Δημιουργια εξυπνης στρατηγικης (AI)',
+            previewStrategy: 'Προεπισκοπηση χρονογραμμης στρατηγικης',
+            startRace: 'Εναρξη ελεγχου αγωνα',
+            loadSaved: 'Συνεχεια αποθηκευμενης συνεδριας',
+            timeLeft: 'ΥΠΟΛΟΙΠΟΣ ΧΡΟΝΟΣ',
+            demoSelectFeatures: 'Επιλεξτε εμπειριες για προσομοιωση',
+            demoLiveTimingDesc: 'Live καταταξη με δυναμικη ροη αγωνα',
+            demoRainDesc: 'Αλλαγες καιρου που επηρεαζουν ρυθμο και αποφασεις',
+            demoPenaltyDesc: 'Ποινες race control και απωλεια χρονου',
+            demoTiresDesc: 'Πτωση ρυθμου απο φθορα ελαστικων',
+            demoSquadsDesc: 'Περιστροφη ομαδων οδηγων για endurance',
+            demoFuelDesc: 'Παραθυρα καυσιμου, αυτονομια και σχεδιο pit',
+            raceFinished: 'Ο ΑΓΩΝΑΣ ΟΛΟΚΛΗΡΩΘΗΚΕ'
+        }
+    };
+
+    Object.entries(polish).forEach(([lang, patch]) => {
+        if (!window.translations[lang]) return;
+        Object.entries(patch).forEach(([k, v]) => {
+            window.translations[lang][k] = v;
+        });
+    });
+})();
+
+window.auditTranslationCoverage = function() {
+    const langs = Object.keys(window.translations || {});
+    if (!langs.length) return { missingByLanguage: {} };
+
+    const baseKeys = Object.keys(window.translations.en || {});
+    const missingByLanguage = {};
+    langs.forEach((lang) => {
+        const dict = window.translations[lang] || {};
+        const missing = baseKeys.filter((k) => dict[k] == null || dict[k] === '');
+        missingByLanguage[lang] = missing;
+    });
+
+    const domKeys = Array.from(document.querySelectorAll('[data-i18n]'))
+        .map((el) => el.getAttribute('data-i18n'))
+        .filter(Boolean);
+    const domOptKeys = Array.from(document.querySelectorAll('option[data-i18n-opt]'))
+        .map((el) => el.getAttribute('data-i18n-opt'))
+        .filter(Boolean);
+    const usedKeys = Array.from(new Set([...domKeys, ...domOptKeys]));
+    const missingInEnFromDom = usedKeys.filter((k) => window.translations.en[k] == null);
+
+    return {
+        missingByLanguage,
+        missingInEnFromDom,
+        usedKeyCount: usedKeys.length,
+        baseKeyCount: baseKeys.length
+    };
 };
 
 window.t = function(key) {

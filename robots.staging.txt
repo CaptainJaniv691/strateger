@@ -1,0 +1,6 @@
+# Staging robots policy for https://strateger.onrender.com
+# Safe default: block indexing on staging environments.
+User-agent: *
+Disallow: /
+
+Sitemap: https://strateger.onrender.com/sitemap.staging.xml

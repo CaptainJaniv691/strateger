@@ -52,6 +52,7 @@ window.updateShareUI = function() {
     const shareBtn = document.getElementById('shareRaceBtn');
     const manageBtn = document.getElementById('viewerManageBtn');
     const driverLinkBtn = document.getElementById('driverLinkBtn');
+    const broadcastBtn = document.getElementById('broadcastBtn');
     
     // מציג את הכפתור רק אם יש ID והמשתמש הוא HOST
     if (window.myId && window.role === 'host') {
@@ -62,6 +63,10 @@ window.updateShareUI = function() {
         
         if (driverLinkBtn) {
             driverLinkBtn.classList.remove('hidden');
+        }
+
+        if (broadcastBtn) {
+            broadcastBtn.classList.remove('hidden');
         }
         
         if (manageBtn) {
@@ -76,6 +81,8 @@ window.updateShareUI = function() {
             dashIdEl.innerText = window.myId;
             dashIdEl.classList.remove('hidden');
         }
+    } else if (broadcastBtn) {
+        broadcastBtn.classList.add('hidden');
     }
 };
 
@@ -556,8 +563,14 @@ window.initHostPeer = function() {
                         window.updateViewerApprovalUI();
                     }
                     if (!window.state.isInPit && window.state.isRunning) {
-                        window.confirmPitEntry();
-                        if (typeof window.broadcast === 'function') window.broadcast();
+                        const liveTimingAuthoritative = !!(window.liveTimingConfig && window.liveTimingConfig.enabled);
+                        if (liveTimingAuthoritative) {
+                            window._driverPitIntent = { type: 'entry', at: Date.now(), driverIdx: data.driverIdx };
+                            window.showToast(window.t('waitingLiveTiming') || 'Waiting for live timing confirmation', 'info');
+                        } else {
+                            window.confirmPitEntry();
+                            if (typeof window.broadcast === 'function') window.broadcast();
+                        }
                     }
                 }
                 if (data.type === 'DRIVER_PIT_EXIT') {
@@ -569,8 +582,14 @@ window.initHostPeer = function() {
                     if (window.state.isInPit && window.state.isRunning) {
                         // Only allow exit if release timer is ready (green zone)
                         if (window.alertState && window.alertState.lastZone === 'go') {
-                            window.confirmPitExit();
-                            if (typeof window.broadcast === 'function') window.broadcast();
+                            const liveTimingAuthoritative = !!(window.liveTimingConfig && window.liveTimingConfig.enabled);
+                            if (liveTimingAuthoritative) {
+                                window._driverPitIntent = { type: 'exit', at: Date.now(), driverIdx: data.driverIdx };
+                                window.showToast(window.t('waitingLiveTiming') || 'Waiting for live timing confirmation', 'info');
+                            } else {
+                                window.confirmPitExit();
+                                if (typeof window.broadcast === 'function') window.broadcast();
+                            }
                         }
                     }
                 }
@@ -802,6 +821,8 @@ window.connectToHost = function(hostId) {
 
             window.conn.on('data', (data) => {
                 if (data.type === 'UPDATE' || data.type === 'INIT') {
+                    // Track data freshness for driver connection indicator
+                    window._lastDriverDataTs = Date.now();
                     // Always absorb state data
                     if (data.state) window.state = data.state;
                     if (data.config) window.config = data.config;

@@ -6,7 +6,7 @@
 window._isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("🚀 Strateger Initializing...");
+    console.log("🚀 Streger Initializing...");
     window._autoStartFired = false;
 
     // 🟢 Load viewer's own language preference if available
@@ -47,6 +47,17 @@ document.addEventListener('DOMContentLoaded', () => {
         window._autoDriverMode = true;
         window._driverModeOpened = false;
         window._pendingDriverCode = driverCode;
+        // Restore cached driver state for offline resilience
+        try {
+            const cached = JSON.parse(localStorage.getItem('strateger_driver_cache') || 'null');
+            if (cached && cached.state && (Date.now() - cached.ts) < 3600000) {
+                window.state = cached.state;
+                window.config = cached.config;
+                window.liveData = cached.liveData;
+                window.drivers = cached.drivers;
+                console.log('[Driver] Restored cached state from', Math.round((Date.now() - cached.ts) / 1000), 's ago');
+            }
+        } catch(e) {}
         document.getElementById('setupScreen').classList.add('hidden');
         document.getElementById('driverEntryScreen').classList.remove('hidden');
         // Pre-fill the ID field
@@ -106,7 +117,164 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.role === 'host' && typeof window.startOnboarding === 'function') {
         setTimeout(() => window.startOnboarding(), 800);
     }
+
+    // Non-blocking i18n audit to spot missing keys across languages/pages.
+    if (typeof window.auditTranslationCoverage === 'function') {
+        setTimeout(() => {
+            const report = window.auditTranslationCoverage();
+            const hasDomGaps = (report.missingInEnFromDom || []).length > 0;
+            const langGaps = Object.entries(report.missingByLanguage || {})
+                .map(([lang, arr]) => `${lang}:${arr.length}`)
+                .join(' | ');
+            console.info('[i18n] coverage', { used: report.usedKeyCount, base: report.baseKeyCount, langGaps, missingInEnFromDom: report.missingInEnFromDom });
+            if (hasDomGaps && typeof window.showToast === 'function') {
+                window.showToast('⚠️ i18n: missing translation keys detected, see console report', 'warning', 5000);
+            }
+        }, 1200);
+    }
+
+    const qs = new URLSearchParams(window.location.search);
+    if (qs.get('broadcast') === '1') {
+        setTimeout(() => {
+            if (typeof window.toggleBroadcastMode === 'function') window.toggleBroadcastMode(true);
+        }, 400);
+    }
 });
+
+// ==========================================
+// 📺 BROADCAST MODE
+// ==========================================
+
+window.updateBroadcastBranding = function() {
+    const headline = (document.getElementById('broadcastHeadlineInput')?.value || 'HOLYLAND RACING LIVE').trim();
+    const s1 = (document.getElementById('broadcastSponsor1')?.value || 'Sponsor 1').trim();
+    const s2 = (document.getElementById('broadcastSponsor2')?.value || 'Sponsor 2').trim();
+    const s3 = (document.getElementById('broadcastSponsor3')?.value || 'Sponsor 3').trim();
+
+    const pack = { headline, sponsors: [s1, s2, s3] };
+    localStorage.setItem('strateger_broadcast_branding', JSON.stringify(pack));
+
+    const headlineEl = document.getElementById('broadcastHeadlinePreview');
+    if (headlineEl) headlineEl.innerText = headline;
+
+    const deck = document.getElementById('broadcastSponsorDeck');
+    if (deck) {
+        deck.innerHTML = pack.sponsors.map((txt) => `<div class="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm">${txt || 'Sponsor'}</div>`).join('');
+    }
+};
+
+window.loadBroadcastBranding = function() {
+    try {
+        const raw = localStorage.getItem('strateger_broadcast_branding');
+        if (!raw) {
+            window.updateBroadcastBranding();
+            return;
+        }
+        const parsed = JSON.parse(raw);
+        const headlineInput = document.getElementById('broadcastHeadlineInput');
+        const s1 = document.getElementById('broadcastSponsor1');
+        const s2 = document.getElementById('broadcastSponsor2');
+        const s3 = document.getElementById('broadcastSponsor3');
+        if (headlineInput) headlineInput.value = parsed.headline || 'HOLYLAND RACING LIVE';
+        if (s1) s1.value = parsed.sponsors?.[0] || '';
+        if (s2) s2.value = parsed.sponsors?.[1] || '';
+        if (s3) s3.value = parsed.sponsors?.[2] || '';
+        window.updateBroadcastBranding();
+    } catch {
+        window.updateBroadcastBranding();
+    }
+};
+
+window.copyBroadcastLink = async function() {
+    const base = `${window.location.origin}/broadcast.html`;
+    const params = new URLSearchParams();
+    if (window.myId && window.role === 'host') params.set('join', window.myId);
+    const url = `${base}?${params.toString()}`;
+    try {
+        await navigator.clipboard.writeText(url);
+        if (typeof window.showToast === 'function') window.showToast(`📺 ${window.t ? window.t('broadcastLinkCopied') : 'Broadcast link copied'}`, 'success', 2800);
+    } catch {
+        if (typeof window.showToast === 'function') window.showToast(url, 'info', 5000);
+    }
+};
+
+window.toggleBroadcastMode = function(forceState) {
+    const panel = document.getElementById('broadcastPanel');
+    if (!panel) return;
+    const shouldShow = (typeof forceState === 'boolean') ? forceState : panel.classList.contains('hidden');
+    panel.classList.toggle('hidden', !shouldShow);
+    if (shouldShow) {
+        window.loadBroadcastBranding();
+        window.updateBroadcastScreen();
+    }
+};
+
+window.updateBroadcastScreen = function() {
+    const panel = document.getElementById('broadcastPanel');
+    if (!panel || panel.classList.contains('hidden')) return;
+
+    const raceTimeEl = document.getElementById('broadcastRaceTime');
+    const posEl = document.getElementById('broadcastPos');
+    const lastEl = document.getElementById('broadcastLast');
+    const bestEl = document.getElementById('broadcastBest');
+    const curEl = document.getElementById('broadcastCurrentDriver');
+    const nextEl = document.getElementById('broadcastNextDriver');
+    const statusEl = document.getElementById('broadcastPitStatus');
+    const hbEl = document.getElementById('broadcastHeartbeat');
+    const tableEl = document.getElementById('broadcastLeaderboard');
+
+    const now = (window.getSyncedNow && typeof window.getSyncedNow === 'function') ? window.getSyncedNow() : Date.now();
+    const raceMs = window.config?.raceMs || (parseFloat(window.config?.duration || 0) * 3600000);
+    if (raceTimeEl) {
+        if (window.state?.isRunning && raceMs > 0) {
+            const elapsed = Math.max(0, now - window.state.startTime);
+            raceTimeEl.innerText = window.formatTimeHMS(Math.min(raceMs, elapsed));
+        } else {
+            raceTimeEl.innerText = '00:00:00';
+        }
+    }
+
+    if (posEl) posEl.innerText = (window.liveData?.position ?? '-').toString();
+    if (lastEl) lastEl.innerText = window.liveData?.lastLap ? window.msToTime(window.liveData.lastLap) : '-';
+    if (bestEl) bestEl.innerText = window.liveData?.bestLap ? window.msToTime(window.liveData.bestLap) : '-';
+
+    const curr = window.drivers?.[window.state?.currentDriverIdx || 0];
+    const next = window.drivers?.[window.state?.nextDriverIdx || 0];
+    if (curEl) curEl.innerText = curr?.name || '---';
+    if (nextEl) nextEl.innerText = next?.name || '---';
+
+    if (statusEl) {
+        const inPit = !!window.state?.isInPit;
+        statusEl.innerText = inPit ? (window.t ? window.t('inPits') : 'IN PITS') : (window.t ? window.t('onTrack') : 'ON TRACK');
+        statusEl.className = inPit ? 'text-xl font-bold text-red-400' : 'text-xl font-bold text-green-400';
+    }
+
+    if (hbEl) {
+        const hb = window.liveData?.heartbeatCount;
+        hbEl.innerText = (hb == null) ? 'HB --' : `HB ${hb}`;
+    }
+
+    if (tableEl) {
+        const list = Array.isArray(window.liveData?.competitors) ? window.liveData.competitors.slice(0, 8) : [];
+        if (!list.length) {
+            tableEl.innerHTML = `<div class="text-sm text-gray-400">${window.t ? window.t('waitingData') : 'Waiting for data...'}</div>`;
+        } else {
+            tableEl.innerHTML = list.map((c, i) => {
+                const name = c.name || c.driver || `Team ${i + 1}`;
+                const lap = c.lastLap ? window.msToTime(c.lastLap) : '-';
+                const gap = (typeof c.gapToLeader !== 'undefined' && c.gapToLeader !== null)
+                    ? (c.gapToLeader > 0 ? `+${window.msToTime(c.gapToLeader)}` : '-')
+                    : '-';
+                return `<div class="grid grid-cols-[40px_1fr_85px_70px] gap-2 items-center px-2 py-1.5 rounded bg-white/5 border border-white/5 text-sm">
+                    <span class="font-black text-ice">P${c.position || (i + 1)}</span>
+                    <span class="truncate">${name}</span>
+                    <span class="font-mono text-gray-300">${lap}</span>
+                    <span class="font-mono text-fuel text-end">${gap}</span>
+                </div>`;
+            }).join('');
+        }
+    }
+};
 
 // ==========================================
 // 👀 VIEWER NAME ENTRY
@@ -280,11 +448,11 @@ window.sendBrowserNotification = function(message) {
 
     // Browser notification
     if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification('🏎️ Strateger', { body: message, icon: 'https://cdn-icons-png.flaticon.com/512/2418/2418779.png' });
+        new Notification('🏎️ Streger', { body: message, icon: 'https://cdn-icons-png.flaticon.com/512/2418/2418779.png' });
     } else if ('Notification' in window && Notification.permission !== 'denied') {
         Notification.requestPermission().then(p => {
             if (p === 'granted') {
-                new Notification('🏎️ Strateger', { body: message });
+                new Notification('🏎️ Streger', { body: message });
             }
         });
     }
@@ -308,11 +476,16 @@ window.showDemoConfig = function() {
 window.confirmDemoStart = function() {
     // Read user feature choices into demoConfig
     window.demoConfig = {
+        raceLength: document.getElementById('demoRaceLength')?.value || 'endurance',
+        gridSize: parseInt(document.getElementById('demoGridSize')?.value || '20', 10),
+        chaosLevel: document.getElementById('demoChaosLevel')?.value || 'normal',
         rain: document.getElementById('demoFeatRain')?.checked ?? true,
         penalties: document.getElementById('demoFeatPenalties')?.checked ?? true,
         tires: document.getElementById('demoFeatTires')?.checked ?? true,
         squads: document.getElementById('demoFeatSquads')?.checked ?? false,
         fuel: document.getElementById('demoFeatFuel')?.checked ?? false,
+        safetyCar: document.getElementById('demoFeatSafetyCar')?.checked ?? true,
+        incidents: document.getElementById('demoFeatIncidents')?.checked ?? true,
     };
     // Close the config modal
     const modal = document.getElementById('demoConfigModal');
@@ -332,15 +505,23 @@ window.startDemoRace = function() {
     const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val; };
     const setChecked = (id, val) => { const el = document.getElementById(id); if (el) el.checked = val; };
 
-    setVal('raceDuration', '0.5');       // 30 minutes
-    setVal('reqPitStops', '2');          // 2 mandatory pit stops
-    setVal('minStint', '5');             // min stint 5 min
-    setVal('maxStint', '15');            // max stint 15 min
+    const profileMap = {
+        sprint: { duration: 0.5, stops: 2, minStint: 5, maxStint: 15 },
+        club: { duration: 1, stops: 3, minStint: 8, maxStint: 22 },
+        endurance: { duration: 3, stops: 6, minStint: 18, maxStint: 40 },
+        pro: { duration: 6, stops: 10, minStint: 25, maxStint: 55 }
+    };
+    const profile = profileMap[window.demoConfig?.raceLength] || profileMap.endurance;
+
+    setVal('raceDuration', String(profile.duration));
+    setVal('reqPitStops', String(profile.stops));
+    setVal('minStint', String(profile.minStint));
+    setVal('maxStint', String(profile.maxStint));
     setVal('minPitTime', '60');          // 1 minute pit time
     setVal('pitClosedStart', '2');       // pit closed first 2 min
     setVal('pitClosedEnd', '2');         // pit closed last 2 min
     setVal('minDriverTime', '0');        // no min driver total
-    setVal('maxDriverTime', '15');       // max 15 min per driver
+    setVal('maxDriverTime', String(Math.max(15, Math.round((profile.duration * 60) / 2))));
     setVal('releaseBuffer', '5');        // 5 sec buffer alert
     setChecked('allowDouble', false);    // no double stints
     setChecked('trackFuel', window.demoConfig?.fuel ?? false);  // fuel based on demo config
@@ -365,24 +546,29 @@ window.startDemoRace = function() {
     const demoDrivers = [
         { name: 'Alex', color: '#22d3ee' },   // ice blue
         { name: 'Jordan', color: '#f59e0b' },  // amber
-        { name: 'Sam', color: '#10b981' }       // green
+        { name: 'Sam', color: '#10b981' },
+        { name: 'Noa', color: '#f472b6' },
+        { name: 'Lior', color: '#a78bfa' },
+        { name: 'Mia', color: '#38bdf8' }
     ];
+
+    const targetDrivers = Math.min(6, Math.max(3, Math.ceil((window.demoConfig?.gridSize || 20) / 6)));
 
     // Ensure we have the right number of driver rows
     const rows = document.querySelectorAll('.driver-row');
-    if (rows.length < demoDrivers.length) {
-        while (document.querySelectorAll('.driver-row').length < demoDrivers.length) {
+    if (rows.length < targetDrivers) {
+        while (document.querySelectorAll('.driver-row').length < targetDrivers) {
             if (typeof window.addDriverField === 'function') window.addDriverField();
         }
     }
     // Remove excess rows
-    while (document.querySelectorAll('.driver-row').length > demoDrivers.length) {
+    while (document.querySelectorAll('.driver-row').length > targetDrivers) {
         if (typeof window.removeDriverField === 'function') window.removeDriverField();
     }
 
     // Fill driver names and colors
     document.querySelectorAll('.driver-row').forEach((row, i) => {
-        const driver = demoDrivers[i];
+        const driver = demoDrivers[i % demoDrivers.length];
         if (!driver) return;
         const nameInput = row.querySelector('input[type="text"]');
         if (nameInput) nameInput.value = driver.name;
@@ -541,9 +727,10 @@ window.recalculateTargetStint = function() {
             const raceMs = window.config.raceMs || (parseFloat(window.config.duration) * 3600000);
             const now = window.getSyncedNow();
             let raceRemaining = raceMs - (now - window.state.startTime);
-            // Use live timing race clock when available
+            // Use live timing race clock when available — interpolate between API updates
             if (window.liveData && window.liveData.raceTimeLeftMs != null) {
-                raceRemaining = window.liveData.raceTimeLeftMs;
+                const sinceReceived = window.liveData._raceTimeReceivedAt ? (Date.now() - window.liveData._raceTimeReceivedAt) : 0;
+                raceRemaining = Math.max(0, window.liveData.raceTimeLeftMs - sinceReceived);
             }
             const stintElapsed = (now - window.state.stintStart) + (window.state.stintOffset || 0);
             window.state.targetStintMs = stintElapsed + Math.max(0, raceRemaining);
@@ -834,8 +1021,10 @@ window.renderFrame = function() {
         let raceRemainingRaw = raceMs - raceElapsedRaw;
         
         // Use live timing race clock when available (more accurate than local timer)
+        // Interpolate between API updates: subtract elapsed time since the last API response
         if (window.liveData && window.liveData.raceTimeLeftMs != null && window.liveData.raceTimeLeftMs >= 0) {
-            raceRemainingRaw = window.liveData.raceTimeLeftMs;
+            const sinceReceived = window.liveData._raceTimeReceivedAt ? (Date.now() - window.liveData._raceTimeReceivedAt) : 0;
+            raceRemainingRaw = Math.max(0, window.liveData.raceTimeLeftMs - sinceReceived);
         }
 
         // Floor elapsed to whole seconds — derive remaining from the SAME boundary
@@ -862,6 +1051,7 @@ window.renderFrame = function() {
                 const el = document.getElementById(id);
                 if (el) { el.disabled = true; el.style.pointerEvents = 'none'; el.classList.add('opacity-40'); }
             });
+            if (typeof window.updateBroadcastScreen === 'function') window.updateBroadcastScreen();
             return;
         }
         if (remainingSec <= 0) {
@@ -994,6 +1184,13 @@ window.renderFrame = function() {
 
         updateWeatherUI();
         updateModeUI();
+        if (typeof window.updateQuickPitFab === 'function') window.updateQuickPitFab();
+        if (typeof window.updateBroadcastScreen === 'function') window.updateBroadcastScreen();
+
+        // === Update live timing UI (needed for viewers who receive liveData via broadcast) ===
+        if (typeof window.updateLiveTimingUI === 'function' && window.liveTimingConfig && window.liveTimingConfig.enabled) {
+            window.updateLiveTimingUI();
+        }
 
         // === Update new dashboard overlays ===
         window.updatePitWindowBanner();
@@ -1282,6 +1479,67 @@ window.updatePitModalLogic = function() {
 
 window.currentPitAdjustment = 0;
 
+window.isLiveTimingFeedFresh = function(maxAgeMs = 8000) {
+    if (!window.liveData || !window.liveData.heartbeatAt) return false;
+    return (Date.now() - window.liveData.heartbeatAt) <= maxAgeMs;
+};
+
+window.updateQuickPitFab = function() {
+    const fab = document.getElementById('quickPitFab');
+    if (!fab) return;
+
+    const canOperate = window.state && window.state.isRunning && !window.state.isFinished && window.role !== 'viewer';
+    if (!canOperate) {
+        fab.classList.add('hidden');
+        return;
+    }
+
+    fab.classList.remove('hidden');
+    if (window.state.isInPit) {
+        fab.innerText = '✅ EXIT PIT';
+        fab.className = 'fixed right-3 bottom-24 z-40 bg-green-600 hover:bg-green-500 text-white font-bold px-4 py-3 rounded-full shadow-[0_0_25px_rgba(34,197,94,0.45)] border border-green-400/50 text-sm';
+    } else {
+        fab.innerText = '🛑 PIT';
+        fab.className = 'fixed right-3 bottom-24 z-40 bg-red-600 hover:bg-red-500 text-white font-bold px-4 py-3 rounded-full shadow-[0_0_25px_rgba(239,68,68,0.45)] border border-red-400/50 text-sm';
+    }
+};
+
+window.quickPitAction = function() {
+    if (!window.state || !window.state.isRunning || window.state.isFinished) return;
+    if (window.state.isInPit) {
+        const forceManual = !window.isLiveTimingFeedFresh(8000);
+        window.confirmPitExit(false, forceManual);
+        return;
+    }
+    window.confirmPitEntry(false);
+};
+
+window.applyPitPenalty = function(seconds, reason) {
+    const value = parseInt(seconds, 10) || 0;
+    if (value === 0) return;
+
+    window.adjustPitTime(value);
+    if (value < 0) return;
+
+    if (!window.liveData) window.liveData = {};
+    window.liveData.ourTeamPenalty = (window.liveData.ourTeamPenalty || 0) + 1;
+    window.liveData.ourTeamPenaltyTime = (window.liveData.ourTeamPenaltyTime || 0) + value;
+
+    if (!window.state._manualPenaltyLog) window.state._manualPenaltyLog = [];
+    window.state._manualPenaltyLog.push({
+        seconds: value,
+        reason: reason || 'Manual penalty',
+        at: (window.getSyncedNow && typeof window.getSyncedNow === 'function') ? window.getSyncedNow() : Date.now()
+    });
+
+    if (typeof window._fireStrategyNotification === 'function') {
+        window._fireStrategyNotification(`⚠️ Manual penalty +${value}s (${reason || 'Manual'})`, 'warning');
+    }
+    if (typeof window.showToast === 'function') {
+        window.showToast(`⚠️ Penalty logged: +${value}s`, 'warning', 5000);
+    }
+};
+
 window.adjustPitTime = function(seconds) {
     window.currentPitAdjustment += seconds;
     const dashDisplay = document.getElementById('dashboardPitAdjDisplay');
@@ -1317,6 +1575,18 @@ window.confirmPitEntry = function(autoDetected) {
     if (window.state.isFinished || (!window.state.isRunning && window.state.startTime)) return;
     // Guard: prevent re-entry if already in pit
     if (window.state.isInPit) return;
+
+    // Guard: when live timing is active, block manual pit entry — live timing is authoritative
+    if (!autoDetected && window.liveTimingConfig && window.liveTimingConfig.enabled && window.liveTimingManager) {
+        const stats = window.liveTimingManager.getStats();
+        if (stats && stats.isRunning) {
+            console.log('[PitEntry] Manual pit entry blocked — live timing is authoritative');
+            if (typeof window._fireStrategyNotification === 'function') {
+                window._fireStrategyNotification('🔒 Pit entry is auto-tracked from live timing', 'info');
+            }
+            return;
+        }
+    }
     
     // Guard: cooldown to prevent rapid pit cycling (min 10s between manual pit entries)
     // Skip cooldown if auto-detected from live timing — live timing is authoritative
@@ -1657,11 +1927,30 @@ window.getBoxMessage = function() {
     return t('boxNow');
 };
 
-window.confirmPitExit = function() {
+window.confirmPitExit = function(autoDetected, forceManual) {
     // Guard: race is finished — no pit actions allowed
     if (window.state.isFinished || (!window.state.isRunning && window.state.startTime)) return;
     // Guard: only exit if actually in pit
     if (!window.state.isInPit) return;
+
+    // Guard: when live timing is active, block manual pit exit — live timing is authoritative
+    if (!autoDetected && window.liveTimingConfig && window.liveTimingConfig.enabled && window.liveTimingManager) {
+        const stats = window.liveTimingManager.getStats();
+        if (stats && stats.isRunning) {
+            const liveFresh = window.isLiveTimingFeedFresh(8000);
+            if (!forceManual && liveFresh) {
+                console.log('[PitExit] Manual pit exit blocked — live timing is authoritative');
+                if (typeof window._fireStrategyNotification === 'function') {
+                    window._fireStrategyNotification('🔒 Pit exit is auto-tracked from live timing', 'info');
+                }
+                return;
+            }
+            if (typeof window._fireStrategyNotification === 'function') {
+                window._fireStrategyNotification('⚠️ Forced pit exit: live timing feed stale', 'warning');
+            }
+        }
+    }
+
     window.haptic('success');
     
     // Hide undo toast — can't undo after exit
@@ -1975,6 +2264,7 @@ window._driverPitPendingTimer = null;
 
 window.driverPitTap = function() {
     if (!window.state || !window.state.isRunning) return;
+    const liveTimingAuthoritative = !!(window.liveTimingConfig && window.liveTimingConfig.enabled);
     
     if (window.state.isInPit) {
         // Only allow exit if in green zone
@@ -1983,7 +2273,11 @@ window.driverPitTap = function() {
             if (window.role === 'client' && window.conn && window.conn.open) {
                 window.conn.send({ type: 'DRIVER_PIT_EXIT', driverIdx: window._myDriverIdx, timestamp: Date.now() });
             }
-            window.confirmPitExit();
+            if (window.role === 'client' && liveTimingAuthoritative) {
+                window.showToast(window.t('waitingLiveTiming') || 'Waiting for live timing confirmation', 'info');
+            } else {
+                window.confirmPitExit();
+            }
         }
     } else {
         // === Double-tap confirmation for pit entry ===
@@ -2016,14 +2310,14 @@ window.driverPitTap = function() {
             // Flash the zone background amber
             if (zone) zone.style.background = 'linear-gradient(180deg, rgba(245,158,11,0.25) 0%, rgba(0,0,0,1) 100%)';
             
-            // Auto-cancel after 4 seconds
+            // Auto-cancel after 15 seconds if no second confirmation tap
             if (window._driverPitPendingTimer) clearTimeout(window._driverPitPendingTimer);
             window._driverPitPendingTimer = setTimeout(() => {
                 window._driverPitPending = false;
                 // Restore normal display — renderFrame will handle it
                 if (tapHint) { tapHint.textContent = ''; tapHint.style.color = ''; }
                 if (zone) zone.style.background = '';
-            }, 4000);
+            }, 15000);
         } else {
             // ─── SECOND TAP: confirm pit entry ───
             window._driverPitPending = false;
@@ -2039,8 +2333,12 @@ window.driverPitTap = function() {
             if (window.role === 'client' && window.conn && window.conn.open) {
                 window.conn.send({ type: 'DRIVER_PIT_ENTRY', driverIdx: window._myDriverIdx, timestamp: Date.now() });
             }
-            
-            window.confirmPitEntry();
+
+            if (window.role === 'client' && liveTimingAuthoritative) {
+                window.showToast(window.t('waitingLiveTiming') || 'Waiting for live timing confirmation', 'info');
+            } else {
+                window.confirmPitEntry();
+            }
         }
     }
 };
@@ -2271,7 +2569,7 @@ window._fireDriverAlert = function(message, minutesBefore) {
     // Browser notification
     if ('Notification' in window && Notification.permission === 'granted') {
         try {
-            new Notification('🏎️ Strateger', { body: `${message} (${minutesBefore}min)`, icon: '/favicon.ico', tag: 'stint-alert' });
+            new Notification('🏎️ Streger', { body: `${message} (${minutesBefore}min)`, icon: '/favicon.ico', tag: 'stint-alert' });
         } catch(e) {}
     } else if ('Notification' in window && Notification.permission !== 'denied') {
         Notification.requestPermission();
@@ -2408,7 +2706,7 @@ window._fireStrategyNotification = function(message, type) {
     // Browser notification
     if ('Notification' in window && Notification.permission === 'granted') {
         try {
-            new Notification('🏁 Strateger', { 
+            new Notification('🏁 Streger', { 
                 body: message, 
                 icon: '/favicon.ico', 
                 tag: 'strategy-' + Date.now(),
@@ -2446,9 +2744,10 @@ window.updateDriverMode = function() {
     const t = window.t || (k => k);
     const raceMs = window.config.raceMs || (parseFloat(window.config.duration) * 3600000);
     let raceRemaining = raceMs - (now - window.state.startTime);
-    // Use live timing race clock when available
+    // Use live timing race clock when available — interpolate between API updates
     if (window.liveData && window.liveData.raceTimeLeftMs != null) {
-        raceRemaining = window.liveData.raceTimeLeftMs;
+        const sinceReceived = window.liveData._raceTimeReceivedAt ? (Date.now() - window.liveData._raceTimeReceivedAt) : 0;
+        raceRemaining = Math.max(0, window.liveData.raceTimeLeftMs - sinceReceived);
     }
     const maxStintMs = (window.config.maxStint * 60000) || (60 * 60000);
     const minStintMs = (window.config.minStint * 60000) || 0;
@@ -2493,8 +2792,8 @@ window.updateDriverMode = function() {
             if (str.startsWith('00:')) str = str.substring(3);
             stintTimerEl.innerText = str;
             // Color by zone
-            if (stintMs > targetMs) stintTimerEl.style.color = '#ef4444';
-            else if (stintMs > targetMs - (window.getEstimatedLapMs() || 60000) * 2) stintTimerEl.style.color = '#facc15';
+            if (currentStintMs > targetMs) stintTimerEl.style.color = '#ef4444';
+            else if (currentStintMs > targetMs - (window.getEstimatedLapMs() || 60000) * 2) stintTimerEl.style.color = '#facc15';
             else stintTimerEl.style.color = '#ffffff';
         }
     }
@@ -2682,6 +2981,88 @@ window.updateDriverMode = function() {
             tapHint.innerText = t('tapToPit') || 'TAP TO ENTER PIT';
             tapHint.style.color = 'rgba(255,255,255,0.25)';
         }
+    }
+
+    // === AUTO PIT STATUS BADGE (driver view) ===
+    const autoPitBadge = document.getElementById('driverAutoPitBadge');
+    const autoPitStatus = document.getElementById('driverAutoPitStatus');
+    if (autoPitBadge && autoPitStatus) {
+        const liveActive = window.liveTimingConfig && window.liveTimingConfig.enabled && window.liveTimingManager;
+        const stats = liveActive ? window.liveTimingManager.getStats() : null;
+        const isLiveRunning = stats && stats.isRunning;
+        if (isLiveRunning) {
+            autoPitStatus.classList.remove('hidden');
+            autoPitBadge.className = 'pit-auto-badge active';
+            autoPitBadge.innerHTML = '🔗 AUTO PIT TRACKING';
+        } else if (window.state.isRunning) {
+            autoPitStatus.classList.remove('hidden');
+            autoPitBadge.className = 'pit-auto-badge manual';
+            autoPitBadge.innerHTML = '👆 MANUAL PIT — TAP TO PIT';
+        } else {
+            autoPitStatus.classList.add('hidden');
+        }
+    }
+
+    // === TROUBLESHOOT BANNER (show after 30s of no data) ===
+    const troubleshoot = document.getElementById('driverTroubleshoot');
+    if (troubleshoot) {
+        const hasPosition = window.liveData && window.liveData.position;
+        const hasConnection = window.conn && window.conn.open;
+        const raceStarted = window.state && window.state.isRunning;
+        if (raceStarted && !hasPosition && !hasConnection && !window._driverTroubleshootShown) {
+            if (!window._driverTroubleshootTimer) {
+                window._driverTroubleshootTimer = setTimeout(() => {
+                    troubleshoot.classList.remove('hidden');
+                    window._driverTroubleshootShown = true;
+                }, 30000);
+            }
+        } else if (hasPosition || hasConnection) {
+            troubleshoot.classList.add('hidden');
+            if (window._driverTroubleshootTimer) {
+                clearTimeout(window._driverTroubleshootTimer);
+                window._driverTroubleshootTimer = null;
+            }
+        }
+    }
+
+    // === CONNECTION QUALITY INDICATOR (for 1.5km range etc.) ===
+    const connDot = document.getElementById('driverConnQuality');
+    if (connDot) {
+        const peerConn = window.conn && window.conn.open;
+        const lastUpdate = window._lastDriverDataTs || 0;
+        const age = Date.now() - lastUpdate;
+        connDot.classList.remove('hidden');
+        if (peerConn && age < 8000) {
+            // Good — recent data
+            connDot.style.color = '#4ade80'; connDot.style.borderColor = '#4ade8050'; connDot.style.background = '#4ade8015';
+            connDot.title = 'Connected — live data';
+        } else if (peerConn && age < 20000) {
+            // Stale — connected but data is delayed
+            connDot.style.color = '#facc15'; connDot.style.borderColor = '#facc1550'; connDot.style.background = '#facc1515';
+            connDot.title = 'Connected — data delayed';
+        } else if (peerConn) {
+            // Connected but very stale
+            connDot.style.color = '#f97316'; connDot.style.borderColor = '#f9731650'; connDot.style.background = '#f9731615';
+            connDot.title = 'Connected — no recent data';
+        } else {
+            // Disconnected — running on cached state
+            connDot.style.color = '#ef4444'; connDot.style.borderColor = '#ef444450'; connDot.style.background = '#ef444415';
+            connDot.title = 'Disconnected — using cached data';
+        }
+    }
+
+    // === Cache driver state for offline resilience ===
+    if (window.state && window.state.isRunning) {
+        try {
+            const cacheData = {
+                state: window.state,
+                config: window.config,
+                liveData: window.liveData,
+                drivers: window.drivers,
+                ts: Date.now()
+            };
+            localStorage.setItem('strateger_driver_cache', JSON.stringify(cacheData));
+        } catch(e) { /* quota exceeded - ignore */ }
     }
 
     // === DRIVER STINT NOTIFICATIONS ===
@@ -2948,16 +3329,59 @@ window.exportStrategyImage = async function() {
     }
     
     try {
+        // Temporarily expand all scrollable/capped containers so html2canvas captures everything
+        const summary = document.getElementById('strategySummary');
+        const timeline = document.getElementById('driverScheduleList');
+        const summaryParent = summary ? summary.closest('.max-h-\\[30vh\\], [class*="max-h-"]') : null;
+        const timelineParent = timeline ? timeline.closest('.flex-\\[2\\], [class*="flex-"]') : null;
+
+        // Save original styles
+        const savedStyles = [];
+        [summary, timeline, summaryParent, timelineParent].forEach(el => {
+            if (el) {
+                savedStyles.push({ el, style: el.style.cssText, cls: el.className });
+                el.style.maxHeight = 'none';
+                el.style.overflow = 'visible';
+                el.style.height = 'auto';
+                el.style.flex = 'none';
+            }
+        });
+        // Also expand the outer preview screen
+        const previewScreen = document.getElementById('previewScreen');
+        if (previewScreen) {
+            savedStyles.push({ el: previewScreen, style: previewScreen.style.cssText });
+            previewScreen.style.height = 'auto';
+            previewScreen.style.overflow = 'visible';
+        }
+        if (target) {
+            savedStyles.push({ el: target, style: target.style.cssText });
+            target.style.height = 'auto';
+            target.style.overflow = 'visible';
+        }
+
+        // Wait for reflow
+        await new Promise(r => setTimeout(r, 100));
+
         const canvas = await html2canvas(target, {
             backgroundColor: '#020617',
             scale: 2,
             useCORS: true,
-            logging: false
+            logging: false,
+            scrollX: 0,
+            scrollY: 0,
+            windowWidth: target.scrollWidth,
+            windowHeight: target.scrollHeight,
+        });
+
+        // Restore original styles
+        savedStyles.forEach(({ el, style, cls }) => {
+            el.style.cssText = style;
+            if (cls !== undefined) el.className = cls;
         });
         
         // Download as PNG
         const link = document.createElement('a');
-        link.download = `strateger-strategy-${Date.now()}.png`;
+        link.download = `Streger-strategy-${Date.now()}.png`;
         link.href = canvas.toDataURL('image/png');
         link.click();
     } catch (e) {
@@ -2983,11 +3407,51 @@ window.exportStrategyPdf = async function() {
     if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + t('exportingPdf'); }
     
     try {
+        // Temporarily expand all scrollable/capped containers
+        const summary = document.getElementById('strategySummary');
+        const timeline = document.getElementById('driverScheduleList');
+        const summaryParent = summary ? summary.closest('.max-h-\\[30vh\\], [class*="max-h-"]') : null;
+        const timelineParent = timeline ? timeline.closest('.flex-\\[2\\], [class*="flex-"]') : null;
+
+        const savedStyles = [];
+        [summary, timeline, summaryParent, timelineParent].forEach(el => {
+            if (el) {
+                savedStyles.push({ el, style: el.style.cssText, cls: el.className });
+                el.style.maxHeight = 'none';
+                el.style.overflow = 'visible';
+                el.style.height = 'auto';
+                el.style.flex = 'none';
+            }
+        });
+        const previewScreen = document.getElementById('previewScreen');
+        if (previewScreen) {
+            savedStyles.push({ el: previewScreen, style: previewScreen.style.cssText });
+            previewScreen.style.height = 'auto';
+            previewScreen.style.overflow = 'visible';
+        }
+        if (target) {
+            savedStyles.push({ el: target, style: target.style.cssText });
+            target.style.height = 'auto';
+            target.style.overflow = 'visible';
+        }
+
+        await new Promise(r => setTimeout(r, 100));
+
         const canvas = await html2canvas(target, {
             backgroundColor: '#020617',
             scale: 2,
             useCORS: true,
-            logging: false
+            logging: false,
+            scrollX: 0,
+            scrollY: 0,
+            windowWidth: target.scrollWidth,
+            windowHeight: target.scrollHeight,
+        });
+
+        // Restore original styles
+        savedStyles.forEach(({ el, style, cls }) => {
+            el.style.cssText = style;
+            if (cls !== undefined) el.className = cls;
         });
         
         const imgData = canvas.toDataURL('image/png');
@@ -2999,7 +3463,7 @@ window.exportStrategyPdf = async function() {
         });
         
         pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
-        pdf.save(`strateger-strategy-${Date.now()}.pdf`);
+        pdf.save(`Streger-strategy-${Date.now()}.pdf`);
     } catch (e) {
         console.error('PDF export failed:', e);
         window.showToast('PDF export failed: ' + e.message, 'error');
@@ -3250,7 +3714,7 @@ window.installPWA = function() {
     window._deferredInstallPrompt.prompt();
     window._deferredInstallPrompt.userChoice.then((choice) => {
         if (choice.outcome === 'accepted') {
-            window.showToast('Strateger installed! 🎉', 'success');
+            window.showToast('Streger installed! 🎉', 'success');
         }
         window._deferredInstallPrompt = null;
         const banner = document.getElementById('installBanner');
@@ -3420,7 +3884,7 @@ window.shareRaceSummary = function() {
     const raceMs = window.config.raceMs || (parseFloat(window.config.duration) * 3600000);
     const t = window.t || ((k) => k);
     
-    let text = `🏁 ${t('raceFinished')} - Strateger\n`;
+    let text = `🏁 ${t('raceFinished')} - Streger\n`;
     text += `⏱ ${window.formatTimeHMS(raceMs)} | 🛑 ${window.state.pitCount || 0} ${t('stopsHeader')}\n\n`;
     
     const ranked = window.drivers
@@ -3435,7 +3899,7 @@ window.shareRaceSummary = function() {
     text += `\n📊 strateger.netlify.app`;
     
     if (navigator.share) {
-        navigator.share({ title: 'Strateger Race Summary', text: text }).catch(() => {});
+        navigator.share({ title: 'Streger Race Summary', text: text }).catch(() => {});
     } else {
         navigator.clipboard.writeText(text).then(() => {
             window.showToast(t('copied') || 'Copied to clipboard!', 'success');

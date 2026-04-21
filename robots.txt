@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin.html
+Disallow: /test-apex.html
+Disallow: /robots.staging.txt
+Disallow: /sitemap.staging.xml
+
+Sitemap: https://streger.app/sitemap.xml

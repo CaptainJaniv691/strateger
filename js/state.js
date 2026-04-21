@@ -1526,6 +1526,606 @@ window.translations = {
     }
 };
 
+// Ensure recently added UI keys exist and provide a safe fallback for all languages.
+(function ensureTranslationCoverage() {
+    if (!window.translations || !window.translations.en) return;
+
+    const required = {
+        builtBy: 'Built by HOLYLAND RACING',
+        termsOfUse: 'Terms of Use',
+        privacyPolicy: 'Privacy Policy',
+        termsIntro: 'Streger is provided to support race strategy operations. You are responsible for operational decisions during events.',
+        termsData: 'Do not upload sensitive personal data beyond what is required for team coordination.',
+        termsLiability: 'HOLYLAND RACING is not liable for race outcomes or losses resulting from connectivity, timing-source, or user-input issues.',
+        privacyIntro: 'Streger stores race configuration, session state, and user preferences to provide continuity and collaboration.',
+        privacyStorage: 'Data is stored locally and, when enabled, via connected cloud services (for example Google and backend APIs).',
+        privacyContact: 'For privacy requests, contact HOLYLAND RACING through the in-app Contact Us channel.',
+        demoRaceLength: 'Race Length',
+        demoLenSprint: 'Sprint 30m',
+        demoLenClub: 'Club 1h',
+        demoLenEndurance: 'Endurance 3h',
+        demoLenPro: 'Pro 6h',
+        demoGridSize: 'Grid Size',
+        demoChaosLevel: 'Challenge',
+        demoChaosLow: 'Low',
+        demoChaosNormal: 'Normal',
+        demoChaosHigh: 'High',
+        demoSafetyCarLabel: 'Safety Car Events',
+        demoSafetyCarDesc: 'Temporary neutralization with slower pace',
+        demoIncidentsLabel: 'On-track Incidents',
+        demoIncidentsDesc: 'Random incidents that affect specific teams',
+        broadcast: 'Broadcast',
+        broadcastTitle: 'STREGER BROADCAST',
+        broadcastBy: 'By HOLYLAND RACING',
+        broadcastShare: 'Share View',
+        broadcastLeaderboard: 'Top Competitors',
+        broadcastBranding: 'Branding & Sponsors',
+        broadcastHeadline: 'Headline',
+        broadcastHeadlinePlaceholder: 'HOLYLAND RACING LIVE',
+        broadcastSponsor1Placeholder: 'Sponsor 1',
+        broadcastSponsor2Placeholder: 'Sponsor 2',
+        broadcastSponsor3Placeholder: 'Sponsor 3',
+        broadcastLinkCopied: 'Broadcast link copied'
+    };
+
+    const localized = {
+        he: {
+            builtBy: 'נבנה על ידי HOLYLAND RACING', termsOfUse: 'תנאי שימוש', privacyPolicy: 'מדיניות פרטיות',
+            termsIntro: 'Streger מיועדת לתמיכה בתפעול אסטרטגיית מירוץ. האחריות על החלטות תפעול בזמן אירוע היא של הצוות.',
+            termsData: 'אין להעלות מידע אישי רגיש מעבר לנדרש לתיאום הצוות.',
+            termsLiability: 'HOLYLAND RACING אינה אחראית לתוצאות מירוץ או לנזקים הנובעים מתקלות קישוריות, מקור תזמון או קלט משתמש.',
+            privacyIntro: 'Streger שומרת תצורת מירוץ, מצב סשן והעדפות משתמש לצורך רציפות ושיתוף פעולה.',
+            privacyStorage: 'הנתונים נשמרים מקומית, ובמידת הצורך גם בשירותי ענן מחוברים (למשל Google ו-API backend).',
+            privacyContact: 'לפניות פרטיות ניתן ליצור קשר עם HOLYLAND RACING דרך Contact Us באפליקציה.',
+            demoRaceLength: 'משך מירוץ', demoLenSprint: 'ספרינט 30דק', demoLenClub: 'מועדון 1ש', demoLenEndurance: 'אנדורנס 3ש', demoLenPro: 'פרו 6ש',
+            demoGridSize: 'גודל גריד', demoChaosLevel: 'רמת אתגר', demoChaosLow: 'נמוכה', demoChaosNormal: 'רגילה', demoChaosHigh: 'גבוהה',
+            demoSafetyCarLabel: 'אירועי Safety Car', demoSafetyCarDesc: 'ניטרול זמני עם קצב איטי יותר', demoIncidentsLabel: 'תקריות מסלול', demoIncidentsDesc: 'אירועים אקראיים שמשפיעים על קבוצות ספציפיות',
+            broadcast: 'שידור', broadcastTitle: 'שידור STREGER', broadcastBy: 'מבית HOLYLAND RACING', broadcastShare: 'שתף צפייה', broadcastLeaderboard: 'מובילי המסלול', broadcastBranding: 'מיתוג וספונסרים', broadcastHeadline: 'כותרת', broadcastHeadlinePlaceholder: 'HOLYLAND RACING בשידור חי', broadcastSponsor1Placeholder: 'ספונסר 1', broadcastSponsor2Placeholder: 'ספונסר 2', broadcastSponsor3Placeholder: 'ספונסר 3', broadcastLinkCopied: 'קישור השידור הועתק'
+        },
+        fr: {
+            builtBy: 'Concu par HOLYLAND RACING', termsOfUse: "Conditions d'utilisation", privacyPolicy: 'Politique de confidentialite',
+            termsIntro: 'Streger est fourni pour la strategie de course. Les decisions operationnelles restent sous votre responsabilite.',
+            termsData: 'Ne televersez pas de donnees personnelles sensibles au-dela du besoin de coordination.',
+            termsLiability: 'HOLYLAND RACING n est pas responsable des resultats de course ni des pertes liees a la connectivite, au timing ou a la saisie utilisateur.',
+            privacyIntro: 'Streger stocke la configuration de course, l etat de session et les preferences utilisateur pour assurer la continuite.',
+            privacyStorage: 'Les donnees sont stockees localement et, si active, via des services cloud connectes.',
+            privacyContact: 'Pour toute demande de confidentialite, contactez HOLYLAND RACING via Contact Us.',
+            demoRaceLength: 'Duree de course', demoLenSprint: 'Sprint 30 min', demoLenClub: 'Club 1 h', demoLenEndurance: 'Endurance 3 h', demoLenPro: 'Pro 6 h',
+            demoGridSize: 'Taille de grille', demoChaosLevel: 'Niveau de challenge', demoChaosLow: 'Faible', demoChaosNormal: 'Normal', demoChaosHigh: 'Eleve',
+            demoSafetyCarLabel: 'Evenements Safety Car', demoSafetyCarDesc: 'Neutralisation temporaire avec rythme reduit', demoIncidentsLabel: 'Incidents piste', demoIncidentsDesc: 'Incidents aleatoires impactant certaines equipes',
+            broadcast: 'Diffusion', broadcastTitle: 'DIFFUSION STREGER', broadcastBy: 'Par HOLYLAND RACING', broadcastShare: 'Partager la vue', broadcastLeaderboard: 'Top concurrents', broadcastBranding: 'Marque et sponsors', broadcastHeadline: 'Titre', broadcastHeadlinePlaceholder: 'HOLYLAND RACING EN DIRECT', broadcastSponsor1Placeholder: 'Sponsor 1', broadcastSponsor2Placeholder: 'Sponsor 2', broadcastSponsor3Placeholder: 'Sponsor 3', broadcastLinkCopied: 'Lien de diffusion copie'
+        },
+        pt: {
+            builtBy: 'Construido por HOLYLAND RACING', termsOfUse: 'Termos de uso', privacyPolicy: 'Politica de privacidade',
+            termsIntro: 'O Streger e fornecido para operacao de estrategia de corrida. As decisoes operacionais sao responsabilidade da equipe.',
+            termsData: 'Nao envie dados pessoais sensiveis alem do necessario para coordenacao da equipe.',
+            termsLiability: 'A HOLYLAND RACING nao se responsabiliza por resultados de corrida ou perdas por conectividade, fonte de tempo ou entrada do usuario.',
+            privacyIntro: 'O Streger armazena configuracao da corrida, estado da sessao e preferencias do usuario para continuidade.',
+            privacyStorage: 'Os dados sao armazenados localmente e, quando ativado, em servicos de nuvem conectados.',
+            privacyContact: 'Para solicitacoes de privacidade, contate a HOLYLAND RACING pelo Contact Us.',
+            demoRaceLength: 'Duracao da corrida', demoLenSprint: 'Sprint 30m', demoLenClub: 'Clube 1h', demoLenEndurance: 'Endurance 3h', demoLenPro: 'Pro 6h',
+            demoGridSize: 'Tamanho do grid', demoChaosLevel: 'Nivel de desafio', demoChaosLow: 'Baixo', demoChaosNormal: 'Normal', demoChaosHigh: 'Alto',
+            demoSafetyCarLabel: 'Eventos de Safety Car', demoSafetyCarDesc: 'Neutralizacao temporaria com ritmo mais lento', demoIncidentsLabel: 'Incidentes na pista', demoIncidentsDesc: 'Incidentes aleatorios que afetam equipes especificas',
+            broadcast: 'Transmissao', broadcastTitle: 'TRANSMISSAO STREGER', broadcastBy: 'Por HOLYLAND RACING', broadcastShare: 'Compartilhar visao', broadcastLeaderboard: 'Principais competidores', broadcastBranding: 'Marca e patrocinadores', broadcastHeadline: 'Manchete', broadcastHeadlinePlaceholder: 'HOLYLAND RACING AO VIVO', broadcastSponsor1Placeholder: 'Patrocinador 1', broadcastSponsor2Placeholder: 'Patrocinador 2', broadcastSponsor3Placeholder: 'Patrocinador 3', broadcastLinkCopied: 'Link da transmissao copiado'
+        },
+        ru: {
+            builtBy: 'Создано HOLYLAND RACING', termsOfUse: 'Условия использования', privacyPolicy: 'Политика конфиденциальности',
+            termsIntro: 'Streger предназначен для поддержки гоночной стратегии. Операционные решения во время гонки принимает команда.',
+            termsData: 'Не загружайте чувствительные персональные данные сверх необходимого для координации команды.',
+            termsLiability: 'HOLYLAND RACING не несет ответственности за результаты гонки и убытки из-за связи, тайминга или пользовательского ввода.',
+            privacyIntro: 'Streger хранит конфигурацию гонки, состояние сессии и пользовательские настройки для непрерывной работы.',
+            privacyStorage: 'Данные хранятся локально и, при включении, через подключенные облачные сервисы.',
+            privacyContact: 'По вопросам конфиденциальности свяжитесь с HOLYLAND RACING через Contact Us.',
+            demoRaceLength: 'Длительность гонки', demoLenSprint: 'Спринт 30м', demoLenClub: 'Клуб 1ч', demoLenEndurance: 'Эндюранс 3ч', demoLenPro: 'Про 6ч',
+            demoGridSize: 'Размер решетки', demoChaosLevel: 'Сложность', demoChaosLow: 'Низкая', demoChaosNormal: 'Нормальная', demoChaosHigh: 'Высокая',
+            demoSafetyCarLabel: 'События Safety Car', demoSafetyCarDesc: 'Временная нейтрализация с более медленным темпом', demoIncidentsLabel: 'Инциденты на трассе', demoIncidentsDesc: 'Случайные инциденты, влияющие на отдельные команды',
+            broadcast: 'Трансляция', broadcastTitle: 'ТРАНСЛЯЦИЯ STREGER', broadcastBy: 'От HOLYLAND RACING', broadcastShare: 'Поделиться видом', broadcastLeaderboard: 'Лидеры', broadcastBranding: 'Брендинг и спонсоры', broadcastHeadline: 'Заголовок', broadcastHeadlinePlaceholder: 'HOLYLAND RACING В ЭФИРЕ', broadcastSponsor1Placeholder: 'Спонсор 1', broadcastSponsor2Placeholder: 'Спонсор 2', broadcastSponsor3Placeholder: 'Спонсор 3', broadcastLinkCopied: 'Ссылка на трансляцию скопирована'
+        },
+        ar: {
+            builtBy: 'تم التطوير بواسطة HOLYLAND RACING', termsOfUse: 'شروط الاستخدام', privacyPolicy: 'سياسة الخصوصية',
+            termsIntro: 'تم توفير Streger لدعم تشغيل استراتيجية السباق. قرارات التشغيل اثناء الحدث تقع على عاتق الفريق.',
+            termsData: 'يرجى عدم رفع بيانات شخصية حساسة اكثر من المطلوب لتنسيق الفريق.',
+            termsLiability: 'لا تتحمل HOLYLAND RACING مسؤولية نتائج السباق او الخسائر الناتجة عن الاتصال او مصدر التوقيت او ادخال المستخدم.',
+            privacyIntro: 'يقوم Streger بحفظ اعدادات السباق وحالة الجلسة وتفضيلات المستخدم لاستمرارية العمل.',
+            privacyStorage: 'يتم تخزين البيانات محليا وعبر خدمات سحابية متصلة عند التفعيل.',
+            privacyContact: 'لطلبات الخصوصية، تواصل مع HOLYLAND RACING عبر Contact Us داخل التطبيق.',
+            demoRaceLength: 'مدة السباق', demoLenSprint: 'سبرينت 30د', demoLenClub: 'نادي 1س', demoLenEndurance: 'تحمل 3س', demoLenPro: 'احترافي 6س',
+            demoGridSize: 'حجم الشبكة', demoChaosLevel: 'مستوى التحدي', demoChaosLow: 'منخفض', demoChaosNormal: 'عادي', demoChaosHigh: 'مرتفع',
+            demoSafetyCarLabel: 'احداث سيارة الامان', demoSafetyCarDesc: 'تحييد مؤقت بوتيرة ابطأ', demoIncidentsLabel: 'حوادث المضمار', demoIncidentsDesc: 'حوادث عشوائية تؤثر على فرق محددة',
+            broadcast: 'بث', broadcastTitle: 'بث STREGER', broadcastBy: 'بواسطة HOLYLAND RACING', broadcastShare: 'مشاركة العرض', broadcastLeaderboard: 'افضل المتنافسين', broadcastBranding: 'الهوية والرعاة', broadcastHeadline: 'العنوان', broadcastHeadlinePlaceholder: 'HOLYLAND RACING مباشر', broadcastSponsor1Placeholder: 'الراعي 1', broadcastSponsor2Placeholder: 'الراعي 2', broadcastSponsor3Placeholder: 'الراعي 3', broadcastLinkCopied: 'تم نسخ رابط البث'
+        },
+        es: {
+            builtBy: 'Creado por HOLYLAND RACING', termsOfUse: 'Terminos de uso', privacyPolicy: 'Politica de privacidad',
+            termsIntro: 'Streger se proporciona para apoyar la estrategia de carrera. Las decisiones operativas durante el evento son responsabilidad del equipo.',
+            termsData: 'No cargues datos personales sensibles mas alla de lo necesario para la coordinacion.',
+            termsLiability: 'HOLYLAND RACING no es responsable de resultados de carrera ni perdidas por conectividad, fuente de tiempos o entrada de usuario.',
+            privacyIntro: 'Streger almacena configuracion de carrera, estado de sesion y preferencias del usuario para continuidad.',
+            privacyStorage: 'Los datos se almacenan localmente y, cuando aplica, en servicios en la nube conectados.',
+            privacyContact: 'Para solicitudes de privacidad, contacta a HOLYLAND RACING mediante Contact Us.',
+            demoRaceLength: 'Duracion de carrera', demoLenSprint: 'Sprint 30m', demoLenClub: 'Club 1h', demoLenEndurance: 'Endurance 3h', demoLenPro: 'Pro 6h',
+            demoGridSize: 'Tamano de parrilla', demoChaosLevel: 'Nivel de desafio', demoChaosLow: 'Bajo', demoChaosNormal: 'Normal', demoChaosHigh: 'Alto',
+            demoSafetyCarLabel: 'Eventos de Safety Car', demoSafetyCarDesc: 'Neutralizacion temporal con ritmo mas lento', demoIncidentsLabel: 'Incidentes en pista', demoIncidentsDesc: 'Incidentes aleatorios que afectan equipos especificos',
+            broadcast: 'Transmision', broadcastTitle: 'TRANSMISION STREGER', broadcastBy: 'Por HOLYLAND RACING', broadcastShare: 'Compartir vista', broadcastLeaderboard: 'Top competidores', broadcastBranding: 'Marca y patrocinadores', broadcastHeadline: 'Titular', broadcastHeadlinePlaceholder: 'HOLYLAND RACING EN VIVO', broadcastSponsor1Placeholder: 'Patrocinador 1', broadcastSponsor2Placeholder: 'Patrocinador 2', broadcastSponsor3Placeholder: 'Patrocinador 3', broadcastLinkCopied: 'Enlace de transmision copiado'
+        },
+        it: {
+            builtBy: 'Creato da HOLYLAND RACING', termsOfUse: 'Termini di utilizzo', privacyPolicy: 'Informativa sulla privacy',
+            termsIntro: 'Streger e fornito per supportare la strategia di gara. Le decisioni operative durante l evento sono responsabilita del team.',
+            termsData: 'Non caricare dati personali sensibili oltre quanto necessario al coordinamento del team.',
+            termsLiability: 'HOLYLAND RACING non e responsabile per risultati di gara o perdite dovute a connettivita, fonte tempi o input utente.',
+            privacyIntro: 'Streger memorizza configurazione gara, stato sessione e preferenze utente per garantire continuita.',
+            privacyStorage: 'I dati sono salvati localmente e, quando attivo, tramite servizi cloud collegati.',
+            privacyContact: 'Per richieste privacy, contatta HOLYLAND RACING tramite Contact Us.',
+            demoRaceLength: 'Durata gara', demoLenSprint: 'Sprint 30m', demoLenClub: 'Club 1h', demoLenEndurance: 'Endurance 3h', demoLenPro: 'Pro 6h',
+            demoGridSize: 'Dimensione griglia', demoChaosLevel: 'Livello sfida', demoChaosLow: 'Basso', demoChaosNormal: 'Normale', demoChaosHigh: 'Alto',
+            demoSafetyCarLabel: 'Eventi Safety Car', demoSafetyCarDesc: 'Neutralizzazione temporanea con ritmo ridotto', demoIncidentsLabel: 'Incidenti in pista', demoIncidentsDesc: 'Incidenti casuali che influenzano team specifici',
+            broadcast: 'Broadcast', broadcastTitle: 'BROADCAST STREGER', broadcastBy: 'Di HOLYLAND RACING', broadcastShare: 'Condividi vista', broadcastLeaderboard: 'Top concorrenti', broadcastBranding: 'Branding e sponsor', broadcastHeadline: 'Titolo', broadcastHeadlinePlaceholder: 'HOLYLAND RACING LIVE', broadcastSponsor1Placeholder: 'Sponsor 1', broadcastSponsor2Placeholder: 'Sponsor 2', broadcastSponsor3Placeholder: 'Sponsor 3', broadcastLinkCopied: 'Link broadcast copiato'
+        },
+        ka: {
+            builtBy: 'შექმნილია HOLYLAND RACING-ის მიერ', termsOfUse: 'გამოყენების პირობები', privacyPolicy: 'კონფიდენციალურობის პოლიტიკა',
+            termsIntro: 'Streger შექმნილია რბოლის სტრატეგიის დასახმარებლად. ღონისძიების დროს ოპერაციულ გადაწყვეტილებებზე პასუხისმგებელია გუნდი.',
+            termsData: 'გთხოვთ არ ატვირთოთ მგრძნობიარე პერსონალური მონაცემები, გარდა აუცილებელისა გუნდის კოორდინაციისთვის.',
+            termsLiability: 'HOLYLAND RACING არ არის პასუხისმგებელი რბოლის შედეგებზე ან დანაკარგებზე, რომლებიც გამოწვეულია კავშირით, ტაიმინგის წყაროთი ან მომხმარებლის შეყვანით.',
+            privacyIntro: 'Streger ინახავს რბოლის კონფიგურაციას, სესიის მდგომარეობას და მომხმარებლის პრეფერენციებს უწყვეტობისთვის.',
+            privacyStorage: 'მონაცემები ინახება ლოკალურად და, საჭიროების შემთხვევაში, დაკავშირებულ cloud სერვისებში.',
+            privacyContact: 'კონფიდენციალურობის მოთხოვნებისთვის დაგვიკავშირდით Contact Us არხით HOLYLAND RACING-ში.',
+            demoRaceLength: 'რბოლის ხანგრძლივობა', demoLenSprint: 'სპრინტი 30წთ', demoLenClub: 'კლუბი 1სთ', demoLenEndurance: 'ენდურანსი 3სთ', demoLenPro: 'პრო 6სთ',
+            demoGridSize: 'გრიდის ზომა', demoChaosLevel: 'სირთულის დონე', demoChaosLow: 'დაბალი', demoChaosNormal: 'ნორმალური', demoChaosHigh: 'მაღალი',
+            demoSafetyCarLabel: 'Safety Car მოვლენები', demoSafetyCarDesc: 'დროებითი ნეიტრალიზაცია დაბალი ტემპით', demoIncidentsLabel: 'ტრეკის ინციდენტები', demoIncidentsDesc: 'შემთხვევითი ინციდენტები, რომლებიც კონკრეტულ გუნდებზე მოქმედებს',
+            broadcast: 'ბროდქასტი', broadcastTitle: 'STREGER ბროდქასტი', broadcastBy: 'HOLYLAND RACING', broadcastShare: 'ხედის გაზიარება', broadcastLeaderboard: 'ლიდერები', broadcastBranding: 'ბრენდინგი და სპონსორები', broadcastHeadline: 'სათაური', broadcastHeadlinePlaceholder: 'HOLYLAND RACING ლაივი', broadcastSponsor1Placeholder: 'სპონსორი 1', broadcastSponsor2Placeholder: 'სპონსორი 2', broadcastSponsor3Placeholder: 'სპონსორი 3', broadcastLinkCopied: 'ბროდქასტის ბმული დაკოპირდა'
+        },
+        de: {
+            builtBy: 'Erstellt von HOLYLAND RACING', termsOfUse: 'Nutzungsbedingungen', privacyPolicy: 'Datenschutzrichtlinie',
+            termsIntro: 'Streger unterstuetzt die Rennstrategie. Operative Entscheidungen wahrend des Events liegen beim Team.',
+            termsData: 'Bitte keine sensiblen personenbezogenen Daten hochladen, die uber die Teamkoordination hinausgehen.',
+            termsLiability: 'HOLYLAND RACING haftet nicht fur Rennergebnisse oder Verluste durch Konnektivitat, Zeitquelle oder Benutzereingaben.',
+            privacyIntro: 'Streger speichert Rennkonfiguration, Sitzungsstatus und Nutzereinstellungen fur Kontinuitat.',
+            privacyStorage: 'Daten werden lokal gespeichert und bei Aktivierung uber verbundene Cloud-Dienste verarbeitet.',
+            privacyContact: 'Bei Datenschutzanfragen kontaktieren Sie HOLYLAND RACING uber Contact Us.',
+            demoRaceLength: 'Renndauer', demoLenSprint: 'Sprint 30m', demoLenClub: 'Club 1h', demoLenEndurance: 'Endurance 3h', demoLenPro: 'Pro 6h',
+            demoGridSize: 'Grid-Grosse', demoChaosLevel: 'Schwierigkeitsgrad', demoChaosLow: 'Niedrig', demoChaosNormal: 'Normal', demoChaosHigh: 'Hoch',
+            demoSafetyCarLabel: 'Safety-Car-Ereignisse', demoSafetyCarDesc: 'Zeitweise Neutralisierung mit langsamerem Tempo', demoIncidentsLabel: 'Streckenereignisse', demoIncidentsDesc: 'Zufallige Vorfalle mit Einfluss auf einzelne Teams',
+            broadcast: 'Broadcast', broadcastTitle: 'STREGER BROADCAST', broadcastBy: 'Von HOLYLAND RACING', broadcastShare: 'Ansicht teilen', broadcastLeaderboard: 'Top-Teilnehmer', broadcastBranding: 'Branding und Sponsoren', broadcastHeadline: 'Headline', broadcastHeadlinePlaceholder: 'HOLYLAND RACING LIVE', broadcastSponsor1Placeholder: 'Sponsor 1', broadcastSponsor2Placeholder: 'Sponsor 2', broadcastSponsor3Placeholder: 'Sponsor 3', broadcastLinkCopied: 'Broadcast-Link kopiert'
+        },
+        ja: {
+            builtBy: 'HOLYLAND RACING により開発', termsOfUse: '利用規約', privacyPolicy: 'プライバシーポリシー',
+            termsIntro: 'Streger はレース戦略運用を支援するためのツールです。イベント中の運用判断はチームの責任です。',
+            termsData: 'チーム連携に必要な範囲を超える機微な個人情報はアップロードしないでください。',
+            termsLiability: 'HOLYLAND RACING は、接続・計時ソース・ユーザー入力に起因する結果や損失に責任を負いません。',
+            privacyIntro: 'Streger は継続利用のためにレース設定、セッション状態、ユーザー設定を保存します。',
+            privacyStorage: 'データはローカルに保存され、必要時には接続されたクラウドサービスでも処理されます。',
+            privacyContact: 'プライバシーに関するお問い合わせはアプリ内 Contact Us から HOLYLAND RACING へご連絡ください。',
+            demoRaceLength: 'レース時間', demoLenSprint: 'スプリント 30分', demoLenClub: 'クラブ 1時間', demoLenEndurance: '耐久 3時間', demoLenPro: 'プロ 6時間',
+            demoGridSize: 'グリッド数', demoChaosLevel: '難易度', demoChaosLow: '低', demoChaosNormal: '標準', demoChaosHigh: '高',
+            demoSafetyCarLabel: 'セーフティカーイベント', demoSafetyCarDesc: '一時的にペースを落とす中立化', demoIncidentsLabel: 'コース上のインシデント', demoIncidentsDesc: '特定チームに影響するランダムインシデント',
+            broadcast: '配信', broadcastTitle: 'STREGER 配信', broadcastBy: 'HOLYLAND RACING', broadcastShare: '視聴リンク共有', broadcastLeaderboard: '上位コンペティター', broadcastBranding: 'ブランドとスポンサー', broadcastHeadline: '見出し', broadcastHeadlinePlaceholder: 'HOLYLAND RACING ライブ', broadcastSponsor1Placeholder: 'スポンサー 1', broadcastSponsor2Placeholder: 'スポンサー 2', broadcastSponsor3Placeholder: 'スポンサー 3', broadcastLinkCopied: '配信リンクをコピーしました'
+        },
+        el: {
+            builtBy: 'Δημιουργηθηκε απο HOLYLAND RACING', termsOfUse: 'Οροι χρησης', privacyPolicy: 'Πολιτικη απορρητου',
+            termsIntro: 'Το Streger παρεχεται για υποστηριξη στρατηγικης αγωνα. Οι λειτουργικες αποφασεις κατα τη διαρκεια του αγωνα ανηκουν στην ομαδα.',
+            termsData: 'Μην ανεβαζετε ευαισθητα προσωπικα δεδομενα περαν των απαραιτητων για συντονισμο ομαδας.',
+            termsLiability: 'Η HOLYLAND RACING δεν ευθυνεται για αποτελεσματα αγωνα ή απωλειες απο συνδεσιμοτητα, πηγη χρονομετρησης ή εισαγωγη χρηστη.',
+            privacyIntro: 'Το Streger αποθηκευει ρυθμισεις αγωνα, κατασταση συνεδριας και προτιμησεις χρηστη για συνεχεια.',
+            privacyStorage: 'Τα δεδομενα αποθηκευονται τοπικα και, οταν ενεργοποιηθει, μεσω συνδεδεμενων cloud υπηρεσιων.',
+            privacyContact: 'Για αιτηματα απορρητου επικοινωνηστε με την HOLYLAND RACING απο το Contact Us.',
+            demoRaceLength: 'Διαρκεια αγωνα', demoLenSprint: 'Sprint 30λ', demoLenClub: 'Club 1ω', demoLenEndurance: 'Endurance 3ω', demoLenPro: 'Pro 6ω',
+            demoGridSize: 'Μεγεθος grid', demoChaosLevel: 'Επιπεδο προκλησης', demoChaosLow: 'Χαμηλο', demoChaosNormal: 'Κανονικο', demoChaosHigh: 'Υψηλο',
+            demoSafetyCarLabel: 'Γεγονοτα Safety Car', demoSafetyCarDesc: 'Προσωρινη ουδετεροποιηση με χαμηλοτερο ρυθμο', demoIncidentsLabel: 'Περιστατικα πιστας', demoIncidentsDesc: 'Τυχαια περιστατικα που επηρεαζουν συγκεκριμενες ομαδες',
+            broadcast: 'Μεταδοση', broadcastTitle: 'STREGER ΜΕΤΑΔΟΣΗ', broadcastBy: 'Απο HOLYLAND RACING', broadcastShare: 'Κοινοποιηση προβολης', broadcastLeaderboard: 'Κορυφαιοι ανταγωνιστες', broadcastBranding: 'Branding και χορηγοι', broadcastHeadline: 'Τιτλος', broadcastHeadlinePlaceholder: 'HOLYLAND RACING LIVE', broadcastSponsor1Placeholder: 'Χορηγος 1', broadcastSponsor2Placeholder: 'Χορηγος 2', broadcastSponsor3Placeholder: 'Χορηγος 3', broadcastLinkCopied: 'Ο συνδεσμος μεταδοσης αντιγραφηκε'
+        }
+    };
+
+    Object.entries(required).forEach(([k, v]) => {
+        if (!window.translations.en[k]) window.translations.en[k] = v;
+    });
+
+    Object.entries(localized).forEach(([lang, patch]) => {
+        if (!window.translations[lang]) return;
+        Object.entries(patch).forEach(([k, v]) => {
+            window.translations[lang][k] = v;
+        });
+    });
+
+    Object.keys(window.translations).forEach((lang) => {
+        const dict = window.translations[lang];
+        Object.keys(required).forEach((k) => {
+            if (dict[k] == null) dict[k] = window.translations.en[k];
+        });
+    });
+})();
+
+// Broad tone uplift for core product copy across all supported languages.
+(function applyGlobalTranslationPolish() {
+    if (!window.translations) return;
+
+    const polish = {
+        en: {
+            appSubtitle: 'Professional Endurance Race Command Center',
+            generateStrategy: 'Generate Smart Strategy (AI)',
+            previewStrategy: 'Preview Strategy Timeline',
+            startRace: 'Launch Race Control',
+            loadSaved: 'Resume Saved Session',
+            strategyOutlook: 'STRATEGY OUTLOOK',
+            timeLeft: 'TIME REMAINING',
+            demoSelectFeatures: 'Select race experiences to simulate',
+            demoLiveTimingDesc: 'Live-style leaderboard with dynamic race flow',
+            demoRainDesc: 'Weather shifts that impact pace and decisions',
+            demoPenaltyDesc: 'Race control penalties and time loss events',
+            demoTiresDesc: 'Stint-based pace drop from tire wear',
+            demoSquadsDesc: 'Rotating driver squads for endurance operations',
+            demoFuelDesc: 'Fuel windows, tank range, and pit planning',
+            onboardDesc1: 'Streger gives your team live race control for endurance karting with clearer decisions and faster coordination.',
+            onboardDesc2: 'Set race duration, pit constraints, and driver lineup. Then tune stints to match your event rules.',
+            onboardDesc3: 'Use preview to validate every stint, adjust sequencing, and align your team before green flag.',
+            onboardDesc4: 'Run the race with live alerts, pit timing guidance, and shareable links for drivers and viewers.',
+            raceFinished: 'RACE COMPLETE'
+        },
+        he: {
+            appSubtitle: 'מרכז שליטה מקצועי למירוצי סיבולת',
+            generateStrategy: 'צור אסטרטגיה חכמה (AI)',
+            previewStrategy: 'תצוגת ציר זמן אסטרטגי',
+            startRace: 'הפעל מרכז שליטה למירוץ',
+            loadSaved: 'המשך סשן שמור',
+            strategyOutlook: 'מבט אסטרטגי',
+            timeLeft: 'זמן נותר',
+            demoSelectFeatures: 'בחר חוויות מירוץ לסימולציה',
+            demoLiveTimingDesc: 'טבלת דירוג בסגנון לייב עם דינמיקת מירוץ',
+            demoRainDesc: 'שינויי מזג אוויר שמשפיעים על קצב והחלטות',
+            demoPenaltyDesc: 'עונשי בקרת מירוץ ואיבוד זמן',
+            demoTiresDesc: 'ירידת קצב לאורך סטינט עקב שחיקת צמיגים',
+            demoSquadsDesc: 'רוטציית חוליות נהגים לתפעול סיבולת',
+            demoFuelDesc: 'חלונות דלק, טווח מיכל ותכנון פיטס',
+            onboardDesc1: 'Streger נותנת לצוות שלך שליטה חיה וברורה יותר במירוץ סיבולת עם קבלת החלטות מהירה.',
+            onboardDesc2: 'הגדר משך מירוץ, אילוצי פיטס והרכב נהגים, ואז כוון סטינטים לפי חוקי האירוע.',
+            onboardDesc3: 'השתמש בתצוגה המקדימה כדי לאמת כל סטינט, לעדכן רצף ולהכין את הצוות לזינוק.',
+            onboardDesc4: 'נהל את המירוץ עם התראות חיות, הנחיות פיטס וקישורי שיתוף לצוות ולצופים.',
+            raceFinished: 'המירוץ הסתיים'
+        },
+        fr: {
+            appSubtitle: 'Centre de commandement professionnel pour l endurance',
+            generateStrategy: 'Generer une strategie intelligente (IA)',
+            previewStrategy: 'Apercu de la timeline strategie',
+            startRace: 'Lancer le controle course',
+            loadSaved: 'Reprendre la session sauvegardee',
+            timeLeft: 'TEMPS RESTANT',
+            demoSelectFeatures: 'Choisissez les experiences a simuler',
+            demoLiveTimingDesc: 'Classement type live avec dynamique de course',
+            demoRainDesc: 'Meteo evolutive avec impact sur le rythme',
+            demoPenaltyDesc: 'Penalites de direction de course et perte de temps',
+            demoTiresDesc: 'Baisse de performance par usure des pneus',
+            demoSquadsDesc: 'Rotation des groupes pilotes en endurance',
+            demoFuelDesc: 'Fenetres carburant, autonomie et plan pit',
+            raceFinished: 'COURSE TERMINEE'
+        },
+        pt: {
+            appSubtitle: 'Centro profissional de comando para corridas de endurance',
+            generateStrategy: 'Gerar estrategia inteligente (IA)',
+            previewStrategy: 'Visualizar linha do tempo da estrategia',
+            startRace: 'Iniciar controle de corrida',
+            loadSaved: 'Retomar sessao salva',
+            timeLeft: 'TEMPO RESTANTE',
+            demoSelectFeatures: 'Selecione as experiencias para simular',
+            demoLiveTimingDesc: 'Leaderboard em estilo ao vivo com fluxo dinamico',
+            demoRainDesc: 'Mudancas de clima que afetam ritmo e decisoes',
+            demoPenaltyDesc: 'Penalidades da direcao e perda de tempo',
+            demoTiresDesc: 'Queda de ritmo por desgaste dos pneus',
+            demoSquadsDesc: 'Rotacao de grupos de pilotos no endurance',
+            demoFuelDesc: 'Janelas de combustivel, autonomia e plano de box',
+            raceFinished: 'CORRIDA FINALIZADA'
+        },
+        ru: {
+            appSubtitle: 'Профессиональный центр управления гонкой на выносливость',
+            generateStrategy: 'Сгенерировать умную стратегию (ИИ)',
+            previewStrategy: 'Просмотр таймлайна стратегии',
+            startRace: 'Запустить управление гонкой',
+            loadSaved: 'Продолжить сохраненную сессию',
+            timeLeft: 'ОСТАЛОСЬ ВРЕМЕНИ',
+            demoSelectFeatures: 'Выберите сценарии для симуляции',
+            demoLiveTimingDesc: 'Лайв-таблица с динамикой гонки',
+            demoRainDesc: 'Погодные изменения, влияющие на темп',
+            demoPenaltyDesc: 'Штрафы дирекции гонки и потеря времени',
+            demoTiresDesc: 'Падение темпа из-за износа шин',
+            demoSquadsDesc: 'Ротация групп пилотов в endurance',
+            demoFuelDesc: 'Окна топлива, запас хода и план пит-стопов',
+            raceFinished: 'ГОНКА ЗАВЕРШЕНА'
+        },
+        ar: {
+            appSubtitle: 'مركز قيادة احترافي لسباقات التحمل',
+            generateStrategy: 'انشاء استراتيجية ذكية (AI)',
+            previewStrategy: 'معاينة الخط الزمني للاستراتيجية',
+            startRace: 'تشغيل مركز التحكم بالسباق',
+            loadSaved: 'استئناف الجلسة المحفوظة',
+            timeLeft: 'الوقت المتبقي',
+            demoSelectFeatures: 'اختر تجارب السباق للمحاكاة',
+            demoLiveTimingDesc: 'لوحة ترتيب مباشرة بتدفق سباق ديناميكي',
+            demoRainDesc: 'تغيرات طقس تؤثر على الوتيرة والقرارات',
+            demoPenaltyDesc: 'عقوبات ادارة السباق وخسارة زمن',
+            demoTiresDesc: 'تراجع الوتيرة بسبب تآكل الاطارات',
+            demoSquadsDesc: 'تدوير مجموعات السائقين لسباقات التحمل',
+            demoFuelDesc: 'نوافذ الوقود ومدى الخزان وخطة التوقف',
+            raceFinished: 'انتهى السباق'
+        },
+        es: {
+            appSubtitle: 'Centro de mando profesional para carreras de resistencia',
+            generateStrategy: 'Generar estrategia inteligente (IA)',
+            previewStrategy: 'Vista previa de la linea de estrategia',
+            startRace: 'Iniciar control de carrera',
+            loadSaved: 'Reanudar sesion guardada',
+            timeLeft: 'TIEMPO RESTANTE',
+            demoSelectFeatures: 'Selecciona experiencias para simular',
+            demoLiveTimingDesc: 'Tabla tipo live con flujo de carrera dinamico',
+            demoRainDesc: 'Cambios de clima que impactan ritmo y decisiones',
+            demoPenaltyDesc: 'Penalizaciones de direccion y perdida de tiempo',
+            demoTiresDesc: 'Caida de ritmo por desgaste de neumaticos',
+            demoSquadsDesc: 'Rotacion de grupos de pilotos en endurance',
+            demoFuelDesc: 'Ventanas de combustible, autonomia y plan de boxes',
+            raceFinished: 'CARRERA FINALIZADA'
+        },
+        it: {
+            appSubtitle: 'Centro di comando professionale per gare endurance',
+            generateStrategy: 'Genera strategia intelligente (AI)',
+            previewStrategy: 'Anteprima timeline strategica',
+            startRace: 'Avvia controllo gara',
+            loadSaved: 'Riprendi sessione salvata',
+            timeLeft: 'TEMPO RIMANENTE',
+            demoSelectFeatures: 'Seleziona le esperienze da simulare',
+            demoLiveTimingDesc: 'Classifica live con dinamica gara realistica',
+            demoRainDesc: 'Cambi meteo che influenzano ritmo e scelte',
+            demoPenaltyDesc: 'Penalita direzione gara e perdita tempo',
+            demoTiresDesc: 'Calo passo dovuto all usura gomme',
+            demoSquadsDesc: 'Rotazione gruppi piloti per endurance',
+            demoFuelDesc: 'Finestre carburante, autonomia e piano pit',
+            raceFinished: 'GARA CONCLUSA'
+        },
+        ka: {
+            appSubtitle: 'პროფესიონალური საკონტროლო ცენტრი ენდურანს რბოლებისთვის',
+            generateStrategy: 'შექმენი ჭკვიანი სტრატეგია (AI)',
+            previewStrategy: 'სტრატეგიის ტაიმლაინის წინასწარი ნახვა',
+            startRace: 'გაუშვი რბოლის კონტროლი',
+            loadSaved: 'შენახული სესიის გაგრძელება',
+            timeLeft: 'დარჩენილი დრო',
+            demoSelectFeatures: 'აირჩიე სიმულაციის გამოცდილებები',
+            demoLiveTimingDesc: 'ლაივ სტილის ლიდერბორდი დინამიკური რბოლით',
+            demoRainDesc: 'ამინდის ცვლილებები, რომლებიც ტემპს ცვლის',
+            demoPenaltyDesc: 'რბოლის კონტროლის ჯარიმები და დროის დაკარგვა',
+            demoTiresDesc: 'ტემპის ვარდნა საბურავების ცვეთით',
+            demoSquadsDesc: 'მძღოლების ჯგუფური როტაცია endurance რეჟიმში',
+            demoFuelDesc: 'საწვავის ფანჯრები, რეზერვი და pit გეგმა',
+            raceFinished: 'რბოლა დასრულდა'
+        },
+        de: {
+            appSubtitle: 'Professionelles Race-Control-Center fur Endurance',
+            generateStrategy: 'Intelligente Strategie generieren (KI)',
+            previewStrategy: 'Strategie-Timeline anzeigen',
+            startRace: 'Race Control starten',
+            loadSaved: 'Gespeicherte Session fortsetzen',
+            timeLeft: 'VERBLEIBENDE ZEIT',
+            demoSelectFeatures: 'Wahle die zu simulierenden Rennszenarien',
+            demoLiveTimingDesc: 'Live-Rangliste mit dynamischem Rennverlauf',
+            demoRainDesc: 'Wetterwechsel mit Einfluss auf Pace und Entscheidungen',
+            demoPenaltyDesc: 'Rennleitungsstrafen und Zeitverlust',
+            demoTiresDesc: 'Pace-Abfall durch Reifenverschleiss',
+            demoSquadsDesc: 'Rotation von Fahrergruppen fur Endurance',
+            demoFuelDesc: 'Tankfenster, Reichweite und Boxenplanung',
+            raceFinished: 'RENNEN BEENDET'
+        },
+        ja: {
+            appSubtitle: '耐久レース向けプロフェッショナル指令センター',
+            generateStrategy: 'スマート戦略を生成 (AI)',
+            previewStrategy: '戦略タイムラインを確認',
+            startRace: 'レースコントロール開始',
+            loadSaved: '保存セッションを再開',
+            timeLeft: '残り時間',
+            demoSelectFeatures: 'シミュレーションする体験を選択',
+            demoLiveTimingDesc: '動的レースフロー付きのライブ順位表示',
+            demoRainDesc: 'ペースと判断に影響する天候変化',
+            demoPenaltyDesc: 'レースコントロール罰則とタイムロス',
+            demoTiresDesc: 'タイヤ摩耗によるペース低下',
+            demoSquadsDesc: '耐久運用向けドライバーグループ交代',
+            demoFuelDesc: '燃料ウィンドウ、航続、ピット計画',
+            raceFinished: 'レース終了'
+        },
+        el: {
+            appSubtitle: 'Επαγγελματικο κεντρο ελεγχου για αγωνες αντοχης',
+            generateStrategy: 'Δημιουργια εξυπνης στρατηγικης (AI)',
+            previewStrategy: 'Προεπισκοπηση χρονογραμμης στρατηγικης',
+            startRace: 'Εναρξη ελεγχου αγωνα',
+            loadSaved: 'Συνεχεια αποθηκευμενης συνεδριας',
+            timeLeft: 'ΥΠΟΛΟΙΠΟΣ ΧΡΟΝΟΣ',
+            demoSelectFeatures: 'Επιλεξτε εμπειριες για προσομοιωση',
+            demoLiveTimingDesc: 'Live καταταξη με δυναμικη ροη αγωνα',
+            demoRainDesc: 'Αλλαγες καιρου που επηρεαζουν ρυθμο και αποφασεις',
+            demoPenaltyDesc: 'Ποινες race control και απωλεια χρονου',
+            demoTiresDesc: 'Πτωση ρυθμου απο φθορα ελαστικων',
+            demoSquadsDesc: 'Περιστροφη ομαδων οδηγων για endurance',
+            demoFuelDesc: 'Παραθυρα καυσιμου, αυτονομια και σχεδιο pit',
+            raceFinished: 'Ο ΑΓΩΝΑΣ ΟΛΟΚΛΗΡΩΘΗΚΕ'
+        }
+    };
+
+    Object.entries(polish).forEach(([lang, patch]) => {
+        if (!window.translations[lang]) return;
+        Object.entries(patch).forEach(([k, v]) => {
+            window.translations[lang][k] = v;
+        });
+    });
+})();
+
+// Micro-copy polish for secondary labels across all supported locales.
+(function applyMinorKeyMicrocopyPolish() {
+    if (!window.translations) return;
+
+    const polish = {
+        en: {
+            broadcastShare: 'Share Broadcast Link',
+            broadcastLeaderboard: 'Live Leaderboard',
+            broadcastBranding: 'Branding and Sponsors',
+            broadcastHeadlinePlaceholder: 'HOLYLAND RACING | LIVE NOW',
+            broadcastSponsor1Placeholder: 'Primary Sponsor',
+            broadcastSponsor2Placeholder: 'Partner Sponsor',
+            broadcastSponsor3Placeholder: 'Community Sponsor',
+            broadcastLinkCopied: 'Broadcast link copied',
+            demoChaosLevel: 'Challenge Level'
+        },
+        he: {
+            broadcastShare: 'שתף קישור שידור',
+            broadcastLeaderboard: 'טבלת מובילים בלייב',
+            broadcastBranding: 'מיתוג וספונסרים',
+            broadcastHeadlinePlaceholder: 'HOLYLAND RACING | שידור חי',
+            broadcastSponsor1Placeholder: 'ספונסר ראשי',
+            broadcastSponsor2Placeholder: 'ספונסר שותף',
+            broadcastSponsor3Placeholder: 'ספונסר קהילה',
+            broadcastLinkCopied: 'קישור השידור הועתק',
+            demoChaosLevel: 'רמת אתגר'
+        },
+        fr: {
+            broadcastShare: 'Partager le lien broadcast',
+            broadcastLeaderboard: 'Classement en direct',
+            broadcastBranding: 'Branding et sponsors',
+            broadcastHeadlinePlaceholder: 'HOLYLAND RACING | EN DIRECT',
+            broadcastSponsor1Placeholder: 'Sponsor principal',
+            broadcastSponsor2Placeholder: 'Sponsor partenaire',
+            broadcastSponsor3Placeholder: 'Sponsor communaute',
+            broadcastLinkCopied: 'Lien broadcast copie',
+            demoChaosLevel: 'Niveau de challenge'
+        },
+        pt: {
+            broadcastShare: 'Compartilhar link da transmissao',
+            broadcastLeaderboard: 'Classificacao ao vivo',
+            broadcastBranding: 'Marca e patrocinadores',
+            broadcastHeadlinePlaceholder: 'HOLYLAND RACING | AO VIVO',
+            broadcastSponsor1Placeholder: 'Patrocinador principal',
+            broadcastSponsor2Placeholder: 'Patrocinador parceiro',
+            broadcastSponsor3Placeholder: 'Patrocinador da comunidade',
+            broadcastLinkCopied: 'Link da transmissao copiado',
+            demoChaosLevel: 'Nivel de desafio'
+        },
+        ru: {
+            broadcastShare: 'Поделиться ссылкой трансляции',
+            broadcastLeaderboard: 'Лайв-таблица лидеров',
+            broadcastBranding: 'Брендинг и спонсоры',
+            broadcastHeadlinePlaceholder: 'HOLYLAND RACING | ПРЯМОЙ ЭФИР',
+            broadcastSponsor1Placeholder: 'Главный спонсор',
+            broadcastSponsor2Placeholder: 'Партнерский спонсор',
+            broadcastSponsor3Placeholder: 'Спонсор сообщества',
+            broadcastLinkCopied: 'Ссылка трансляции скопирована',
+            demoChaosLevel: 'Уровень сложности'
+        },
+        ar: {
+            broadcastShare: 'مشاركة رابط البث',
+            broadcastLeaderboard: 'لوحة المتصدرين المباشرة',
+            broadcastBranding: 'الهوية والرعاة',
+            broadcastHeadlinePlaceholder: 'HOLYLAND RACING | بث مباشر',
+            broadcastSponsor1Placeholder: 'الراعي الرئيسي',
+            broadcastSponsor2Placeholder: 'الراعي الشريك',
+            broadcastSponsor3Placeholder: 'راعي المجتمع',
+            broadcastLinkCopied: 'تم نسخ رابط البث',
+            demoChaosLevel: 'مستوى التحدي'
+        },
+        es: {
+            broadcastShare: 'Compartir enlace de broadcast',
+            broadcastLeaderboard: 'Tabla en vivo',
+            broadcastBranding: 'Marca y patrocinadores',
+            broadcastHeadlinePlaceholder: 'HOLYLAND RACING | EN VIVO',
+            broadcastSponsor1Placeholder: 'Patrocinador principal',
+            broadcastSponsor2Placeholder: 'Patrocinador aliado',
+            broadcastSponsor3Placeholder: 'Patrocinador comunidad',
+            broadcastLinkCopied: 'Enlace de broadcast copiado',
+            demoChaosLevel: 'Nivel de desafio'
+        },
+        it: {
+            broadcastShare: 'Condividi link broadcast',
+            broadcastLeaderboard: 'Classifica live',
+            broadcastBranding: 'Branding e sponsor',
+            broadcastHeadlinePlaceholder: 'HOLYLAND RACING | LIVE ORA',
+            broadcastSponsor1Placeholder: 'Sponsor principale',
+            broadcastSponsor2Placeholder: 'Sponsor partner',
+            broadcastSponsor3Placeholder: 'Sponsor community',
+            broadcastLinkCopied: 'Link broadcast copiato',
+            demoChaosLevel: 'Livello sfida'
+        },
+        ka: {
+            broadcastShare: 'გააზიარე ტრანსლაციის ბმული',
+            broadcastLeaderboard: 'ლაივ ლიდერბორდი',
+            broadcastBranding: 'ბრენდინგი და სპონსორები',
+            broadcastHeadlinePlaceholder: 'HOLYLAND RACING | LIVE',
+            broadcastSponsor1Placeholder: 'მთავარი სპონსორი',
+            broadcastSponsor2Placeholder: 'პარტნიორი სპონსორი',
+            broadcastSponsor3Placeholder: 'საზოგადოების სპონსორი',
+            broadcastLinkCopied: 'ტრანსლაციის ბმული დაკოპირდა',
+            demoChaosLevel: 'სირთულის დონე'
+        },
+        de: {
+            broadcastShare: 'Broadcast-Link teilen',
+            broadcastLeaderboard: 'Live-Rangliste',
+            broadcastBranding: 'Branding und Sponsoren',
+            broadcastHeadlinePlaceholder: 'HOLYLAND RACING | LIVE',
+            broadcastSponsor1Placeholder: 'Hauptsponsor',
+            broadcastSponsor2Placeholder: 'Partnersponsor',
+            broadcastSponsor3Placeholder: 'Community-Sponsor',
+            broadcastLinkCopied: 'Broadcast-Link kopiert',
+            demoChaosLevel: 'Challenge-Level'
+        },
+        ja: {
+            broadcastShare: '配信用リンクを共有',
+            broadcastLeaderboard: 'ライブリーダーボード',
+            broadcastBranding: 'ブランディングとスポンサー',
+            broadcastHeadlinePlaceholder: 'HOLYLAND RACING | LIVE',
+            broadcastSponsor1Placeholder: 'メインスポンサー',
+            broadcastSponsor2Placeholder: 'パートナースポンサー',
+            broadcastSponsor3Placeholder: 'コミュニティスポンサー',
+            broadcastLinkCopied: '配信用リンクをコピーしました',
+            demoChaosLevel: 'チャレンジレベル'
+        },
+        el: {
+            broadcastShare: 'Κοινοποιηση συνδεσμου μεταδοσης',
+            broadcastLeaderboard: 'Live καταταξη',
+            broadcastBranding: 'Branding και χορηγοι',
+            broadcastHeadlinePlaceholder: 'HOLYLAND RACING | LIVE',
+            broadcastSponsor1Placeholder: 'Κυριος χορηγος',
+            broadcastSponsor2Placeholder: 'Χορηγος συνεργατης',
+            broadcastSponsor3Placeholder: 'Χορηγος κοινοτητας',
+            broadcastLinkCopied: 'Ο συνδεσμος μεταδοσης αντιγραφηκε',
+            demoChaosLevel: 'Επιπεδο προκλησης'
+        }
+    };
+
+    Object.entries(polish).forEach(([lang, patch]) => {
+        if (!window.translations[lang]) return;
+        Object.entries(patch).forEach(([k, v]) => {
+            window.translations[lang][k] = v;
+        });
+    });
+})();
+
+window.auditTranslationCoverage = function() {
+    const langs = Object.keys(window.translations || {});
+    if (!langs.length) return { missingByLanguage: {} };
+
+    const baseKeys = Object.keys(window.translations.en || {});
+    const missingByLanguage = {};
+    langs.forEach((lang) => {
+        const dict = window.translations[lang] || {};
+        const missing = baseKeys.filter((k) => dict[k] == null || dict[k] === '');
+        missingByLanguage[lang] = missing;
+    });
+
+    const domKeys = Array.from(document.querySelectorAll('[data-i18n]'))
+        .map((el) => el.getAttribute('data-i18n'))
+        .filter(Boolean);
+    const domOptKeys = Array.from(document.querySelectorAll('option[data-i18n-opt]'))
+        .map((el) => el.getAttribute('data-i18n-opt'))
+        .filter(Boolean);
+    const usedKeys = Array.from(new Set([...domKeys, ...domOptKeys]));
+    const missingInEnFromDom = usedKeys.filter((k) => window.translations.en[k] == null);
+
+    return {
+        missingByLanguage,
+        missingInEnFromDom,
+        usedKeyCount: usedKeys.length,
+        baseKeyCount: baseKeys.length
+    };
+};
+
 window.t = function(key) {
     // 🟢 Use viewer's own language preference if set
     const lang = window.role === 'viewer' 

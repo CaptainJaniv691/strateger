@@ -3,7 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Strateger - Race Strategy Manager</title>
+    <title>Streger - Race Strategy Manager</title>
+    <meta name="description" content="Streger by HOLYLAND RACING is an endurance race strategy manager with live timing, pit windows, driver rotation, and demo race simulation.">
+    <meta name="keywords" content="race strategy, karting, endurance race, pit stop manager, live timing, HOLYLAND RACING, Streger">
+    <meta name="author" content="HOLYLAND RACING">
+    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+    <link rel="canonical" href="https://streger.app/">
+
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Streger - Endurance Race Strategy Manager">
+    <meta property="og:description" content="Plan stints, control pit timing, manage drivers, and run live race strategy with Streger.">
+    <meta property="og:url" content="https://streger.app/">
+    <meta property="og:site_name" content="Streger">
+    <meta property="og:image" content="/icons/icon-512.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Streger - Endurance Race Strategy Manager">
+    <meta name="twitter:description" content="Live race strategy, pit intelligence, and driver management.">
+    <meta name="twitter:image" content="/icons/icon-512.png">
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%2322d3ee' width='100' height='100' rx='15'/><text x='50' y='70' text-anchor='middle' font-size='60' fill='black' font-weight='bold'>S</text></svg>">
 
@@ -13,7 +29,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Strateger">
+    <meta name="apple-mobile-web-app-title" content="Streger">
     <link rel="apple-touch-icon" href="/icons/icon-192.svg">
 
     <script src="js/config.js"></script>
@@ -59,8 +75,27 @@
             }
         }
     </script>
+        <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            "name": "Streger",
+            "applicationCategory": "SportsApplication",
+            "operatingSystem": "Web",
+            "description": "Endurance race strategy manager with live timing, pit-stop control, and team collaboration.",
+            "creator": {
+                "@type": "Organization",
+                "name": "HOLYLAND RACING"
+            },
+            "offers": {
+                "@type": "Offer",
+                "price": "0",
+                "priceCurrency": "USD"
+            }
+        }
+        </script>
 </head>
-<body class="bg-navy-950 text-gray-200 flex flex-col">
+<body class="bg-navy-950 text-gray-200 flex flex-col min-h-screen">
     <header class="bg-navy-900 border-b border-gray-800 p-2 flex justify-between items-center shadow-md sticky top-0 z-20">
         <div class="flex items-center gap-2">
             <select id="langSelect" onchange="window.setLanguage(this.value)" 
@@ -117,6 +152,11 @@
                 <span class="hidden sm:inline" data-i18n="driverLink">Driver</span>
             </button>
 
+            <button id="broadcastBtn" onclick="window.toggleBroadcastMode()" class="hidden bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-fuchsia-500 hover:to-violet-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg transition transform active:scale-95 flex items-center gap-1" title="Broadcast Screen">
+                <i class="fas fa-tower-broadcast"></i>
+                <span class="hidden sm:inline" data-i18n="broadcast">Broadcast</span>
+            </button>
+
             <!-- Visible on sm+ screens only -->
             <button id="themeToggleBtn" onclick="window.toggleThemePanel()" class="flex bg-navy-800 hover:bg-navy-700 text-gray-300 hover:text-white text-xs font-bold px-2 py-1.5 rounded-full border border-gray-700 hover:border-gray-500 transition transform active:scale-95 items-center gap-1" title="Theme">
                 <i class="fas fa-palette"></i>
@@ -153,7 +193,7 @@
         
         <div class="max-w-lg mx-auto text-center mb-2">
             <div class="header-title font-bold tracking-widest text-white ml-2 sm:block">
-                STRAT<span class="text-ice">EGER</span>
+                STR<span class="text-ice">EGER</span>
             </div>
             <div class="text-[9px] text-gray-400 uppercase tracking-wider ml-2 sm:block" data-i18n="appSubtitle">
                 Endurance Race Strategy Manager
@@ -562,8 +602,13 @@
                     <div class="flex items-center gap-2">
                         <span class="sync-dot live-dot"></span> 
                         <span class="text-xs font-bold" data-i18n="live">LIVE</span>
+                        <span id="liveHeartbeat" class="text-[10px] text-gray-400">HB --</span>
                     </div>
-                    <button onclick="window.stopLiveTiming()" class="text-[10px] bg-red-900 text-white px-2 rounded" data-i18n="stop">Stop</button>
+                    <div class="flex items-center gap-1">
+                        <button id="competitorsToggleBtn" onclick="window.toggleCompetitorsTable()" class="text-[10px] bg-navy-700 border border-gray-600 text-gray-300 px-2 py-0.5 rounded" title="Toggle competitors table">📋</button>
+                        <button id="apexViewToggle" onclick="window.toggleApexIframe()" class="text-[10px] bg-navy-700 border border-gray-600 text-gray-300 px-2 py-0.5 rounded" title="Toggle original Apex view">🌐</button>
+                        <button onclick="window.stopLiveTiming()" class="text-[10px] bg-red-900 text-white px-2 rounded" data-i18n="stop">Stop</button>
+                    </div>
                 </div>
                 <div class="grid grid-cols-3 gap-1 text-center">
                     <div class="bg-navy-950 rounded border border-gray-700 p-1">
@@ -596,7 +641,10 @@
                         <div id="liveTotalCars" class="text-sm font-bold text-gray-300">-</div>
                     </div>
                 </div>
-                <div id="competitorsTable" class="mt-2 overflow-y-auto scroll-smooth scrollbar-thin" style="min-height:196px;max-height:280px;"></div>
+                <div id="competitorsTable" class="mt-2 overflow-y-auto scroll-smooth scrollbar-thin" style="min-height:196px;height:280px;max-height:600px;resize:vertical;"></div>
+                <div id="apexIframeContainer" class="hidden mt-1">
+                    <iframe id="apexIframe" src="" class="w-full rounded" style="height:300px;border:none;background:#0a1120;" sandbox="allow-scripts allow-forms allow-popups"></iframe>
+                </div>
                 <div id="kartRankingPanel" class="hidden mt-1 p-2 bg-navy-950 rounded border border-gray-700/50"></div>
             </div>
 
@@ -711,8 +759,8 @@
                         <span class="text-[9px] text-gray-500 uppercase font-bold px-1" data-i18n="penalty">Penalty</span>
                         <div class="flex gap-1">
                             <button id="penaltyBtnMinus5" onclick="window.adjustPitTime(-5)" class="penalty-btn bg-green-900/30 hover:bg-green-800 text-green-400 border border-green-600/30 px-2 py-1 rounded text-xs font-bold transition">-5</button>
-                            <button id="penaltyBtnPlus5" onclick="window.adjustPitTime(5)" class="penalty-btn bg-red-900/30 hover:bg-red-800 text-red-400 border border-red-600/30 px-2 py-1 rounded text-xs font-bold transition">+5</button>
-                            <button id="penaltyBtnPlus10" onclick="window.adjustPitTime(10)" class="penalty-btn bg-red-900/30 hover:bg-red-800 text-red-400 border border-red-600/30 px-2 py-1 rounded text-xs font-bold transition">+10</button>
+                            <button id="penaltyBtnPlus5" onclick="window.applyPitPenalty(5, 'Manual +5')" class="penalty-btn bg-red-900/30 hover:bg-red-800 text-red-400 border border-red-600/30 px-2 py-1 rounded text-xs font-bold transition">+5</button>
+                            <button id="penaltyBtnPlus10" onclick="window.applyPitPenalty(10, 'Manual +10')" class="penalty-btn bg-red-900/30 hover:bg-red-800 text-red-400 border border-red-600/30 px-2 py-1 rounded text-xs font-bold transition">+10</button>
                         </div>
                         <div id="dashboardPitAdjDisplay" class="bg-black/30 px-2 py-1 rounded text-ice font-mono font-bold text-xs min-w-[30px] text-center">0</div>
                     </div>
@@ -729,6 +777,11 @@
         </div>
     </div>
 
+    <!-- Quick PIT access: keeps critical pit action reachable even when scrolling -->
+    <button id="quickPitFab" onclick="window.quickPitAction()" class="hidden fixed right-3 bottom-24 z-40 bg-red-600 hover:bg-red-500 text-white font-bold px-4 py-3 rounded-full shadow-[0_0_25px_rgba(239,68,68,0.45)] border border-red-400/50 text-sm">
+        🛑 PIT
+    </button>
+
     <!-- ==================== DRIVER MODE HUD ==================== -->
     <div id="driverModePanel" class="hidden fixed inset-0 z-40 flex flex-col bg-black">
 
@@ -738,8 +791,9 @@
             <button onclick="event.stopPropagation(); window.toggleDriverMode()" class="absolute top-2 left-2 z-10 text-white/40 hover:text-white/80 text-xl w-11 h-11 flex items-center justify-center rounded-full transition" style="top: max(8px, env(safe-area-inset-top, 0px)); left: max(8px, env(safe-area-inset-left, 0px));">
                 <i class="fas fa-times"></i>
             </button>
-            <!-- Race timer (top-right, safe-area aware) -->
+            <!-- Race timer + connection quality (top-right, safe-area aware) -->
             <div class="absolute top-2 right-2 z-10 flex items-center gap-2" style="top: max(8px, env(safe-area-inset-top, 0px)); right: max(8px, env(safe-area-inset-right, 0px));">
+                <div id="driverConnQuality" class="text-[10px] px-1.5 py-0.5 rounded-full font-bold border hidden" title="Connection quality">●</div>
                 <div id="driverDemoBadge" class="hidden text-[10px] bg-neon/20 text-neon border border-neon/50 px-1.5 py-0.5 rounded-full font-bold">DEMO</div>
                 <div id="driverRaceTimer" class="driver-race-timer">00:00:00</div>
             </div>
@@ -751,6 +805,15 @@
             </div>
             <!-- Tap hint -->
             <div id="driverTapHint" class="absolute bottom-3 inset-x-0 text-center text-white/25 text-[10px] font-bold uppercase tracking-widest" data-i18n="tapToPit">TAP TO ENTER PIT</div>
+            <!-- Auto pit status indicator -->
+            <div id="driverAutoPitStatus" class="absolute bottom-8 inset-x-0 text-center text-[9px] font-bold uppercase tracking-wider">
+                <span id="driverAutoPitBadge" class="pit-auto-badge active">🔗 AUTO PIT TRACKING</span>
+            </div>
+            <!-- Connection / troubleshoot info (hidden by default, shown when issues) -->
+            <div id="driverTroubleshoot" class="driver-troubleshoot hidden">
+                <strong>No data?</strong> Check: WiFi/4G on · Host race started · Correct Race ID<br>
+                Tap ✕ → re-enter ID → reconnect
+            </div>
             <!-- Next stint notification banner -->
             <div id="driverNextStintBanner" class="hidden absolute top-10 inset-x-0 mx-4 z-10 bg-black/80 border border-amber-500/50 rounded-lg px-3 py-2 text-center">
                 <div id="driverNextStintText" class="text-amber-400 text-sm font-bold"></div>
@@ -986,7 +1049,7 @@
     <div id="viewerNameScreen" class="hidden fixed inset-0 bg-navy-950 z-[100] flex flex-col items-center justify-center p-6">
         <div class="text-center mb-6">
             <div class="text-4xl mb-2">👀</div>
-            <h1 class="text-2xl font-bold text-ice tracking-widest">STRATEGER</h1>
+            <h1 class="text-2xl font-bold text-ice tracking-widest">Streger</h1>
             <p class="text-sm text-gray-400 mt-1" data-i18n="viewerNameHint">Enter your name to join the race</p>
         </div>
         <div class="w-full max-w-xs space-y-4">
@@ -1315,7 +1378,7 @@
         <div class="bg-navy-900 border border-ice/50 rounded-xl p-6 max-w-sm w-full shadow-2xl text-center">
             <div id="onboardStep" class="transition-opacity duration-300">
                 <div id="onboardEmoji" class="text-5xl mb-3">🏁</div>
-                <h2 id="onboardTitle" class="text-xl font-bold text-ice mb-2" data-i18n="onboardWelcome">Welcome to Strateger!</h2>
+                <h2 id="onboardTitle" class="text-xl font-bold text-ice mb-2" data-i18n="onboardWelcome">Welcome to Streger!</h2>
                 <p id="onboardText" class="text-sm text-gray-400 mb-4"></p>
                 <div id="onboardDots" class="flex justify-center gap-2 mb-4">
                     <span class="w-2 h-2 rounded-full bg-ice"></span>
@@ -1345,7 +1408,7 @@
     <div id="installBanner" class="hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-[150] bg-navy-900 border border-ice/50 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 max-w-sm w-[calc(100%-2rem)]">
         <div class="text-2xl">📲</div>
         <div class="flex-1">
-            <div class="text-sm font-bold text-ice" data-i18n="installApp">Install Strateger</div>
+            <div class="text-sm font-bold text-ice" data-i18n="installApp">Install Streger</div>
             <div class="text-[10px] text-gray-400" data-i18n="installDesc">Add to home screen for the best experience</div>
         </div>
         <button onclick="window.installPWA()" class="bg-ice text-navy-950 font-bold px-3 py-1.5 rounded text-xs hover:bg-cyan-300 transition" data-i18n="install">Install</button>
@@ -1412,6 +1475,34 @@
                 <p class="text-xs text-gray-400 mt-1" data-i18n="demoSelectFeatures">Select Pro features to test</p>
             </div>
             <div class="space-y-2">
+                <div class="bg-navy-800 p-3 rounded-lg border border-gray-700/80">
+                    <label class="text-[10px] text-gray-400 uppercase tracking-wider font-bold" data-i18n="demoRaceLength">Race Length</label>
+                    <select id="demoRaceLength" class="input-field mt-1 text-sm">
+                        <option value="sprint" data-i18n-opt="demoLenSprint">Sprint 30m</option>
+                        <option value="club" data-i18n-opt="demoLenClub">Club 1h</option>
+                        <option value="endurance" selected data-i18n-opt="demoLenEndurance">Endurance 3h</option>
+                        <option value="pro" data-i18n-opt="demoLenPro">Pro 6h</option>
+                    </select>
+                    <div class="grid grid-cols-2 gap-2 mt-2">
+                        <div>
+                            <label class="text-[10px] text-gray-500" data-i18n="demoGridSize">Grid Size</label>
+                            <select id="demoGridSize" class="input-field mt-1 text-sm">
+                                <option value="12">12</option>
+                                <option value="20" selected>20</option>
+                                <option value="32">32</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-[10px] text-gray-500" data-i18n="demoChaosLevel">Challenge</label>
+                            <select id="demoChaosLevel" class="input-field mt-1 text-sm">
+                                <option value="low" data-i18n-opt="demoChaosLow">Low</option>
+                                <option value="normal" selected data-i18n-opt="demoChaosNormal">Normal</option>
+                                <option value="high" data-i18n-opt="demoChaosHigh">High</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
                 <label class="flex items-center gap-3 bg-navy-800 p-3 rounded-lg border border-gray-700 cursor-pointer hover:border-neon/30 transition">
                     <input type="checkbox" id="demoFeatLiveTiming" checked disabled class="accent-neon w-4 h-4">
                     <div>
@@ -1454,6 +1545,20 @@
                         <div class="text-[10px] text-gray-500" data-i18n="demoFuelDesc">Track fuel level & pit for refueling</div>
                     </div>
                 </label>
+                <label class="flex items-center gap-3 bg-navy-800 p-3 rounded-lg border border-gray-700 cursor-pointer hover:border-neon/30 transition">
+                    <input type="checkbox" id="demoFeatSafetyCar" checked class="accent-neon w-4 h-4">
+                    <div>
+                        <div class="text-sm font-bold text-white">🚩 <span data-i18n="demoSafetyCarLabel">Safety Car Events</span></div>
+                        <div class="text-[10px] text-gray-500" data-i18n="demoSafetyCarDesc">Temporary neutralization with slower pace</div>
+                    </div>
+                </label>
+                <label class="flex items-center gap-3 bg-navy-800 p-3 rounded-lg border border-gray-700 cursor-pointer hover:border-neon/30 transition">
+                    <input type="checkbox" id="demoFeatIncidents" checked class="accent-neon w-4 h-4">
+                    <div>
+                        <div class="text-sm font-bold text-white">💥 <span data-i18n="demoIncidentsLabel">On-track Incidents</span></div>
+                        <div class="text-[10px] text-gray-500" data-i18n="demoIncidentsDesc">Random incidents that affect specific teams</div>
+                    </div>
+                </label>
             </div>
             <div class="flex gap-2 pt-1">
                 <button onclick="document.getElementById('demoConfigModal').classList.add('hidden')" class="flex-1 bg-navy-800 border border-gray-600 text-gray-300 font-bold py-2.5 rounded-lg text-sm hover:bg-navy-700 transition" data-i18n="cancel">Cancel</button>
@@ -1464,11 +1569,140 @@
         </div>
     </div>
 
+    <footer class="mt-auto border-t border-gray-800/80 bg-navy-950/95 px-4 py-3 text-xs text-gray-400">
+        <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+            <div class="text-center sm:text-start">
+                <span data-i18n="builtBy">Built by HOLYLAND RACING</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="document.getElementById('termsModal').classList.remove('hidden')" class="hover:text-ice transition" data-i18n="termsOfUse">Terms of Use</button>
+                <span class="text-gray-600">|</span>
+                <button onclick="document.getElementById('privacyModal').classList.remove('hidden')" class="hover:text-ice transition" data-i18n="privacyPolicy">Privacy Policy</button>
+            </div>
+        </div>
+    </footer>
+
+    <div id="termsModal" class="hidden fixed inset-0 bg-black/85 z-[230] flex items-center justify-center p-4" onclick="if(event.target===this)this.classList.add('hidden')">
+        <div class="bg-navy-900 border border-gray-700 rounded-xl w-full max-w-2xl p-5 max-h-[85vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-white font-bold text-lg" data-i18n="termsOfUse">Terms of Use</h3>
+                <button onclick="document.getElementById('termsModal').classList.add('hidden')" class="text-gray-400 hover:text-white text-xl">&times;</button>
+            </div>
+            <div class="text-sm text-gray-300 space-y-2 leading-relaxed">
+                <p data-i18n="termsIntro">Streger is provided to support race strategy operations. You are responsible for operational decisions during events.</p>
+                <p data-i18n="termsData">Do not upload sensitive personal data beyond what is required for team coordination.</p>
+                <p data-i18n="termsLiability">HOLYLAND RACING is not liable for race outcomes or losses resulting from connectivity, timing-source, or user-input issues.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="privacyModal" class="hidden fixed inset-0 bg-black/85 z-[230] flex items-center justify-center p-4" onclick="if(event.target===this)this.classList.add('hidden')">
+        <div class="bg-navy-900 border border-gray-700 rounded-xl w-full max-w-2xl p-5 max-h-[85vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-white font-bold text-lg" data-i18n="privacyPolicy">Privacy Policy</h3>
+                <button onclick="document.getElementById('privacyModal').classList.add('hidden')" class="text-gray-400 hover:text-white text-xl">&times;</button>
+            </div>
+            <div class="text-sm text-gray-300 space-y-2 leading-relaxed">
+                <p data-i18n="privacyIntro">Streger stores race configuration, session state, and user preferences to provide continuity and collaboration.</p>
+                <p data-i18n="privacyStorage">Data is stored locally and, when enabled, via connected cloud services (for example Google and backend APIs).</p>
+                <p data-i18n="privacyContact">For privacy requests, contact HOLYLAND RACING through the in-app Contact Us channel.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="broadcastPanel" class="hidden fixed inset-0 bg-[#04070f] z-[240] text-white">
+        <div class="h-full w-full flex flex-col">
+            <div class="px-4 py-3 border-b border-white/10 bg-black/30 backdrop-blur-sm flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3 min-w-0">
+                    <div class="w-9 h-9 rounded-lg bg-ice/20 border border-ice/40 flex items-center justify-center text-ice">
+                        <i class="fas fa-tower-broadcast"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <div id="broadcastTitle" class="font-black tracking-wide text-sm" data-i18n="broadcastTitle">STREGER BROADCAST</div>
+                        <div class="text-[11px] text-gray-300 truncate"><span data-i18n="broadcastBy">By HOLYLAND RACING</span></div>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button id="broadcastShareBtn" onclick="window.copyBroadcastLink()" class="bg-ice text-navy-950 px-3 py-1.5 rounded text-xs font-bold hover:bg-cyan-300 transition" data-i18n="broadcastShare">Share View</button>
+                    <button onclick="window.toggleBroadcastMode(false)" class="bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded text-xs font-bold transition" data-i18n="close">Close</button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-3 p-3 flex-1 overflow-y-auto">
+                <section class="lg:col-span-8 bg-gradient-to-br from-[#0a1222] to-[#131d32] border border-white/10 rounded-2xl p-4">
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
+                        <div class="bg-black/20 border border-white/10 rounded-xl p-3 text-center">
+                            <div class="text-[10px] text-gray-300 uppercase tracking-wider" data-i18n="raceTime">Race Time</div>
+                            <div id="broadcastRaceTime" class="text-2xl font-mono font-black">00:00:00</div>
+                        </div>
+                        <div class="bg-black/20 border border-white/10 rounded-xl p-3 text-center">
+                            <div class="text-[10px] text-gray-300 uppercase tracking-wider" data-i18n="pos">POS</div>
+                            <div id="broadcastPos" class="text-2xl font-black text-ice">-</div>
+                        </div>
+                        <div class="bg-black/20 border border-white/10 rounded-xl p-3 text-center">
+                            <div class="text-[10px] text-gray-300 uppercase tracking-wider" data-i18n="last">LAST</div>
+                            <div id="broadcastLast" class="text-lg font-mono">-</div>
+                        </div>
+                        <div class="bg-black/20 border border-white/10 rounded-xl p-3 text-center">
+                            <div class="text-[10px] text-gray-300 uppercase tracking-wider" data-i18n="best">BEST</div>
+                            <div id="broadcastBest" class="text-lg font-mono text-neon">-</div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2 mt-2">
+                        <div class="bg-black/20 border border-white/10 rounded-xl p-3">
+                            <div class="text-[10px] text-gray-300 uppercase tracking-wider" data-i18n="current">Current</div>
+                            <div id="broadcastCurrentDriver" class="text-xl font-bold text-ice truncate">---</div>
+                        </div>
+                        <div class="bg-black/20 border border-white/10 rounded-xl p-3">
+                            <div class="text-[10px] text-gray-300 uppercase tracking-wider" data-i18n="nextDriverLabel">Next Driver</div>
+                            <div id="broadcastNextDriver" class="text-xl font-bold text-neon truncate">---</div>
+                        </div>
+                        <div class="bg-black/20 border border-white/10 rounded-xl p-3">
+                            <div class="text-[10px] text-gray-300 uppercase tracking-wider" data-i18n="statusHeader">STATUS</div>
+                            <div id="broadcastPitStatus" class="text-xl font-bold text-green-400">ON TRACK</div>
+                        </div>
+                    </div>
+
+                    <div class="mt-3 bg-black/20 border border-white/10 rounded-xl p-3">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="text-xs text-gray-300 font-bold uppercase tracking-wide" data-i18n="broadcastLeaderboard">Top Competitors</div>
+                            <div class="text-[10px] text-gray-400"><span data-i18n="live">LIVE</span> • <span id="broadcastHeartbeat">HB --</span></div>
+                        </div>
+                        <div id="broadcastLeaderboard" class="space-y-1"></div>
+                    </div>
+                </section>
+
+                <aside class="lg:col-span-4 flex flex-col gap-3">
+                    <div class="bg-gradient-to-br from-[#131b2e] to-[#1a2440] border border-white/10 rounded-2xl p-4">
+                        <div class="text-[11px] text-gray-300 uppercase tracking-wide mb-2" data-i18n="broadcastBranding">Branding & Sponsors</div>
+                        <label class="text-[10px] text-gray-400" data-i18n="broadcastHeadline">Headline</label>
+                        <input id="broadcastHeadlineInput" type="text" class="input-field text-sm mt-1" data-i18n="broadcastHeadlinePlaceholder" placeholder="HOLYLAND RACING LIVE" oninput="window.updateBroadcastBranding()">
+                        <div class="grid grid-cols-1 gap-2 mt-2">
+                            <input id="broadcastSponsor1" type="text" class="input-field text-sm" data-i18n="broadcastSponsor1Placeholder" placeholder="Sponsor 1" oninput="window.updateBroadcastBranding()">
+                            <input id="broadcastSponsor2" type="text" class="input-field text-sm" data-i18n="broadcastSponsor2Placeholder" placeholder="Sponsor 2" oninput="window.updateBroadcastBranding()">
+                            <input id="broadcastSponsor3" type="text" class="input-field text-sm" data-i18n="broadcastSponsor3Placeholder" placeholder="Sponsor 3" oninput="window.updateBroadcastBranding()">
+                        </div>
+                    </div>
+
+                    <div class="bg-black/25 border border-white/10 rounded-2xl p-4">
+                        <div id="broadcastHeadlinePreview" class="text-xl font-black mb-2">HOLYLAND RACING LIVE</div>
+                        <div id="broadcastSponsorDeck" class="grid grid-cols-1 gap-2">
+                            <div class="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm">Sponsor 1</div>
+                            <div class="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm">Sponsor 2</div>
+                            <div class="rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-sm">Sponsor 3</div>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </div>
+
     <script src="js/state.js?v=5"></script>
     <script src="js/auth.js?v=5"></script>
     <script src="js/network.js?v=5"></script>
     <script src="js/strategy.js?v=5"></script>
-    <script src="js/live-timing.js?v=5"></script>
+    <script src="js/live-timing.js?v=6"></script>
     <script src="js/ui.js?v=5"></script>
     <script src="js/main.js?v=5"></script>
 </body>

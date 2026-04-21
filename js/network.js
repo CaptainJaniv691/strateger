@@ -52,6 +52,7 @@ window.updateShareUI = function() {
     const shareBtn = document.getElementById('shareRaceBtn');
     const manageBtn = document.getElementById('viewerManageBtn');
     const driverLinkBtn = document.getElementById('driverLinkBtn');
+    const broadcastBtn = document.getElementById('broadcastBtn');
     
     // מציג את הכפתור רק אם יש ID והמשתמש הוא HOST
     if (window.myId && window.role === 'host') {
@@ -62,6 +63,10 @@ window.updateShareUI = function() {
         
         if (driverLinkBtn) {
             driverLinkBtn.classList.remove('hidden');
+        }
+
+        if (broadcastBtn) {
+            broadcastBtn.classList.remove('hidden');
         }
         
         if (manageBtn) {
@@ -76,6 +81,8 @@ window.updateShareUI = function() {
             dashIdEl.innerText = window.myId;
             dashIdEl.classList.remove('hidden');
         }
+    } else if (broadcastBtn) {
+        broadcastBtn.classList.add('hidden');
     }
 };
 

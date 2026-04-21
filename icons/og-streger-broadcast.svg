@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">Streger Broadcast</title>
+  <desc id="desc">Sponsor-ready live race broadcast screen with clean overlays.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#030b18"/>
+      <stop offset="100%" stop-color="#102a4f"/>
+    </linearGradient>
+    <linearGradient id="chip" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#60a5fa"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect x="64" y="64" width="1072" height="502" rx="24" fill="#020617" fill-opacity="0.60" stroke="#60a5fa" stroke-opacity="0.35"/>
+
+  <text x="106" y="166" fill="#e2e8f0" font-family="Segoe UI, Arial, sans-serif" font-size="52" font-weight="900">STREGER BROADCAST</text>
+  <text x="106" y="212" fill="#7dd3fc" font-family="Segoe UI, Arial, sans-serif" font-size="25" font-weight="700">Sponsor and viewer live screen</text>
+
+  <rect x="106" y="266" width="296" height="112" rx="16" fill="#0f172a" stroke="#22d3ee" stroke-opacity="0.4"/>
+  <text x="128" y="310" fill="#94a3b8" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700">RACE TIME</text>
+  <text x="128" y="350" fill="#f8fafc" font-family="Consolas, monospace" font-size="33" font-weight="700">01:42:19</text>
+
+  <rect x="422" y="266" width="296" height="112" rx="16" fill="#0f172a" stroke="#22d3ee" stroke-opacity="0.4"/>
+  <text x="444" y="310" fill="#94a3b8" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700">POSITION</text>
+  <text x="444" y="350" fill="#22d3ee" font-family="Segoe UI, Arial, sans-serif" font-size="36" font-weight="900">P3</text>
+
+  <rect x="738" y="266" width="296" height="112" rx="16" fill="#0f172a" stroke="#22d3ee" stroke-opacity="0.4"/>
+  <text x="760" y="310" fill="#94a3b8" font-family="Segoe UI, Arial, sans-serif" font-size="20" font-weight="700">STATUS</text>
+  <text x="760" y="350" fill="#86efac" font-family="Segoe UI, Arial, sans-serif" font-size="32" font-weight="800">ON TRACK</text>
+
+  <rect x="106" y="420" width="494" height="52" rx="12" fill="url(#chip)"/>
+  <text x="132" y="454" fill="#032231" font-family="Segoe UI, Arial, sans-serif" font-size="25" font-weight="800">Ready to share with sponsors instantly</text>
+
+  <text x="106" y="522" fill="#cbd5e1" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="700">HOLYLAND RACING</text>
+</svg>
