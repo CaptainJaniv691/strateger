@@ -500,14 +500,27 @@ window.confirmDemoStart = function() {
     // Read user feature choices into demoConfig
     const raceLength = document.getElementById('demoRaceLength')?.value || 'endurance';
     let customDuration = null;
+    let customDurationMinutes = null;
     if (raceLength === 'custom') {
-        const hrs = parseInt(document.getElementById('demoCustomHours')?.value || '0', 10);
-        const mins = parseInt(document.getElementById('demoCustomMinutes')?.value || '0', 10);
-        customDuration = (hrs || 0) + (mins || 0) / 60;
+        const rawHrs = parseInt(document.getElementById('demoCustomHours')?.value || '0', 10);
+        const rawMins = parseInt(document.getElementById('demoCustomMinutes')?.value || '0', 10);
+        const hrs = Number.isFinite(rawHrs) ? Math.max(0, rawHrs) : 0;
+        const mins = Number.isFinite(rawMins) ? Math.max(0, Math.min(59, rawMins)) : 0;
+        customDurationMinutes = (hrs * 60) + mins;
+
+        if (customDurationMinutes <= 0) {
+            if (typeof window.showToast === 'function') {
+                window.showToast('Please set a custom demo duration (hours/minutes).', 'warning');
+            }
+            return;
+        }
+
+        customDuration = customDurationMinutes / 60;
     }
     window.demoConfig = {
         raceLength,
         customDuration,
+        customDurationMinutes,
         gridSize: parseInt(document.getElementById('demoGridSize')?.value || '20', 10),
         chaosLevel: document.getElementById('demoChaosLevel')?.value || 'normal',
         rain: document.getElementById('demoFeatRain')?.checked ?? true,
@@ -543,7 +556,11 @@ window.startDemoRace = function() {
         pro: { duration: 6, stops: 10, minStint: 25, maxStint: 55 }
     };
     let profile;
-    if (window.demoConfig?.raceLength === 'custom' && window.demoConfig?.customDuration) {
+    if (
+        window.demoConfig?.raceLength === 'custom' &&
+        Number.isFinite(window.demoConfig?.customDuration) &&
+        window.demoConfig.customDuration > 0
+    ) {
         profile = {
             duration: window.demoConfig.customDuration,
             stops: Math.max(1, Math.round(window.demoConfig.customDuration * 2)),
@@ -647,6 +664,73 @@ window.startDemoRace = function() {
     const badge = document.getElementById('demoBadge');
     if (badge) badge.classList.remove('hidden');
 };
+
+window.adjustBodyScrollForViewport = function() {
+    const body = document.body;
+    if (!body) return;
+
+    const screenIds = [
+        'setupScreen',
+        'raceDashboard',
+        'previewScreen',
+        'clientWaitScreen',
+        'viewerNameScreen',
+        'driverEntryScreen'
+    ];
+
+    let active = null;
+    for (const id of screenIds) {
+        const el = document.getElementById(id);
+        if (!el) continue;
+        if (!el.classList.contains('hidden') && getComputedStyle(el).display !== 'none') {
+            active = el;
+            break;
+        }
+    }
+
+    if (!active) {
+        body.classList.remove('fit-no-scroll');
+        return;
+    }
+
+    const footer = document.querySelector('footer');
+    const footerH = footer ? footer.offsetHeight : 0;
+    const contentH = active.scrollHeight + footerH;
+    const viewportH = window.innerHeight;
+    const fits = contentH <= (viewportH - 8);
+
+    body.classList.toggle('fit-no-scroll', fits);
+};
+
+window.addEventListener('resize', () => {
+    if (typeof window.adjustBodyScrollForViewport === 'function') {
+        window.adjustBodyScrollForViewport();
+    }
+});
+
+window.addEventListener('orientationchange', () => {
+    if (typeof window.adjustBodyScrollForViewport === 'function') {
+        window.adjustBodyScrollForViewport();
+    }
+});
+
+window.addEventListener('load', () => {
+    if (typeof window.adjustBodyScrollForViewport === 'function') {
+        setTimeout(window.adjustBodyScrollForViewport, 60);
+    }
+});
+
+const __fitObserver = new MutationObserver(() => {
+    if (typeof window.adjustBodyScrollForViewport === 'function') {
+        window.adjustBodyScrollForViewport();
+    }
+});
+
+__fitObserver.observe(document.body, {
+    subtree: true,
+    attributes: true,
+    attributeFilter: ['class', 'style']
+});
 
 // ==========================================
 // 🎮 MODE CONTROL

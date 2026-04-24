@@ -1557,6 +1557,7 @@ window.translations = {
         demoLenClub: 'Club 1h',
         demoLenEndurance: 'Endurance 3h',
         demoLenPro: 'Pro 6h',
+        demoLenCustom: 'Custom...',
         demoGridSize: 'Grid Size',
         demoChaosLevel: 'Challenge',
         demoChaosLow: 'Low',
@@ -1589,7 +1590,7 @@ window.translations = {
             privacyIntro: 'Streger שומרת תצורת מירוץ, מצב סשן והעדפות משתמש לצורך רציפות ושיתוף פעולה.',
             privacyStorage: 'הנתונים נשמרים מקומית, ובמידת הצורך גם בשירותי ענן מחוברים (למשל Google ו-API backend).',
             privacyContact: 'לפניות פרטיות ניתן ליצור קשר עם HOLYLAND RACING דרך Contact Us באפליקציה.',
-            demoRaceLength: 'משך מירוץ', demoLenSprint: 'ספרינט 30דק', demoLenClub: 'מועדון 1ש', demoLenEndurance: 'אנדורנס 3ש', demoLenPro: 'פרו 6ש',
+            demoRaceLength: 'משך מירוץ', demoLenSprint: 'ספרינט 30דק', demoLenClub: 'מועדון 1ש', demoLenEndurance: 'אנדורנס 3ש', demoLenPro: 'פרו 6ש', demoLenCustom: 'מותאם אישית...',
             demoGridSize: 'גודל גריד', demoChaosLevel: 'רמת אתגר', demoChaosLow: 'נמוכה', demoChaosNormal: 'רגילה', demoChaosHigh: 'גבוהה',
             demoSafetyCarLabel: 'אירועי Safety Car', demoSafetyCarDesc: 'ניטרול זמני עם קצב איטי יותר', demoIncidentsLabel: 'תקריות מסלול', demoIncidentsDesc: 'אירועים אקראיים שמשפיעים על קבוצות ספציפיות',
             broadcast: 'שידור', broadcastTitle: 'שידור STREGER', broadcastBy: 'מבית HOLYLAND RACING', broadcastShare: 'שתף צפייה', broadcastLeaderboard: 'מובילי המסלול', broadcastBranding: 'מיתוג וספונסרים', broadcastHeadline: 'כותרת', broadcastHeadlinePlaceholder: 'HOLYLAND RACING בשידור חי', broadcastSponsor1Placeholder: 'ספונסר 1', broadcastSponsor2Placeholder: 'ספונסר 2', broadcastSponsor3Placeholder: 'ספונסר 3', broadcastLinkCopied: 'קישור השידור הועתק'
@@ -1602,7 +1603,7 @@ window.translations = {
             privacyIntro: 'Streger stocke la configuration de course, l etat de session et les preferences utilisateur pour assurer la continuite.',
             privacyStorage: 'Les donnees sont stockees localement et, si active, via des services cloud connectes.',
             privacyContact: 'Pour toute demande de confidentialite, contactez HOLYLAND RACING via Contact Us.',
-            demoRaceLength: 'Duree de course', demoLenSprint: 'Sprint 30 min', demoLenClub: 'Club 1 h', demoLenEndurance: 'Endurance 3 h', demoLenPro: 'Pro 6 h',
+            demoRaceLength: 'Duree de course', demoLenSprint: 'Sprint 30 min', demoLenClub: 'Club 1 h', demoLenEndurance: 'Endurance 3 h', demoLenPro: 'Pro 6 h', demoLenCustom: 'Personnalise...',
             demoGridSize: 'Taille de grille', demoChaosLevel: 'Niveau de challenge', demoChaosLow: 'Faible', demoChaosNormal: 'Normal', demoChaosHigh: 'Eleve',
             demoSafetyCarLabel: 'Evenements Safety Car', demoSafetyCarDesc: 'Neutralisation temporaire avec rythme reduit', demoIncidentsLabel: 'Incidents piste', demoIncidentsDesc: 'Incidents aleatoires impactant certaines equipes',
             broadcast: 'Diffusion', broadcastTitle: 'DIFFUSION STREGER', broadcastBy: 'Par HOLYLAND RACING', broadcastShare: 'Partager la vue', broadcastLeaderboard: 'Top concurrents', broadcastBranding: 'Marque et sponsors', broadcastHeadline: 'Titre', broadcastHeadlinePlaceholder: 'HOLYLAND RACING EN DIRECT', broadcastSponsor1Placeholder: 'Sponsor 1', broadcastSponsor2Placeholder: 'Sponsor 2', broadcastSponsor3Placeholder: 'Sponsor 3', broadcastLinkCopied: 'Lien de diffusion copie'
@@ -1615,7 +1616,7 @@ window.translations = {
             privacyIntro: 'O Streger armazena configuracao da corrida, estado da sessao e preferencias do usuario para continuidade.',
             privacyStorage: 'Os dados sao armazenados localmente e, quando ativado, em servicos de nuvem conectados.',
             privacyContact: 'Para solicitacoes de privacidade, contate a HOLYLAND RACING pelo Contact Us.',
-            demoRaceLength: 'Duracao da corrida', demoLenSprint: 'Sprint 30m', demoLenClub: 'Clube 1h', demoLenEndurance: 'Endurance 3h', demoLenPro: 'Pro 6h',
+            demoRaceLength: 'Duracao da corrida', demoLenSprint: 'Sprint 30m', demoLenClub: 'Clube 1h', demoLenEndurance: 'Endurance 3h', demoLenPro: 'Pro 6h', demoLenCustom: 'Personalizado...',
             demoGridSize: 'Tamanho do grid', demoChaosLevel: 'Nivel de desafio', demoChaosLow: 'Baixo', demoChaosNormal: 'Normal', demoChaosHigh: 'Alto',
             demoSafetyCarLabel: 'Eventos de Safety Car', demoSafetyCarDesc: 'Neutralizacao temporaria com ritmo mais lento', demoIncidentsLabel: 'Incidentes na pista', demoIncidentsDesc: 'Incidentes aleatorios que afetam equipes especificas',
             broadcast: 'Transmissao', broadcastTitle: 'TRANSMISSAO STREGER', broadcastBy: 'Por HOLYLAND RACING', broadcastShare: 'Compartilhar visao', broadcastLeaderboard: 'Principais competidores', broadcastBranding: 'Marca e patrocinadores', broadcastHeadline: 'Manchete', broadcastHeadlinePlaceholder: 'HOLYLAND RACING AO VIVO', broadcastSponsor1Placeholder: 'Patrocinador 1', broadcastSponsor2Placeholder: 'Patrocinador 2', broadcastSponsor3Placeholder: 'Patrocinador 3', broadcastLinkCopied: 'Link da transmissao copiado'
@@ -1628,7 +1629,7 @@ window.translations = {
             privacyIntro: 'Streger хранит конфигурацию гонки, состояние сессии и пользовательские настройки для непрерывной работы.',
             privacyStorage: 'Данные хранятся локально и, при включении, через подключенные облачные сервисы.',
             privacyContact: 'По вопросам конфиденциальности свяжитесь с HOLYLAND RACING через Contact Us.',
-            demoRaceLength: 'Длительность гонки', demoLenSprint: 'Спринт 30м', demoLenClub: 'Клуб 1ч', demoLenEndurance: 'Эндюранс 3ч', demoLenPro: 'Про 6ч',
+            demoRaceLength: 'Длительность гонки', demoLenSprint: 'Спринт 30м', demoLenClub: 'Клуб 1ч', demoLenEndurance: 'Эндюранс 3ч', demoLenPro: 'Про 6ч', demoLenCustom: 'Своя длительность...',
             demoGridSize: 'Размер решетки', demoChaosLevel: 'Сложность', demoChaosLow: 'Низкая', demoChaosNormal: 'Нормальная', demoChaosHigh: 'Высокая',
             demoSafetyCarLabel: 'События Safety Car', demoSafetyCarDesc: 'Временная нейтрализация с более медленным темпом', demoIncidentsLabel: 'Инциденты на трассе', demoIncidentsDesc: 'Случайные инциденты, влияющие на отдельные команды',
             broadcast: 'Трансляция', broadcastTitle: 'ТРАНСЛЯЦИЯ STREGER', broadcastBy: 'От HOLYLAND RACING', broadcastShare: 'Поделиться видом', broadcastLeaderboard: 'Лидеры', broadcastBranding: 'Брендинг и спонсоры', broadcastHeadline: 'Заголовок', broadcastHeadlinePlaceholder: 'HOLYLAND RACING В ЭФИРЕ', broadcastSponsor1Placeholder: 'Спонсор 1', broadcastSponsor2Placeholder: 'Спонсор 2', broadcastSponsor3Placeholder: 'Спонсор 3', broadcastLinkCopied: 'Ссылка на трансляцию скопирована'
@@ -1641,7 +1642,7 @@ window.translations = {
             privacyIntro: 'يقوم Streger بحفظ اعدادات السباق وحالة الجلسة وتفضيلات المستخدم لاستمرارية العمل.',
             privacyStorage: 'يتم تخزين البيانات محليا وعبر خدمات سحابية متصلة عند التفعيل.',
             privacyContact: 'لطلبات الخصوصية، تواصل مع HOLYLAND RACING عبر Contact Us داخل التطبيق.',
-            demoRaceLength: 'مدة السباق', demoLenSprint: 'سبرينت 30د', demoLenClub: 'نادي 1س', demoLenEndurance: 'تحمل 3س', demoLenPro: 'احترافي 6س',
+            demoRaceLength: 'مدة السباق', demoLenSprint: 'سبرينت 30د', demoLenClub: 'نادي 1س', demoLenEndurance: 'تحمل 3س', demoLenPro: 'احترافي 6س', demoLenCustom: 'مخصص...',
             demoGridSize: 'حجم الشبكة', demoChaosLevel: 'مستوى التحدي', demoChaosLow: 'منخفض', demoChaosNormal: 'عادي', demoChaosHigh: 'مرتفع',
             demoSafetyCarLabel: 'احداث سيارة الامان', demoSafetyCarDesc: 'تحييد مؤقت بوتيرة ابطأ', demoIncidentsLabel: 'حوادث المضمار', demoIncidentsDesc: 'حوادث عشوائية تؤثر على فرق محددة',
             broadcast: 'بث', broadcastTitle: 'بث STREGER', broadcastBy: 'بواسطة HOLYLAND RACING', broadcastShare: 'مشاركة العرض', broadcastLeaderboard: 'افضل المتنافسين', broadcastBranding: 'الهوية والرعاة', broadcastHeadline: 'العنوان', broadcastHeadlinePlaceholder: 'HOLYLAND RACING مباشر', broadcastSponsor1Placeholder: 'الراعي 1', broadcastSponsor2Placeholder: 'الراعي 2', broadcastSponsor3Placeholder: 'الراعي 3', broadcastLinkCopied: 'تم نسخ رابط البث'
@@ -1654,7 +1655,7 @@ window.translations = {
             privacyIntro: 'Streger almacena configuracion de carrera, estado de sesion y preferencias del usuario para continuidad.',
             privacyStorage: 'Los datos se almacenan localmente y, cuando aplica, en servicios en la nube conectados.',
             privacyContact: 'Para solicitudes de privacidad, contacta a HOLYLAND RACING mediante Contact Us.',
-            demoRaceLength: 'Duracion de carrera', demoLenSprint: 'Sprint 30m', demoLenClub: 'Club 1h', demoLenEndurance: 'Endurance 3h', demoLenPro: 'Pro 6h',
+            demoRaceLength: 'Duracion de carrera', demoLenSprint: 'Sprint 30m', demoLenClub: 'Club 1h', demoLenEndurance: 'Endurance 3h', demoLenPro: 'Pro 6h', demoLenCustom: 'Personalizado...',
             demoGridSize: 'Tamano de parrilla', demoChaosLevel: 'Nivel de desafio', demoChaosLow: 'Bajo', demoChaosNormal: 'Normal', demoChaosHigh: 'Alto',
             demoSafetyCarLabel: 'Eventos de Safety Car', demoSafetyCarDesc: 'Neutralizacion temporal con ritmo mas lento', demoIncidentsLabel: 'Incidentes en pista', demoIncidentsDesc: 'Incidentes aleatorios que afectan equipos especificos',
             broadcast: 'Transmision', broadcastTitle: 'TRANSMISION STREGER', broadcastBy: 'Por HOLYLAND RACING', broadcastShare: 'Compartir vista', broadcastLeaderboard: 'Top competidores', broadcastBranding: 'Marca y patrocinadores', broadcastHeadline: 'Titular', broadcastHeadlinePlaceholder: 'HOLYLAND RACING EN VIVO', broadcastSponsor1Placeholder: 'Patrocinador 1', broadcastSponsor2Placeholder: 'Patrocinador 2', broadcastSponsor3Placeholder: 'Patrocinador 3', broadcastLinkCopied: 'Enlace de transmision copiado'
@@ -1667,7 +1668,7 @@ window.translations = {
             privacyIntro: 'Streger memorizza configurazione gara, stato sessione e preferenze utente per garantire continuita.',
             privacyStorage: 'I dati sono salvati localmente e, quando attivo, tramite servizi cloud collegati.',
             privacyContact: 'Per richieste privacy, contatta HOLYLAND RACING tramite Contact Us.',
-            demoRaceLength: 'Durata gara', demoLenSprint: 'Sprint 30m', demoLenClub: 'Club 1h', demoLenEndurance: 'Endurance 3h', demoLenPro: 'Pro 6h',
+            demoRaceLength: 'Durata gara', demoLenSprint: 'Sprint 30m', demoLenClub: 'Club 1h', demoLenEndurance: 'Endurance 3h', demoLenPro: 'Pro 6h', demoLenCustom: 'Personalizzato...',
             demoGridSize: 'Dimensione griglia', demoChaosLevel: 'Livello sfida', demoChaosLow: 'Basso', demoChaosNormal: 'Normale', demoChaosHigh: 'Alto',
             demoSafetyCarLabel: 'Eventi Safety Car', demoSafetyCarDesc: 'Neutralizzazione temporanea con ritmo ridotto', demoIncidentsLabel: 'Incidenti in pista', demoIncidentsDesc: 'Incidenti casuali che influenzano team specifici',
             broadcast: 'Broadcast', broadcastTitle: 'BROADCAST STREGER', broadcastBy: 'Di HOLYLAND RACING', broadcastShare: 'Condividi vista', broadcastLeaderboard: 'Top concorrenti', broadcastBranding: 'Branding e sponsor', broadcastHeadline: 'Titolo', broadcastHeadlinePlaceholder: 'HOLYLAND RACING LIVE', broadcastSponsor1Placeholder: 'Sponsor 1', broadcastSponsor2Placeholder: 'Sponsor 2', broadcastSponsor3Placeholder: 'Sponsor 3', broadcastLinkCopied: 'Link broadcast copiato'
@@ -1680,7 +1681,7 @@ window.translations = {
             privacyIntro: 'Streger ინახავს რბოლის კონფიგურაციას, სესიის მდგომარეობას და მომხმარებლის პრეფერენციებს უწყვეტობისთვის.',
             privacyStorage: 'მონაცემები ინახება ლოკალურად და, საჭიროების შემთხვევაში, დაკავშირებულ cloud სერვისებში.',
             privacyContact: 'კონფიდენციალურობის მოთხოვნებისთვის დაგვიკავშირდით Contact Us არხით HOLYLAND RACING-ში.',
-            demoRaceLength: 'რბოლის ხანგრძლივობა', demoLenSprint: 'სპრინტი 30წთ', demoLenClub: 'კლუბი 1სთ', demoLenEndurance: 'ენდურანსი 3სთ', demoLenPro: 'პრო 6სთ',
+            demoRaceLength: 'რბოლის ხანგრძლივობა', demoLenSprint: 'სპრინტი 30წთ', demoLenClub: 'კლუბი 1სთ', demoLenEndurance: 'ენდურანსი 3სთ', demoLenPro: 'პრო 6სთ', demoLenCustom: 'მორგებული...',
             demoGridSize: 'გრიდის ზომა', demoChaosLevel: 'სირთულის დონე', demoChaosLow: 'დაბალი', demoChaosNormal: 'ნორმალური', demoChaosHigh: 'მაღალი',
             demoSafetyCarLabel: 'Safety Car მოვლენები', demoSafetyCarDesc: 'დროებითი ნეიტრალიზაცია დაბალი ტემპით', demoIncidentsLabel: 'ტრეკის ინციდენტები', demoIncidentsDesc: 'შემთხვევითი ინციდენტები, რომლებიც კონკრეტულ გუნდებზე მოქმედებს',
             broadcast: 'ბროდქასტი', broadcastTitle: 'STREGER ბროდქასტი', broadcastBy: 'HOLYLAND RACING', broadcastShare: 'ხედის გაზიარება', broadcastLeaderboard: 'ლიდერები', broadcastBranding: 'ბრენდინგი და სპონსორები', broadcastHeadline: 'სათაური', broadcastHeadlinePlaceholder: 'HOLYLAND RACING ლაივი', broadcastSponsor1Placeholder: 'სპონსორი 1', broadcastSponsor2Placeholder: 'სპონსორი 2', broadcastSponsor3Placeholder: 'სპონსორი 3', broadcastLinkCopied: 'ბროდქასტის ბმული დაკოპირდა'
@@ -1693,7 +1694,7 @@ window.translations = {
             privacyIntro: 'Streger speichert Rennkonfiguration, Sitzungsstatus und Nutzereinstellungen fur Kontinuitat.',
             privacyStorage: 'Daten werden lokal gespeichert und bei Aktivierung uber verbundene Cloud-Dienste verarbeitet.',
             privacyContact: 'Bei Datenschutzanfragen kontaktieren Sie HOLYLAND RACING uber Contact Us.',
-            demoRaceLength: 'Renndauer', demoLenSprint: 'Sprint 30m', demoLenClub: 'Club 1h', demoLenEndurance: 'Endurance 3h', demoLenPro: 'Pro 6h',
+            demoRaceLength: 'Renndauer', demoLenSprint: 'Sprint 30m', demoLenClub: 'Club 1h', demoLenEndurance: 'Endurance 3h', demoLenPro: 'Pro 6h', demoLenCustom: 'Benutzerdefiniert...',
             demoGridSize: 'Grid-Grosse', demoChaosLevel: 'Schwierigkeitsgrad', demoChaosLow: 'Niedrig', demoChaosNormal: 'Normal', demoChaosHigh: 'Hoch',
             demoSafetyCarLabel: 'Safety-Car-Ereignisse', demoSafetyCarDesc: 'Zeitweise Neutralisierung mit langsamerem Tempo', demoIncidentsLabel: 'Streckenereignisse', demoIncidentsDesc: 'Zufallige Vorfalle mit Einfluss auf einzelne Teams',
             broadcast: 'Broadcast', broadcastTitle: 'STREGER BROADCAST', broadcastBy: 'Von HOLYLAND RACING', broadcastShare: 'Ansicht teilen', broadcastLeaderboard: 'Top-Teilnehmer', broadcastBranding: 'Branding und Sponsoren', broadcastHeadline: 'Headline', broadcastHeadlinePlaceholder: 'HOLYLAND RACING LIVE', broadcastSponsor1Placeholder: 'Sponsor 1', broadcastSponsor2Placeholder: 'Sponsor 2', broadcastSponsor3Placeholder: 'Sponsor 3', broadcastLinkCopied: 'Broadcast-Link kopiert'
@@ -1706,7 +1707,7 @@ window.translations = {
             privacyIntro: 'Streger は継続利用のためにレース設定、セッション状態、ユーザー設定を保存します。',
             privacyStorage: 'データはローカルに保存され、必要時には接続されたクラウドサービスでも処理されます。',
             privacyContact: 'プライバシーに関するお問い合わせはアプリ内 Contact Us から HOLYLAND RACING へご連絡ください。',
-            demoRaceLength: 'レース時間', demoLenSprint: 'スプリント 30分', demoLenClub: 'クラブ 1時間', demoLenEndurance: '耐久 3時間', demoLenPro: 'プロ 6時間',
+            demoRaceLength: 'レース時間', demoLenSprint: 'スプリント 30分', demoLenClub: 'クラブ 1時間', demoLenEndurance: '耐久 3時間', demoLenPro: 'プロ 6時間', demoLenCustom: 'カスタム...',
             demoGridSize: 'グリッド数', demoChaosLevel: '難易度', demoChaosLow: '低', demoChaosNormal: '標準', demoChaosHigh: '高',
             demoSafetyCarLabel: 'セーフティカーイベント', demoSafetyCarDesc: '一時的にペースを落とす中立化', demoIncidentsLabel: 'コース上のインシデント', demoIncidentsDesc: '特定チームに影響するランダムインシデント',
             broadcast: '配信', broadcastTitle: 'STREGER 配信', broadcastBy: 'HOLYLAND RACING', broadcastShare: '視聴リンク共有', broadcastLeaderboard: '上位コンペティター', broadcastBranding: 'ブランドとスポンサー', broadcastHeadline: '見出し', broadcastHeadlinePlaceholder: 'HOLYLAND RACING ライブ', broadcastSponsor1Placeholder: 'スポンサー 1', broadcastSponsor2Placeholder: 'スポンサー 2', broadcastSponsor3Placeholder: 'スポンサー 3', broadcastLinkCopied: '配信リンクをコピーしました'
@@ -1719,7 +1720,7 @@ window.translations = {
             privacyIntro: 'Το Streger αποθηκευει ρυθμισεις αγωνα, κατασταση συνεδριας και προτιμησεις χρηστη για συνεχεια.',
             privacyStorage: 'Τα δεδομενα αποθηκευονται τοπικα και, οταν ενεργοποιηθει, μεσω συνδεδεμενων cloud υπηρεσιων.',
             privacyContact: 'Για αιτηματα απορρητου επικοινωνηστε με την HOLYLAND RACING απο το Contact Us.',
-            demoRaceLength: 'Διαρκεια αγωνα', demoLenSprint: 'Sprint 30λ', demoLenClub: 'Club 1ω', demoLenEndurance: 'Endurance 3ω', demoLenPro: 'Pro 6ω',
+            demoRaceLength: 'Διαρκεια αγωνα', demoLenSprint: 'Sprint 30λ', demoLenClub: 'Club 1ω', demoLenEndurance: 'Endurance 3ω', demoLenPro: 'Pro 6ω', demoLenCustom: 'Προσαρμοσμενο...',
             demoGridSize: 'Μεγεθος grid', demoChaosLevel: 'Επιπεδο προκλησης', demoChaosLow: 'Χαμηλο', demoChaosNormal: 'Κανονικο', demoChaosHigh: 'Υψηλο',
             demoSafetyCarLabel: 'Γεγονοτα Safety Car', demoSafetyCarDesc: 'Προσωρινη ουδετεροποιηση με χαμηλοτερο ρυθμο', demoIncidentsLabel: 'Περιστατικα πιστας', demoIncidentsDesc: 'Τυχαια περιστατικα που επηρεαζουν συγκεκριμενες ομαδες',
             broadcast: 'Μεταδοση', broadcastTitle: 'STREGER ΜΕΤΑΔΟΣΗ', broadcastBy: 'Απο HOLYLAND RACING', broadcastShare: 'Κοινοποιηση προβολης', broadcastLeaderboard: 'Κορυφαιοι ανταγωνιστες', broadcastBranding: 'Branding και χορηγοι', broadcastHeadline: 'Τιτλος', broadcastHeadlinePlaceholder: 'HOLYLAND RACING LIVE', broadcastSponsor1Placeholder: 'Χορηγος 1', broadcastSponsor2Placeholder: 'Χορηγος 2', broadcastSponsor3Placeholder: 'Χορηγος 3', broadcastLinkCopied: 'Ο συνδεσμος μεταδοσης αντιγραφηκε'

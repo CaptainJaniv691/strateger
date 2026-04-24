@@ -28,6 +28,11 @@ body {
     padding-bottom: calc(80px + var(--safe-bottom)); 
 }
 
+body.fit-no-scroll {
+    overflow-y: hidden;
+    padding-bottom: var(--safe-bottom);
+}
+
 /* ==================== LIGHT BACKGROUND THEME ==================== */
 html.light-bg body {
     color: #1e293b;
