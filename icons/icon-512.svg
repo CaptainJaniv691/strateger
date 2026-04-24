@@ -1,4 +1,35 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
-  <rect fill="#22d3ee" width="512" height="512" rx="76"/>
-  <text x="256" y="330" text-anchor="middle" font-size="320" fill="#020617" font-weight="bold" font-family="Arial, sans-serif">S</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Background -->
+  <rect width="512" height="512" rx="90" fill="#070f1e"/>
+
+  <!-- Checkered flag accent — top-right -->
+  <rect x="362" y="28" width="44" height="44" rx="8" fill="#22d3ee"/>
+  <rect x="406" y="28" width="44" height="44" rx="8" fill="#1a2d4a"/>
+  <rect x="362" y="72" width="44" height="44" rx="8" fill="#1a2d4a"/>
+  <rect x="406" y="72" width="44" height="44" rx="8" fill="#22d3ee"/>
+  <rect x="362" y="116" width="44" height="44" rx="8" fill="#22d3ee"/>
+  <rect x="406" y="116" width="44" height="44" rx="8" fill="#1a2d4a"/>
+
+  <!-- Soft glow filter -->
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="14" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Bold "S" letterform with ice glow -->
+  <path d="M320 124 Q320 74 256 74 Q192 74 192 134 Q192 194 256 210 Q320 226 320 286 Q320 348 256 348 Q192 348 192 298"
+        stroke="#22d3ee" stroke-width="54" fill="none"
+        stroke-linecap="round" stroke-linejoin="round"
+        filter="url(#glow)"/>
+
+  <!-- Bottom checkered finish stripe -->
+  <rect x="56" y="416" width="56" height="32" rx="7" fill="#22d3ee"/>
+  <rect x="112" y="416" width="56" height="32" rx="7" fill="#1a2d4a"/>
+  <rect x="168" y="416" width="56" height="32" rx="7" fill="#22d3ee"/>
+  <rect x="224" y="416" width="56" height="32" rx="7" fill="#1a2d4a"/>
+  <rect x="280" y="416" width="56" height="32" rx="7" fill="#22d3ee"/>
+  <rect x="336" y="416" width="56" height="32" rx="7" fill="#1a2d4a"/>
+  <rect x="392" y="416" width="56" height="32" rx="7" fill="#22d3ee"/>
 </svg>

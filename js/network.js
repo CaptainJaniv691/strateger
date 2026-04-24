@@ -394,6 +394,22 @@ window.initHostPeer = function() {
                     return;
                 }
 
+                if (data?.type === 'HEARTBEAT') {
+                    c._lastHeartbeatAt = Date.now();
+                    if (data.role === 'driver') {
+                        c._isDriver = true;
+                        if (!window.approvedViewers.has(c.peer)) {
+                            window.approvedViewers.set(c.peer, true);
+                        }
+                    }
+                    try {
+                        c.send({ type: 'HEARTBEAT_ACK', timestamp: Date.now() });
+                    } catch (e) {
+                        console.warn('Heartbeat ACK failed:', e);
+                    }
+                    return;
+                }
+
                 // === Handle Driver Identification (driver clients bypass viewer approval) ===
                 if (data.type === 'DRIVER_IDENTIFY') {
                     console.log(`🏎️ Peer ${c.peer.substring(0, 8)} identified as DRIVER`);
@@ -693,6 +709,46 @@ window.reconnectState = {
     retryDelay: 1000 // Start with 1 second
 };
 
+window._driverHeartbeatInterval = null;
+window._driverHeartbeatWatchdog = null;
+window._lastHeartbeatAckTs = 0;
+
+window.clearDriverHeartbeat = function() {
+    if (window._driverHeartbeatInterval) {
+        clearInterval(window._driverHeartbeatInterval);
+        window._driverHeartbeatInterval = null;
+    }
+    if (window._driverHeartbeatWatchdog) {
+        clearInterval(window._driverHeartbeatWatchdog);
+        window._driverHeartbeatWatchdog = null;
+    }
+};
+
+window.startDriverHeartbeat = function() {
+    window.clearDriverHeartbeat();
+    if (!window._autoDriverMode) return;
+
+    window._lastHeartbeatAckTs = Date.now();
+
+    window._driverHeartbeatInterval = setInterval(() => {
+        if (!window.conn || !window.conn.open) return;
+        try {
+            window.conn.send({ type: 'HEARTBEAT', role: 'driver', timestamp: Date.now() });
+        } catch (e) {
+            console.warn('Driver heartbeat send failed:', e);
+        }
+    }, 5000);
+
+    window._driverHeartbeatWatchdog = setInterval(() => {
+        if (!window._autoDriverMode || !window.conn || !window.conn.open || window.reconnectState.isReconnecting) return;
+        const lastFreshTs = Math.max(window._lastDriverDataTs || 0, window._lastHeartbeatAckTs || 0);
+        if (Date.now() - lastFreshTs > 15000) {
+            console.warn('Driver connection stale — forcing reconnect');
+            try { window.conn.close(); } catch (e) {}
+        }
+    }, 5000);
+};
+
 // === Role Exclusivity: Driver ↔ Viewer ===
 // Uses BroadcastChannel so if same person opens driver link in one tab
 // and viewer link in another, the older tab auto-disconnects.
@@ -804,6 +860,7 @@ window.connectToHost = function(hostId) {
                 // If connecting as a driver, notify host so it auto-approves us
                 if (window._autoDriverMode) {
                     window.conn.send({ type: 'DRIVER_IDENTIFY', timestamp: Date.now() });
+                    window.startDriverHeartbeat();
                 }
                 
                 // Auto-send viewer approval request with pending name
@@ -892,6 +949,9 @@ window.connectToHost = function(hostId) {
                     }
 
                     if (typeof window.renderFrame === 'function') window.renderFrame();
+                } else if (data.type === 'HEARTBEAT_ACK') {
+                    window._lastHeartbeatAckTs = Date.now();
+                    window._lastDriverDataTs = Date.now();
                 } else if (data.type === 'CHAT') {
                     // Render incoming chats for viewers
                     window.renderChatMessage(data);
@@ -1002,6 +1062,7 @@ window.connectToHost = function(hostId) {
 
             window.conn.on('close', () => {
                 console.log("Disconnected from Host");
+                window.clearDriverHeartbeat();
                 window.conn = null;
                 // Attempt automatic reconnection
                 if ((window.role === 'client' || window.role === 'viewer') && !window.reconnectState.isReconnecting) {
@@ -1011,6 +1072,7 @@ window.connectToHost = function(hostId) {
 
             window.conn.on('error', (err) => {
                 console.error("Connection error:", err);
+                window.clearDriverHeartbeat();
             });
         });
 

@@ -28,6 +28,57 @@ body {
     padding-bottom: calc(80px + var(--safe-bottom)); 
 }
 
+/* ==================== LIGHT BACKGROUND THEME ==================== */
+html.light-bg body {
+    color: #1e293b;
+    background-attachment: fixed;
+    background-size: cover;
+}
+html.light-bg #setupScreen,
+html.light-bg #raceDashboard,
+html.light-bg #previewScreen {
+    background-color: transparent !important;
+}
+html.light-bg header {
+    background-color: rgba(255, 255, 255, 0.88) !important;
+    border-bottom-color: rgba(0, 0, 0, 0.09) !important;
+}
+html.light-bg header .text-white,
+html.light-bg header span,
+html.light-bg header a { color: #1e293b !important; }
+html.light-bg header select { background-color: white !important; color: #1e293b !important; border-color: rgba(0,0,0,0.15) !important; }
+html.light-bg .collapsible-section {
+    background-color: rgba(255, 255, 255, 0.82) !important;
+    border-color: rgba(0, 0, 0, 0.1) !important;
+}
+html.light-bg #setupScreen { color: #1e293b; }
+html.light-bg #setupScreen .text-white { color: #1e293b !important; }
+html.light-bg #setupScreen .text-gray-200 { color: #374151 !important; }
+html.light-bg #setupScreen .text-gray-300 { color: #4b5563 !important; }
+html.light-bg #setupScreen .text-gray-400 { color: #6b7280 !important; }
+html.light-bg #setupScreen .text-gray-500 { color: #9ca3af !important; }
+html.light-bg #setupScreen .text-gray-600 { color: #9ca3af !important; }
+html.light-bg .input-field {
+    background-color: rgba(255, 255, 255, 0.92) !important;
+    color: #1e293b !important;
+    border-color: rgba(0, 0, 0, 0.16) !important;
+}
+html.light-bg .input-field::placeholder { color: #9ca3af !important; }
+html.light-bg .bg-navy-800,
+html.light-bg button.bg-navy-800 {
+    background-color: rgba(235, 238, 245, 0.88) !important;
+    border-color: rgba(0, 0, 0, 0.1) !important;
+}
+html.light-bg .bg-navy-900 { background-color: rgba(242, 244, 248, 0.82) !important; }
+html.light-bg .bg-navy-950 { background-color: rgba(248, 249, 251, 0.75) !important; }
+html.light-bg .bg-black\/40 { background-color: rgba(255,255,255,0.5) !important; }
+html.light-bg select.bg-navy-900 { background-color: white !important; color: #1e293b !important; }
+html.light-bg .border-gray-700,
+html.light-bg .border-gray-700\/60 { border-color: rgba(0, 0, 0, 0.1) !important; }
+html.light-bg .driver-row { background-color: rgba(255,255,255,0.8) !important; border-color: rgba(0,0,0,0.1) !important; }
+html.light-bg .driver-input { color: #1e293b !important; }
+html.light-bg #setupScreen h2 { color: #1e293b !important; }
+
 /* ==================== SAFE AREA UTILITIES ==================== */
 @supports (padding: env(safe-area-inset-top)) {
     header { padding-top: var(--safe-top); }
@@ -253,6 +304,9 @@ header {
         gap: 8px;
         padding: 10px 24px;
     }
+    .tablet-collapsible.tablet-collapsed .tablet-collapse-body {
+        display: none;
+    }
     /* Competitor table: show all columns, taller rows */
     .competitor-row {
         height: 38px;
@@ -326,10 +380,10 @@ header {
     #setupScreen, #raceDashboard {
         max-width: min(860px, calc(100vw - 48px));
         margin: 0 auto;
-        background-color: var(--navy-950);
-        box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
-        border-left: 1px solid #1e293b;
-        border-right: 1px solid #1e293b;
+        background-color: transparent;
+        box-shadow: none;
+        border-left: 0;
+        border-right: 0;
         min-height: 100vh;
         padding-bottom: 40px;
     }

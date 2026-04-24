@@ -350,6 +350,7 @@ window.translations = {
         send: "Send",
         feedbackTitle: "Feedback",
         contactUs: "Contact Us",
+        stepRaceSettings: "Race Settings", stepDrivers: "Drivers", stepGo: "Let's Go", optional: "(optional)",
         goodPace: "Good Pace",
         lblStartTime: "🕐 Race Start Time", lblStartDate: "📅 Race Date",
         lblSquadSchedule: "🔄 Squad Window", lblSquadScheduleHint: "Outside this window all drivers share equally. Inside, squads rotate evenly.",
@@ -358,7 +359,7 @@ window.translations = {
         lblAppearance: "🎨 Appearance", lblPageBg: "Page Background", lblColorThemes: "Color Themes",
         laps: "LAPS", gap: "GAP", totalCompetitors: "CARS", waitingData: "Waiting for data...", leaderLabel: "LEADER",
         boxThisLap: "🏁 BOX THIS LAP", boxNextLap: "📢 BOX NEXT LAP", stayOut: "STAY OUT", onTrack: "ON TRACK", inPit: "IN PIT",
-        driverEntryHint: "Enter the race ID to connect", driverEntryLabel: "Race ID", driverConnect: "Connect as Driver", driverIdTooShort: "ID is too short", joinAsDriver: "Join as Driver", backToSetup: "← Back to Setup",
+        driverEntryHint: "Enter the race ID to connect", driverEntryLabel: "Race ID", driverConnect: "Connect as Driver", driverIdTooShort: "ID is too short", joinAsDriver: "Join as Driver", joinAsDriverHint: "Enter a race already running on another device", backToSetup: "← Back to Setup",
         nextStintIn: "Your next stint in", stayAwake: "Stay awake", sleepOk: "You can sleep", yourStints: "Your Stints", noStintsFound: "No stints found for you", wakeUpAlert: "⏰ Wake up! Your stint is coming",
         viewerNameHint: "Enter your name to join the race", viewerNameLabel: "Your Name", requestToJoin: "Request to Join", waitingForApproval: "Waiting for host approval...", waitingForApprovalHint: "The race admin will approve your request", viewerNameTooShort: "Name must be at least 2 characters",
         // Pro & New Features
@@ -470,6 +471,7 @@ window.translations = {
         send: "שלח",
         feedbackTitle: "משוב",
         contactUs: "צור קשר",
+        stepRaceSettings: "הגדרות מירוץ", stepDrivers: "נהגים", stepGo: "יאללה", optional: "(אופציונלי)",
         goodPace: "קצב טוב",
         lblStartTime: "🕐 שעת התחלה", lblStartDate: "📅 תאריך מירוץ",
         lblSquadSchedule: "🔄 חלון חוליות", lblSquadScheduleHint: "מחוץ לחלון כל הנהגים מתחלקים שווה. בתוך החלון, חוליות מתחלפות בחלוקה שווה.",
@@ -589,6 +591,7 @@ window.translations = {
         send: "Envoyer",
         feedbackTitle: "Retours",
         contactUs: "Nous Contacter",
+        stepRaceSettings: "Paramètres", stepDrivers: "Pilotes", stepGo: "C'est parti", optional: "(optionnel)",
         goodPace: "Bon Rythme",
         lblStartTime: "🕐 Heure de Départ", lblStartDate: "📅 Date de Course",
         lblSquadSchedule: "🔄 Fenêtre Équipes", lblSquadScheduleHint: "Hors fenêtre, tous les pilotes partagent. Dedans, les équipes tournent à parts égales.",
@@ -704,6 +707,7 @@ window.translations = {
         send: "Enviar",
         feedbackTitle: "Feedback",
         contactUs: "Contacte-nos",
+        stepRaceSettings: "Config. Corrida", stepDrivers: "Pilotos", stepGo: "Vamos", optional: "(opcional)",
         goodPace: "Bom Ritmo",
         lblStartTime: "🕐 Hora de Início", lblStartDate: "📅 Data da Corrida",
         lblSquadSchedule: "🔄 Janela de Esquadrões", lblSquadScheduleHint: "Fora da janela, todos pilotos compartilham. Dentro, esquadrões revezam igualmente.",
@@ -824,6 +828,7 @@ window.translations = {
         send: "Отправить",
         feedbackTitle: "Обратная Связь",
         contactUs: "Связаться с Нами",
+        stepRaceSettings: "Настройки", stepDrivers: "Гонщики", stepGo: "Старт", optional: "(необязательно)",
         goodPace: "Хороший Темп",
         lblStartTime: "🕐 Время старта", lblStartDate: "📅 Дата гонки",
         lblSquadSchedule: "🔄 Окно групп", lblSquadScheduleHint: "Вне окна все водители делят поровну. В окне группы чередуются равномерно.",
@@ -943,6 +948,7 @@ window.translations = {
         send: "إرسال",
         feedbackTitle: "التعليقات",
         contactUs: "اتصل بنا",
+        stepRaceSettings: "إعدادات السباق", stepDrivers: "السائقون", stepGo: "انطلق", optional: "(اختياري)",
         goodPace: "وتيرة جيدة",
         lblStartTime: "🕐 وقت البدء", lblStartDate: "📅 تاريخ السباق",
         lblSquadSchedule: "🔄 نافذة الفرق", lblSquadScheduleHint: "خارج النافذة يتشارك جميع السائقين بالتساوي. داخلها، تتناوب الفرق بالتساوي.",
@@ -1062,6 +1068,7 @@ window.translations = {
         send: "Enviar",
         feedbackTitle: "Retroalimentación",
         contactUs: "Contáctenos",
+        stepRaceSettings: "Config. Carrera", stepDrivers: "Pilotos", stepGo: "¡Vamos", optional: "(opcional)",
         goodPace: "Buen Ritmo",
         lblStartTime: "🕐 Hora de Inicio", lblStartDate: "📅 Fecha de Carrera",
         lblSquadSchedule: "🔄 Ventana de Escuadrones", lblSquadScheduleHint: "Fuera de la ventana, todos comparten por igual. Dentro, los escuadrones rotan equitativamente.",
@@ -1129,6 +1136,7 @@ window.translations = {
         send: "Invia",
         feedbackTitle: "Feedback",
         contactUs: "Contattaci",
+        stepRaceSettings: "Impostazioni", stepDrivers: "Piloti", stepGo: "Via", optional: "(opzionale)",
         goodPace: "Buon Ritmo",
         lblStartTime: "🕐 Ora di Partenza", lblStartDate: "📅 Data della Gara",
         lblSquadSchedule: "🔄 Finestra Squadre", lblSquadScheduleHint: "Fuori dalla finestra tutti i piloti condividono. Dentro, le squadre ruotano equamente.",
@@ -1246,6 +1254,7 @@ window.translations = {
         send: "გაგზავნა",
         feedbackTitle: "მოტეხილობა",
         contactUs: "დაგვიკავშირდით",
+        stepRaceSettings: "რბოლის პარამ.", stepDrivers: "მძღოლები", stepGo: "წავიდეთ", optional: "(სურვილისამებრ)",
         goodPace: "კარგი ტემპი",
         lblStartTime: "🕐 დაწყების დრო", lblStartDate: "📅 რბოლის თარიღი",
         lblSquadSchedule: "🔄 ჯგუფების ფანჯარა", lblSquadScheduleHint: "ფანჯრის გარეთ ყველა მძღოლი თანაბრად ინაწილებს. შიგნით ჯგუფები თანაბრად მონაცვლეობენ.",
@@ -1313,6 +1322,7 @@ window.translations = {
         send: "Senden",
         feedbackTitle: "Rückmeldung",
         contactUs: "Kontakt",
+        stepRaceSettings: "Renn-Setup", stepDrivers: "Fahrer", stepGo: "Los geht's", optional: "(optional)",
         goodPace: "Gutes Tempo",
         lblStartTime: "🕐 Startzeit", lblStartDate: "📅 Renndatum",
         lblSquadSchedule: "🔄 Staffelfenster", lblSquadScheduleHint: "Außerhalb des Fensters teilen alle Fahrer gleich. Innerhalb rotieren Staffeln gleichmäßig.",
@@ -1380,6 +1390,7 @@ window.translations = {
         send: "送信",
         feedbackTitle: "フィードバック",
         contactUs: "お問い合わせ",
+        stepRaceSettings: "レース設定", stepDrivers: "ドライバー", stepGo: "スタート", optional: "(任意)",
         goodPace: "良いペース",
         lblStartTime: "🕐 レース開始時刻", lblStartDate: "📅 レース日",
         lblSquadSchedule: "🔄 スクワッドウィンドウ", lblSquadScheduleHint: "ウィンドウ外は全ドライバーが均等に分担。ウィンドウ内はスクワッドが均等にローテーション。",
@@ -1498,6 +1509,7 @@ window.translations = {
         describeIssue: "Περιγράψτε το πρόβλημα ή την πρόταση...",
         feedbackTitle: "Σχόλια",
         contactUs: "Επικοινωνία",
+        stepRaceSettings: "Ρυθμίσεις", stepDrivers: "Οδηγοί", stepGo: "Ξεκινάμε", optional: "(προαιρετικό)",
         goodPace: "Καλός Ρυθμός",
         lblStartTime: "🕐 Ώρα Εκκίνησης", lblStartDate: "📅 Ημερομηνία Αγώνα",
         lblSquadSchedule: "🔄 Παράθυρο Ομάδων", lblSquadScheduleHint: "Εκτός παραθύρου, όλοι οι οδηγοί μοιράζονται ισομερώς. Εντός, οι ομάδες εναλλάσσονται.",
@@ -1742,7 +1754,7 @@ window.translations = {
             appSubtitle: 'Professional Endurance Race Command Center',
             generateStrategy: 'Generate Smart Strategy (AI)',
             previewStrategy: 'Preview Strategy Timeline',
-            startRace: 'Launch Race Control',
+            startRace: 'Start Race', joinAsDriverHint: 'Enter a race already running on another device',
             loadSaved: 'Resume Saved Session',
             strategyOutlook: 'STRATEGY OUTLOOK',
             timeLeft: 'TIME REMAINING',
@@ -1760,11 +1772,11 @@ window.translations = {
             raceFinished: 'RACE COMPLETE'
         },
         he: {
-            appSubtitle: 'מרכז שליטה מקצועי למירוצי סיבולת',
+            appSubtitle: 'ניהול אסטרטגיה למירוצי סיבולת',
             generateStrategy: 'צור אסטרטגיה חכמה (AI)',
-            previewStrategy: 'תצוגת ציר זמן אסטרטגי',
-            startRace: 'הפעל מרכז שליטה למירוץ',
-            loadSaved: 'המשך סשן שמור',
+            previewStrategy: 'תצוגה מקדימה',
+            startRace: 'התחל מירוץ', joinAsDriverHint: 'הצטרף למירוץ פעיל ממכשיר אחר',
+            loadSaved: 'טען מירוץ שמור',
             strategyOutlook: 'מבט אסטרטגי',
             timeLeft: 'זמן נותר',
             demoSelectFeatures: 'בחר חוויות מירוץ לסימולציה',
@@ -1784,7 +1796,7 @@ window.translations = {
             appSubtitle: 'Centre de commandement professionnel pour l endurance',
             generateStrategy: 'Generer une strategie intelligente (IA)',
             previewStrategy: 'Apercu de la timeline strategie',
-            startRace: 'Lancer le controle course',
+            startRace: 'Démarrer la course', joinAsDriverHint: 'Rejoindre une course en cours sur un autre appareil',
             loadSaved: 'Reprendre la session sauvegardee',
             timeLeft: 'TEMPS RESTANT',
             demoSelectFeatures: 'Choisissez les experiences a simuler',
@@ -1800,7 +1812,7 @@ window.translations = {
             appSubtitle: 'Centro profissional de comando para corridas de endurance',
             generateStrategy: 'Gerar estrategia inteligente (IA)',
             previewStrategy: 'Visualizar linha do tempo da estrategia',
-            startRace: 'Iniciar controle de corrida',
+            startRace: 'Iniciar corrida', joinAsDriverHint: 'Entrar em uma corrida em andamento em outro dispositivo',
             loadSaved: 'Retomar sessao salva',
             timeLeft: 'TEMPO RESTANTE',
             demoSelectFeatures: 'Selecione as experiencias para simular',
@@ -1816,7 +1828,7 @@ window.translations = {
             appSubtitle: 'Профессиональный центр управления гонкой на выносливость',
             generateStrategy: 'Сгенерировать умную стратегию (ИИ)',
             previewStrategy: 'Просмотр таймлайна стратегии',
-            startRace: 'Запустить управление гонкой',
+            startRace: 'Старт гонки', joinAsDriverHint: 'Войти в гонку, идущую на другом устройстве',
             loadSaved: 'Продолжить сохраненную сессию',
             timeLeft: 'ОСТАЛОСЬ ВРЕМЕНИ',
             demoSelectFeatures: 'Выберите сценарии для симуляции',
@@ -1832,7 +1844,7 @@ window.translations = {
             appSubtitle: 'مركز قيادة احترافي لسباقات التحمل',
             generateStrategy: 'انشاء استراتيجية ذكية (AI)',
             previewStrategy: 'معاينة الخط الزمني للاستراتيجية',
-            startRace: 'تشغيل مركز التحكم بالسباق',
+            startRace: 'ابدأ السباق', joinAsDriverHint: 'انضم إلى سباق جارٍ على جهاز آخر',
             loadSaved: 'استئناف الجلسة المحفوظة',
             timeLeft: 'الوقت المتبقي',
             demoSelectFeatures: 'اختر تجارب السباق للمحاكاة',
@@ -1848,7 +1860,7 @@ window.translations = {
             appSubtitle: 'Centro de mando profesional para carreras de resistencia',
             generateStrategy: 'Generar estrategia inteligente (IA)',
             previewStrategy: 'Vista previa de la linea de estrategia',
-            startRace: 'Iniciar control de carrera',
+            startRace: 'Iniciar carrera', joinAsDriverHint: 'Unirse a una carrera activa en otro dispositivo',
             loadSaved: 'Reanudar sesion guardada',
             timeLeft: 'TIEMPO RESTANTE',
             demoSelectFeatures: 'Selecciona experiencias para simular',
@@ -1864,7 +1876,7 @@ window.translations = {
             appSubtitle: 'Centro di comando professionale per gare endurance',
             generateStrategy: 'Genera strategia intelligente (AI)',
             previewStrategy: 'Anteprima timeline strategica',
-            startRace: 'Avvia controllo gara',
+            startRace: 'Avvia gara', joinAsDriverHint: 'Entra in una gara in corso su un altro dispositivo',
             loadSaved: 'Riprendi sessione salvata',
             timeLeft: 'TEMPO RIMANENTE',
             demoSelectFeatures: 'Seleziona le esperienze da simulare',
@@ -1880,7 +1892,7 @@ window.translations = {
             appSubtitle: 'პროფესიონალური საკონტროლო ცენტრი ენდურანს რბოლებისთვის',
             generateStrategy: 'შექმენი ჭკვიანი სტრატეგია (AI)',
             previewStrategy: 'სტრატეგიის ტაიმლაინის წინასწარი ნახვა',
-            startRace: 'გაუშვი რბოლის კონტროლი',
+            startRace: 'გაუშვი რბოლა', joinAsDriverHint: 'შეუერთდი სხვა მოწყობილობაზე მიმდინარე რბოლას',
             loadSaved: 'შენახული სესიის გაგრძელება',
             timeLeft: 'დარჩენილი დრო',
             demoSelectFeatures: 'აირჩიე სიმულაციის გამოცდილებები',
@@ -1896,7 +1908,7 @@ window.translations = {
             appSubtitle: 'Professionelles Race-Control-Center fur Endurance',
             generateStrategy: 'Intelligente Strategie generieren (KI)',
             previewStrategy: 'Strategie-Timeline anzeigen',
-            startRace: 'Race Control starten',
+            startRace: 'Rennen starten', joinAsDriverHint: 'Einer laufenden Session auf einem anderen Gerät beitreten',
             loadSaved: 'Gespeicherte Session fortsetzen',
             timeLeft: 'VERBLEIBENDE ZEIT',
             demoSelectFeatures: 'Wahle die zu simulierenden Rennszenarien',
@@ -1912,7 +1924,7 @@ window.translations = {
             appSubtitle: '耐久レース向けプロフェッショナル指令センター',
             generateStrategy: 'スマート戦略を生成 (AI)',
             previewStrategy: '戦略タイムラインを確認',
-            startRace: 'レースコントロール開始',
+            startRace: 'レース開始', joinAsDriverHint: '別デバイスで進行中のレースに参加',
             loadSaved: '保存セッションを再開',
             timeLeft: '残り時間',
             demoSelectFeatures: 'シミュレーションする体験を選択',
@@ -1928,7 +1940,7 @@ window.translations = {
             appSubtitle: 'Επαγγελματικο κεντρο ελεγχου για αγωνες αντοχης',
             generateStrategy: 'Δημιουργια εξυπνης στρατηγικης (AI)',
             previewStrategy: 'Προεπισκοπηση χρονογραμμης στρατηγικης',
-            startRace: 'Εναρξη ελεγχου αγωνα',
+            startRace: 'Εναρξη αγωνα', joinAsDriverHint: 'Συμμετοχή σε αγώνα που τρέχει σε άλλη συσκευή',
             loadSaved: 'Συνεχεια αποθηκευμενης συνεδριας',
             timeLeft: 'ΥΠΟΛΟΙΠΟΣ ΧΡΟΝΟΣ',
             demoSelectFeatures: 'Επιλεξτε εμπειριες για προσομοιωση',
@@ -2097,6 +2109,206 @@ window.translations = {
     });
 })();
 
+// ─── Missing DOM keys + language gap fillers ─────────────────────────────────
+(function patchMissingDomKeys() {
+    if (!window.translations) return;
+
+    // Keys used in the DOM that were missing from the translation dict.
+    // mute reflects the mute-toggle button (DOM uses key "mute", dict had only soundMute/soundUnmute).
+    const en = {
+        mute: "Sound",
+        raceHistory: "Race History",
+        connectingToRace: "Connecting to Race...",
+        waitingForHost: "Waiting for host to start race",
+        onboardWelcome: "Welcome to Streger!",
+        installApp: "Install App",
+        installDesc: "Add Streger to your home screen for quick access and offline use.",
+        install: "Install",
+        share: "Share",
+        noRaceHistory: "No race history yet. Complete a race to see it here.",
+        // language gap filler — was in it but missing from other langs
+        leaderLabel: "LEADER",
+        // driver template UI
+        importDrivers: "Import Saved",
+        saveDrivers: "Save List",
+        savedDriverTemplates: "Saved Driver Lists",
+        noSavedDrivers: "No saved driver lists. Set up your drivers and click \"Save List\".",
+        nameDriverTemplate: "Template name:",
+        driversSaved: "Driver list saved",
+        noDriversToSave: "No drivers to save",
+        // quick-start / accessibility
+        tryDemo: "Try a live demo race →",
+    };
+
+    const patch = {
+        he: {
+            mute: "קול",
+            raceHistory: "היסטוריית מירוצים",
+            connectingToRace: "מתחבר למירוץ...",
+            waitingForHost: "ממתין למנהל לפתוח את המירוץ",
+            onboardWelcome: "ברוך הבא ל-Streger!",
+            installApp: "התקן אפליקציה",
+            installDesc: "הוסף את Streger למסך הבית לגישה מהירה.",
+            install: "התקן",
+            share: "שתף",
+            noRaceHistory: "אין היסטוריית מירוצים עדיין. סיים מירוץ כדי לראות אותו כאן.",
+            leaderLabel: "מוביל",
+        },
+        fr: {
+            mute: "Son",
+            raceHistory: "Historique des courses",
+            connectingToRace: "Connexion en cours...",
+            waitingForHost: "En attente du démarrage par l'hôte",
+            onboardWelcome: "Bienvenue sur Streger!",
+            installApp: "Installer l'appli",
+            installDesc: "Ajoutez Streger à votre écran d'accueil pour un accès rapide.",
+            install: "Installer",
+            share: "Partager",
+            noRaceHistory: "Pas encore d'historique. Terminez une course pour le voir ici.",
+            leaderLabel: "LEADER",
+        },
+        pt: {
+            mute: "Som",
+            raceHistory: "Histórico de corridas",
+            connectingToRace: "A conectar à corrida...",
+            waitingForHost: "A aguardar que o host inicie a corrida",
+            onboardWelcome: "Bem-vindo ao Streger!",
+            installApp: "Instalar app",
+            installDesc: "Adicione o Streger ao ecrã inicial para acesso rápido.",
+            install: "Instalar",
+            share: "Partilhar",
+            noRaceHistory: "Sem histórico de corridas. Conclua uma corrida para ver aqui.",
+            leaderLabel: "LÍDER",
+        },
+        ru: {
+            mute: "Звук",
+            raceHistory: "История гонок",
+            connectingToRace: "Подключение к гонке...",
+            waitingForHost: "Ожидание запуска хостом",
+            onboardWelcome: "Добро пожаловать в Streger!",
+            installApp: "Установить приложение",
+            installDesc: "Добавьте Streger на главный экран для быстрого доступа.",
+            install: "Установить",
+            share: "Поделиться",
+            noRaceHistory: "История гонок пуста. Завершите гонку, чтобы увидеть её здесь.",
+            leaderLabel: "ЛИДЕР",
+        },
+        ar: {
+            mute: "الصوت",
+            raceHistory: "سجل السباقات",
+            connectingToRace: "جارٍ الاتصال بالسباق...",
+            waitingForHost: "في انتظار بدء السباق من قبل المضيف",
+            onboardWelcome: "مرحباً بك في Streger!",
+            installApp: "تثبيت التطبيق",
+            installDesc: "أضف Streger إلى الشاشة الرئيسية للوصول السريع.",
+            install: "تثبيت",
+            share: "مشاركة",
+            noRaceHistory: "لا يوجد سجل سباقات بعد. أكمل سباقاً لترى سجله هنا.",
+            leaderLabel: "المتصدر",
+        },
+        es: {
+            mute: "Sonido",
+            raceHistory: "Historial de carreras",
+            connectingToRace: "Conectando a la carrera...",
+            waitingForHost: "Esperando que el anfitrión inicie la carrera",
+            onboardWelcome: "¡Bienvenido a Streger!",
+            installApp: "Instalar app",
+            installDesc: "Añade Streger a tu pantalla de inicio para acceso rápido.",
+            install: "Instalar",
+            share: "Compartir",
+            noRaceHistory: "Sin historial de carreras. Completa una carrera para verla aquí.",
+            leaderLabel: "LÍDER",
+        },
+        it: {
+            mute: "Audio",
+            raceHistory: "Storico gare",
+            connectingToRace: "Connessione alla gara...",
+            waitingForHost: "In attesa che l'host avvii la gara",
+            onboardWelcome: "Benvenuto su Streger!",
+            installApp: "Installa l'app",
+            installDesc: "Aggiungi Streger alla schermata home per accesso rapido.",
+            install: "Installa",
+            share: "Condividi",
+            noRaceHistory: "Nessuno storico. Completa una gara per vederla qui.",
+            leaderLabel: "LEADER",
+        },
+        ka: {
+            mute: "ხმა",
+            raceHistory: "რბოლების ისტორია",
+            connectingToRace: "რბოლასთან დაკავშირება...",
+            waitingForHost: "ლოდინი ჰოსტის გაშვებამდე",
+            onboardWelcome: "კეთილი იყოს Streger-ში!",
+            installApp: "აპის დაყენება",
+            installDesc: "დაამატეთ Streger მთავარ ეკრანზე სწრაფი წვდომისთვის.",
+            install: "დაყენება",
+            share: "გაზიარება",
+            noRaceHistory: "რბოლების ისტორია ცარიელია. დაასრულეთ რბოლა მის სანახავად.",
+            leaderLabel: "ლიდერი",
+        },
+        de: {
+            mute: "Ton",
+            raceHistory: "Rennverlauf",
+            connectingToRace: "Verbindung wird hergestellt...",
+            waitingForHost: "Warte auf den Host, um das Rennen zu starten",
+            onboardWelcome: "Willkommen bei Streger!",
+            installApp: "App installieren",
+            installDesc: "Füge Streger zum Startbildschirm hinzu für schnellen Zugriff.",
+            install: "Installieren",
+            share: "Teilen",
+            noRaceHistory: "Noch kein Rennverlauf. Beende ein Rennen, um es hier zu sehen.",
+            leaderLabel: "FÜHRENDER",
+        },
+        ja: {
+            mute: "音声",
+            raceHistory: "レース履歴",
+            connectingToRace: "レースに接続中...",
+            waitingForHost: "ホストのレース開始を待っています",
+            onboardWelcome: "Stregerへようこそ!",
+            installApp: "アプリをインストール",
+            installDesc: "Stregerをホーム画面に追加してすばやくアクセス。",
+            install: "インストール",
+            share: "共有",
+            noRaceHistory: "レース履歴がありません。レースを完了すると表示されます。",
+            leaderLabel: "トップ",
+        },
+        el: {
+            mute: "Ήχος",
+            raceHistory: "Ιστορικό αγώνων",
+            connectingToRace: "Σύνδεση στον αγώνα...",
+            waitingForHost: "Αναμονή για εκκίνηση από τον διοργανωτή",
+            onboardWelcome: "Καλωσήρθατε στο Streger!",
+            installApp: "Εγκατάσταση εφαρμογής",
+            installDesc: "Προσθέστε το Streger στην αρχική οθόνη για γρήγορη πρόσβαση.",
+            install: "Εγκατάσταση",
+            share: "Κοινοποίηση",
+            noRaceHistory: "Δεν υπάρχει ακόμα ιστορικό. Ολοκληρώστε έναν αγώνα για να το δείτε εδώ.",
+            leaderLabel: "ΠΡΩΤΟΣ",
+        },
+    };
+
+    // Add to en
+    Object.entries(en).forEach(([k, v]) => {
+        if (!window.translations.en[k]) window.translations.en[k] = v;
+    });
+
+    // Add to all other langs
+    Object.entries(patch).forEach(([lang, keys]) => {
+        if (!window.translations[lang]) return;
+        Object.entries(keys).forEach(([k, v]) => {
+            if (!window.translations[lang][k]) window.translations[lang][k] = v;
+        });
+    });
+
+    // Fallback to en for any lang still missing these keys
+    const allKeys = Object.keys(en);
+    Object.keys(window.translations).forEach((lang) => {
+        if (lang === 'en') return;
+        allKeys.forEach((k) => {
+            if (!window.translations[lang][k]) window.translations[lang][k] = window.translations.en[k];
+        });
+    });
+})();
+
 window.auditTranslationCoverage = function() {
     const langs = Object.keys(window.translations || {});
     if (!langs.length) return { missingByLanguage: {} };
@@ -2184,6 +2396,26 @@ window.setLanguage = function(lang) {
         const key = opt.getAttribute('data-i18n-opt');
         opt.textContent = window.t(key);
     });
+
+    // Retranslate auto-generated driver names (e.g. "נהג 1" → "Driver 1", "Pilote 2" → "Fahrer 2")
+    // A driver name is considered auto-generated if it matches any known driver word + a number.
+    (function retranslateDriverNames() {
+        const knownWords = Object.values(window.translations || {})
+            .map(d => d && d.ltDriver).filter(Boolean);
+        const newWord = window.t('ltDriver');
+        document.querySelectorAll('.driver-input').forEach(inp => {
+            const val = (inp.value || '').trim();
+            for (const word of knownWords) {
+                // escape special regex chars in the driver word
+                const escaped = word.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const m = val.match(new RegExp(`^${escaped}\\s+(\\d+)$`, 'i'));
+                if (m) {
+                    inp.value = `${newWord} ${m[1]}`;
+                    break;
+                }
+            }
+        });
+    })();
 
     if (typeof window.updateModeUI === 'function') window.updateModeUI();
     if (typeof window.updateWeatherUI === 'function') window.updateWeatherUI();

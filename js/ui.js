@@ -29,7 +29,7 @@ window.removeDriverField = function() {
 
 window.createDriverInput = function(val, checked, squad) {
     const div = document.createElement('div');
-    div.className = "driver-row flex items-center gap-2 bg-navy-950 rounded border border-gray-700 mb-2 cursor-default";
+    div.className = "driver-row flex items-center gap-2 bg-navy-900 rounded-xl border border-gray-700/50 hover:border-gray-600/70 mb-2 cursor-default transition-colors";
     div.onclick = (e) => e.stopPropagation();
 
     const radioId = 'starter_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
@@ -64,7 +64,8 @@ window.createDriverInput = function(val, checked, squad) {
     const driverInput = document.createElement('input');
     driverInput.type = 'text';
     driverInput.value = val;
-    driverInput.className = 'driver-input bg-transparent text-white w-full outline-none font-bold text-sm px-2 focus:bg-navy-900 rounded';
+    driverInput.placeholder = window.t ? window.t('ltDriver') + ' ' + ((document.getElementById('driversList')?.children.length || 0) + 1) : 'Driver name';
+    driverInput.className = 'driver-input bg-transparent text-white w-full outline-none font-bold text-sm px-2 focus:bg-navy-900 rounded placeholder-gray-600';
     driverInput.addEventListener('click', (e) => e.stopPropagation());
     driverInput.onchange = () => window.runSim();
 
@@ -266,15 +267,20 @@ const _BG_THEMES = {
     'ferrari-rosso': 'background: linear-gradient(180deg, #0e0000 0%, #2a0808 25%, #4a0a0a 50%, #2a0808 75%, #0e0000 100%);',
     'mclaren-papaya': 'background: linear-gradient(180deg, #100800 0%, #201505 25%, #3a2008 40%, #4a2a0a 50%, #3a2008 60%, #201505 75%, #100800 100%);',
     'volcanic': 'background: linear-gradient(180deg, #0a0000 0%, #1a0500 20%, #2d0800 35%, #401005 50%, #2d0800 65%, #1a0500 80%, #0a0000 100%);',
-    // === 📸 PHOTO THEMES (requires internet) ===
+    // === ☀️ LIGHT THEMES ===
+    'pure-white': 'background: #f8f9fa;',
+    'light-cyan': 'background: linear-gradient(180deg, #e0f7fa 0%, #b2ebf2 50%, #e0f7fa 100%);',
+    'light-pink': 'background: linear-gradient(180deg, #fce4ec 0%, #f8bbd0 50%, #fce4ec 100%);',
+    'soft-yellow': 'background: linear-gradient(180deg, #fffde7 0%, #fff9c4 50%, #fffde7 100%);',
+    // === 📸 PHOTO THEMES — Pro only ===
     'kart-race':    _photo('photo-1558618666-fcd25c85cd64'),
     'kart-night':   _photo('photo-1568605117036-5fe5e7bab0b7'),
     'kart-pit':     _photo('photo-1541348263662-e068662d82af'),
     'kart-onboard': _photo('photo-1503376780353-7e6692767b70'),
-    'kart-wet':     _photo('photo-1543466835-00a7b8755b4c'),
+    'kart-wet':     _photo('photo-1614623510776-dc4bc0d29ec2'),
     'kart-grid':    _photo('photo-1504707748692-419802cf939d'),
-    'kart-blaze':   _photo('photo-1583394293214-fb28a5a16b6d'),
-    'kart-helmet':  _photo('photo-1594398901-e69f3a2c1e23'),
+    'kart-blaze':   _photo('photo-1561495376-dc9c7c5b8c86'),
+    'kart-helmet':  _photo('photo-1540575467063-178a50c2df87'),
 };
 
 // Dashboard tint colors per theme — applied to dashboard elements
@@ -308,13 +314,43 @@ const _THEME_TINTS = {
     'kart-grid':    { main: '#060505', panel: '#100a0a', border: '#201515' },
     'kart-blaze':   { main: '#080403', panel: '#100806', border: '#201410' },
     'kart-helmet':  { main: '#050505', panel: '#0c0c0c', border: '#202020' },
+    // === ☀️ LIGHT THEME TINTS ===
+    'pure-white':   { main: '', panel: '', border: '' },
+    'light-cyan':   { main: '', panel: '', border: '' },
+    'light-pink':   { main: '', panel: '', border: '' },
+    'soft-yellow':  { main: '', panel: '', border: '' },
+    // custom Pro themes — tint matches the page bg dynamically
+    'custom-color': { main: '', panel: '', border: '' },
+    'custom-image': { main: '#050505', panel: '#0c0c0c', border: '#222222' },
 };
 
 window.setPageBackground = function(bg) {
+    const LIGHT_THEMES = new Set(['pure-white', 'light-cyan', 'light-pink', 'soft-yellow']);
+    // Toggle light-bg class for contrast handling
+    document.documentElement.classList.toggle('light-bg', LIGHT_THEMES.has(bg));
+
     // Clear all inline background styles first
+    document.documentElement.style.cssText = document.documentElement.style.cssText.replace(/background[^;]*;?/gi, '');
     document.body.style.cssText = document.body.style.cssText.replace(/background[^;]*;?/gi, '');
-    
-    if (bg && _BG_THEMES[bg]) {
+
+    // Handle Pro custom modes
+    if (bg === 'custom-color') {
+        const hex = localStorage.getItem('strateger_bg_color') || '#1e293b';
+        document.documentElement.style.background = hex;
+        document.body.style.background = hex;
+    } else if (bg === 'custom-image') {
+        const dataUrl = localStorage.getItem('strateger_bg_image');
+        if (dataUrl) {
+            document.documentElement.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.55),rgba(0,0,0,0.55)),url(${dataUrl})`;
+            document.documentElement.style.backgroundSize = 'cover';
+            document.documentElement.style.backgroundPosition = 'center';
+            document.documentElement.style.backgroundRepeat = 'no-repeat';
+            document.body.style.backgroundImage = `linear-gradient(rgba(0,0,0,0.55),rgba(0,0,0,0.55)),url(${dataUrl})`;
+            document.body.style.backgroundSize = 'cover';
+            document.body.style.backgroundPosition = 'center';
+            document.body.style.backgroundRepeat = 'no-repeat';
+        }
+    } else if (bg && _BG_THEMES[bg]) {
         // Apply named theme CSS
         const styles = _BG_THEMES[bg];
         // Parse and apply each property
@@ -324,12 +360,14 @@ window.setPageBackground = function(bg) {
                 const cssProp = prop.trim();
                 const val = valParts.join(':').trim();
                 if (cssProp.startsWith('background')) {
+                    document.documentElement.style.setProperty(cssProp, val);
                     document.body.style.setProperty(cssProp, val);
                 }
             }
         });
     } else if (bg) {
         // Fallback for legacy saved values (old hex colors)
+        document.documentElement.style.background = bg;
         document.body.style.background = bg;
     }
     // else: empty = default, CSS handles it
@@ -379,7 +417,56 @@ window.toggleThemePanel = function() {
         panel.querySelectorAll('.bg-swatch').forEach(s => {
             s.classList.toggle('active', s.dataset.bg === current);
         });
+        // Show/hide pro section based on status
+        const proSection = document.getElementById('themePanelProSection');
+        if (proSection) proSection.classList.toggle('hidden', !window._proUnlocked);
+        const proLock = document.getElementById('themePanelProLock');
+        if (proLock) proLock.classList.toggle('hidden', !!window._proUnlocked);
     }
+};
+
+window.toggleTabletCollapse = function(panelId, triggerBtn) {
+    const panel = document.getElementById(panelId);
+    if (!panel) return;
+    panel.classList.toggle('tablet-collapsed');
+    if (triggerBtn) {
+        const collapsed = panel.classList.contains('tablet-collapsed');
+        triggerBtn.textContent = collapsed ? '▾' : '▴';
+    }
+};
+
+// Pro: apply a custom solid color as background
+window.applyCustomBgColor = function(hex) {
+    if (!window._proUnlocked) { window.showProGate('Custom Color'); return; }
+    localStorage.setItem('strateger_bg_color', hex);
+    window.setPageBackground('custom-color');
+    // sync swatch highlight
+    document.querySelectorAll('.bg-swatch').forEach(s => s.classList.toggle('active', s.dataset.bg === 'custom-color'));
+};
+
+// Pro: apply an uploaded image as background
+window.triggerCustomBgUpload = function() {
+    if (!window._proUnlocked) { window.showProGate('Custom Image'); return; }
+    const inp = document.getElementById('customBgImageInput');
+    if (inp) inp.click();
+};
+window.handleCustomBgUpload = function(input) {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    // Limit to 5MB
+    if (file.size > 5 * 1024 * 1024) {
+        alert('Image too large — max 5 MB');
+        input.value = '';
+        return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        localStorage.setItem('strateger_bg_image', e.target.result);
+        window.setPageBackground('custom-image');
+        document.querySelectorAll('.bg-swatch').forEach(s => s.classList.toggle('active', s.dataset.bg === 'custom-image'));
+    };
+    reader.readAsDataURL(file);
+    input.value = '';
 };
 
 // פונקציית עזר לפורמט שעות:דקות (3:35)
@@ -454,6 +541,7 @@ window.renderPreview = function() {
         const pit = pits[index];
         const isLast = index === stints.length - 1;
         const isFirst = index === 0;
+        const finishIndicator = isLast ? '<span class="text-neon">🏁</span>' : '';
         
         let pitIndicator = '';
         if (pit && !isLast) {
@@ -484,6 +572,7 @@ window.renderPreview = function() {
                         <span>${startTimeStr}</span>
                         <span class="text-ice">${arrow}</span>
                         <span>${endTimeStr}</span>
+                        ${finishIndicator}
                         ${pitIndicator}
                     </div>
                 </div>
@@ -492,7 +581,6 @@ window.renderPreview = function() {
                        class="w-14 bg-navy-800 border border-gray-600 text-white text-center text-xs rounded px-1 py-0.5 font-mono focus:border-ice focus:outline-none ${outOfBounds ? 'border-red-500 text-red-300' : ''}" 
                        title="Stint duration (min)">
                 <span class="text-gray-500 text-[10px]">m</span>
-                ${isLast ? '🏁' : ''}
             </div>
         `;
     }).join('');
@@ -538,7 +626,14 @@ window.renderPreview = function() {
     const summaryEl = document.getElementById('strategySummary');
     if (summaryEl) {
         summaryEl.className = "grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-1.5 sm:gap-2 p-2";
-        summaryEl.innerHTML = summaryHtml;
+        const locationCard = window.config?.raceLocation ? `
+            <div class="bg-gradient-to-br from-ice/10 to-cyan-500/10 rounded-lg border border-ice/20 p-2 sm:p-3 text-left sm:text-center col-span-3 md:col-span-2 lg:col-span-2">
+                <div class="text-[10px] uppercase tracking-[0.2em] text-ice font-bold">Venue</div>
+                <div class="text-sm sm:text-base text-white font-bold mt-1 break-words">📍 ${window.config.raceLocation}</div>
+                <div class="text-[10px] text-gray-400 mt-1">Weather and race context stay anchored to this location.</div>
+            </div>
+        ` : '';
+        summaryEl.innerHTML = locationCard + summaryHtml;
     }
 };
 
@@ -1092,6 +1187,7 @@ window.applyStrategy = function(index) {
             setVal('reqPitStops', strategy.config.reqStops);
             setVal('minStint', strategy.config.minStint);
             setVal('maxStint', strategy.config.maxStint);
+            setVal('raceLocation', strategy.config.raceLocation);
             setVal('minPitTime', strategy.config.pitTime);
             setVal('releaseBuffer', strategy.config.buffer);
             setVal('closedStart', strategy.config.closedStart);
@@ -1099,6 +1195,7 @@ window.applyStrategy = function(index) {
             setVal('minDriverTotal', strategy.config.minDriverTotal);
             setVal('maxDriverTotal', strategy.config.maxDriverTotal);
             setVal('fuelTime', strategy.config.fuel);
+            setVal('calendarLocation', strategy.config.raceLocation);
             
             // עדכון צ'קבוקסים
             const setCheck = (id, val) => {
@@ -1698,4 +1795,103 @@ window.renderChatMessage = function(msg) {
         badge.innerText = window.chatUnread;
         badge.classList.remove('hidden');
     }
+};
+
+// ─── Saved Driver Templates ───────────────────────────────────────────────────
+const SAVED_DRIVERS_KEY = 'strateger_saved_drivers';
+
+/** Collect current driver list and save as a named template */
+window.saveDriverTemplate = function() {
+    const driverRows = document.querySelectorAll('#driversList > div');
+    if (!driverRows.length) { window.showToast && window.showToast(window.t('noDriversToSave') || 'No drivers to save'); return; }
+
+    const drivers = Array.from(driverRows).map(row => ({
+        name: row.querySelector('.driver-input')?.value || '',
+        color: row.querySelector('.driver-color-picker')?.value || '#22d3ee',
+        squad: parseInt(row.querySelector('.squad-value')?.value || '0', 10),
+        starter: row.querySelector('input[type="radio"]')?.checked || false,
+    }));
+
+    let saved = [];
+    try { saved = JSON.parse(localStorage.getItem(SAVED_DRIVERS_KEY) || '[]'); } catch(e) {}
+
+    const name = prompt(window.t('nameDriverTemplate') || 'Template name:', `Team ${saved.length + 1}`) || '';
+    if (!name.trim()) return;
+
+    saved.push({ name: name.trim(), drivers, savedAt: Date.now() });
+    localStorage.setItem(SAVED_DRIVERS_KEY, JSON.stringify(saved));
+    window.showToast && window.showToast((window.t('driversSaved') || 'Driver list saved') + `: "${name.trim()}"`);
+};
+
+/** Open the saved drivers picker modal */
+window.openSavedDriversModal = function() {
+    let saved = [];
+    try { saved = JSON.parse(localStorage.getItem(SAVED_DRIVERS_KEY) || '[]'); } catch(e) {}
+
+    const modal = document.getElementById('savedDriversModal');
+    const list = document.getElementById('savedDriversTemplateList');
+    const empty = document.getElementById('savedDriversEmpty');
+    if (!modal || !list || !empty) return;
+
+    list.innerHTML = '';
+    if (!saved.length) {
+        empty.classList.remove('hidden');
+    } else {
+        empty.classList.add('hidden');
+        saved.forEach((tpl, idx) => {
+            const row = document.createElement('div');
+            row.className = 'flex items-center justify-between bg-navy-800 border border-gray-600 rounded-lg px-3 py-2';
+            row.innerHTML = `
+                <div>
+                    <div class="text-sm font-bold text-white">${tpl.name}</div>
+                    <div class="text-xs text-gray-400">${tpl.drivers.length} ${window.t('ltDriver').toLowerCase()}s</div>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="window.applyDriverTemplate(${idx})" class="btn-small bg-blue-600 text-xs px-2 py-1">
+                        <i class="fas fa-download mr-1"></i>${window.t('importDrivers') || 'Load'}
+                    </button>
+                    <button onclick="window.deleteDriverTemplate(${idx})" class="btn-small bg-red-700 text-xs px-2 py-1">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `;
+            list.appendChild(row);
+        });
+    }
+    modal.classList.remove('hidden');
+};
+
+/** Load a saved template into the driver list */
+window.applyDriverTemplate = function(idx) {
+    let saved = [];
+    try { saved = JSON.parse(localStorage.getItem(SAVED_DRIVERS_KEY) || '[]'); } catch(e) {}
+    const tpl = saved[idx];
+    if (!tpl) return;
+
+    const list = document.getElementById('driversList');
+    if (!list) return;
+    list.innerHTML = '';
+
+    tpl.drivers.forEach((d, i) => {
+        const numSquads = parseInt(document.getElementById('numSquads')?.value) || 0;
+        window.createDriverInput(d.name, i === 0, d.squad);
+        // Restore color after createDriverInput appended the row
+        const rows = list.querySelectorAll(':scope > div');
+        const lastRow = rows[rows.length - 1];
+        const picker = lastRow?.querySelector('.driver-color-picker');
+        if (picker) { picker.value = d.color; }
+    });
+
+    document.getElementById('savedDriversModal').classList.add('hidden');
+    window.runSim();
+    window.showToast && window.showToast(`${window.t('importDrivers') || 'Loaded'}: "${tpl.name}"`);
+};
+
+/** Delete a saved driver template */
+window.deleteDriverTemplate = function(idx) {
+    let saved = [];
+    try { saved = JSON.parse(localStorage.getItem(SAVED_DRIVERS_KEY) || '[]'); } catch(e) {}
+    saved.splice(idx, 1);
+    localStorage.setItem(SAVED_DRIVERS_KEY, JSON.stringify(saved));
+    window.openSavedDriversModal(); // re-render modal
 };

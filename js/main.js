@@ -5,6 +5,14 @@
 // Touch device detection — used to disable HTML5 drag on mobile (allows native scroll)
 window._isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 
+window.syncRaceLocation = function(value) {
+    const raceLocation = String(value || '').trim();
+    const calendarLocation = document.getElementById('calendarLocation');
+    if (calendarLocation && raceLocation) {
+        calendarLocation.value = raceLocation;
+    }
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     console.log("🚀 Streger Initializing...");
     window._autoStartFired = false;
@@ -471,12 +479,35 @@ window.requestNotificationPermission = function() {
 window.showDemoConfig = function() {
     const modal = document.getElementById('demoConfigModal');
     if (modal) modal.classList.remove('hidden');
+    // Wire up custom fields visibility
+    const raceLengthSel = document.getElementById('demoRaceLength');
+    const customFields = document.getElementById('demoCustomLengthFields');
+    if (raceLengthSel && customFields) {
+        const updateCustom = () => {
+            if (raceLengthSel.value === 'custom') {
+                customFields.classList.remove('hidden');
+            } else {
+                customFields.classList.add('hidden');
+            }
+        };
+        raceLengthSel.removeEventListener('change', updateCustom);
+        raceLengthSel.addEventListener('change', updateCustom);
+        updateCustom();
+    }
 };
 
 window.confirmDemoStart = function() {
     // Read user feature choices into demoConfig
+    const raceLength = document.getElementById('demoRaceLength')?.value || 'endurance';
+    let customDuration = null;
+    if (raceLength === 'custom') {
+        const hrs = parseInt(document.getElementById('demoCustomHours')?.value || '0', 10);
+        const mins = parseInt(document.getElementById('demoCustomMinutes')?.value || '0', 10);
+        customDuration = (hrs || 0) + (mins || 0) / 60;
+    }
     window.demoConfig = {
-        raceLength: document.getElementById('demoRaceLength')?.value || 'endurance',
+        raceLength,
+        customDuration,
         gridSize: parseInt(document.getElementById('demoGridSize')?.value || '20', 10),
         chaosLevel: document.getElementById('demoChaosLevel')?.value || 'normal',
         rain: document.getElementById('demoFeatRain')?.checked ?? true,
@@ -511,12 +542,24 @@ window.startDemoRace = function() {
         endurance: { duration: 3, stops: 6, minStint: 18, maxStint: 40 },
         pro: { duration: 6, stops: 10, minStint: 25, maxStint: 55 }
     };
-    const profile = profileMap[window.demoConfig?.raceLength] || profileMap.endurance;
+    let profile;
+    if (window.demoConfig?.raceLength === 'custom' && window.demoConfig?.customDuration) {
+        profile = {
+            duration: window.demoConfig.customDuration,
+            stops: Math.max(1, Math.round(window.demoConfig.customDuration * 2)),
+            minStint: Math.max(5, Math.round(window.demoConfig.customDuration * 10)),
+            maxStint: Math.max(10, Math.round(window.demoConfig.customDuration * 20)),
+        };
+    } else {
+        profile = profileMap[window.demoConfig?.raceLength] || profileMap.endurance;
+    }
 
     setVal('raceDuration', String(profile.duration));
     setVal('reqPitStops', String(profile.stops));
     setVal('minStint', String(profile.minStint));
     setVal('maxStint', String(profile.maxStint));
+    setVal('raceLocation', 'Spa-Francorchamps');
+    if (typeof window.syncRaceLocation === 'function') window.syncRaceLocation('Spa-Francorchamps');
     setVal('minPitTime', '60');          // 1 minute pit time
     setVal('pitClosedStart', '2');       // pit closed first 2 min
     setVal('pitClosedEnd', '2');         // pit closed last 2 min
@@ -3359,6 +3402,29 @@ window.exportStrategyImage = async function() {
             target.style.overflow = 'visible';
         }
 
+        // html2canvas is inconsistent with input values, so mirror stint durations as static labels.
+        const restoredDurationInputs = [];
+        if (timeline) {
+            timeline.querySelectorAll('input[type="number"]').forEach((input) => {
+                const value = input.value || input.getAttribute('value') || '';
+                if (!value) return;
+
+                const mirror = document.createElement('span');
+                mirror.className = 'inline-flex items-center rounded px-2 py-1 text-xs font-mono font-bold bg-navy-800 border border-gray-600 text-white';
+                mirror.textContent = `${value}m`;
+                mirror.setAttribute('data-export-duration', 'true');
+
+                restoredDurationInputs.push({
+                    input,
+                    nextSibling: input.nextSibling,
+                    parent: input.parentNode,
+                });
+
+                input.style.display = 'none';
+                input.parentNode.insertBefore(mirror, input.nextSibling);
+            });
+        }
+
         // Wait for reflow
         await new Promise(r => setTimeout(r, 100));
 
@@ -3377,6 +3443,14 @@ window.exportStrategyImage = async function() {
         savedStyles.forEach(({ el, style, cls }) => {
             el.style.cssText = style;
             if (cls !== undefined) el.className = cls;
+        });
+        restoredDurationInputs.forEach(({ input, parent, nextSibling }) => {
+            const mirror = parent?.querySelector('[data-export-duration="true"]');
+            if (mirror) mirror.remove();
+            input.style.display = '';
+            if (nextSibling && input.parentNode !== parent) {
+                parent?.insertBefore(input, nextSibling);
+            }
         });
         
         // Download as PNG
@@ -3435,6 +3509,23 @@ window.exportStrategyPdf = async function() {
             target.style.overflow = 'visible';
         }
 
+        const restoredDurationInputs = [];
+        if (timeline) {
+            timeline.querySelectorAll('input[type="number"]').forEach((input) => {
+                const value = input.value || input.getAttribute('value') || '';
+                if (!value) return;
+
+                const mirror = document.createElement('span');
+                mirror.className = 'inline-flex items-center rounded px-2 py-1 text-xs font-mono font-bold bg-navy-800 border border-gray-600 text-white';
+                mirror.textContent = `${value}m`;
+                mirror.setAttribute('data-export-duration', 'true');
+
+                restoredDurationInputs.push({ input, parent: input.parentNode });
+                input.style.display = 'none';
+                input.parentNode.insertBefore(mirror, input.nextSibling);
+            });
+        }
+
         await new Promise(r => setTimeout(r, 100));
 
         const canvas = await html2canvas(target, {
@@ -3452,6 +3543,11 @@ window.exportStrategyPdf = async function() {
         savedStyles.forEach(({ el, style, cls }) => {
             el.style.cssText = style;
             if (cls !== undefined) el.className = cls;
+        });
+        restoredDurationInputs.forEach(({ input, parent }) => {
+            const mirror = parent?.querySelector('[data-export-duration="true"]');
+            if (mirror) mirror.remove();
+            input.style.display = '';
         });
         
         const imgData = canvas.toDataURL('image/png');

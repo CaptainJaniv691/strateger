@@ -508,6 +508,7 @@ window.runSim = function() {
     const pitTimeMs = pitTimeSec * 1000;
     const totalPitTimeMs = reqStops * pitTimeMs;
     const totalNetDriveTime = raceMs - totalPitTimeMs; 
+    const raceLocation = (document.getElementById('raceLocation')?.value || document.getElementById('calendarLocation')?.value || '').trim();
 
     const config = {
         duration: durationHours,
@@ -527,6 +528,7 @@ window.runSim = function() {
         allowDouble: allowDouble,
         minDriverTotal: minDriverMin,
         maxDriverTotal: maxDriverMin,
+        raceLocation: raceLocation,
         totalNetDriveTime: totalNetDriveTime,
         totalPitTime: totalPitTimeMs
     };

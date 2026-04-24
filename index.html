@@ -25,7 +25,7 @@
     <meta name="twitter:image" content="/icons/og-streger-main.svg">
     <meta name="twitter:image:alt" content="Streger race strategy social preview">
     
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%2322d3ee' width='100' height='100' rx='15'/><text x='50' y='70' text-anchor='middle' font-size='60' fill='black' font-weight='bold'>S</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='18' fill='%23070f1e'/><rect x='70' y='5' width='9' height='9' rx='2' fill='%2322d3ee'/><rect x='79' y='5' width='9' height='9' rx='2' fill='%231a2d4a'/><rect x='70' y='14' width='9' height='9' rx='2' fill='%231a2d4a'/><rect x='79' y='14' width='9' height='9' rx='2' fill='%2322d3ee'/><path d='M62 24Q62 14 50 14Q38 14 38 26Q38 38 50 41Q62 44 62 56Q62 68 50 68Q38 68 38 58' stroke='%2322d3ee' stroke-width='10' fill='none' stroke-linecap='round'/><rect x='11' y='80' width='11' height='8' rx='2' fill='%2322d3ee'/><rect x='22' y='80' width='11' height='8' rx='2' fill='%231a2d4a'/><rect x='33' y='80' width='11' height='8' rx='2' fill='%2322d3ee'/><rect x='44' y='80' width='11' height='8' rx='2' fill='%231a2d4a'/><rect x='55' y='80' width='11' height='8' rx='2' fill='%2322d3ee'/><rect x='66' y='80' width='11' height='8' rx='2' fill='%231a2d4a'/><rect x='77' y='80' width='11' height='8' rx='2' fill='%2322d3ee'/></svg>">
 
     <!-- PWA -->
     <link rel="manifest" href="/manifest.json">
@@ -100,10 +100,32 @@
         </script>
 </head>
 <body class="bg-navy-950 text-gray-200 flex flex-col min-h-screen">
-    <header class="bg-navy-900 border-b border-gray-800 p-2 flex justify-between items-center shadow-md sticky top-0 z-20">
+    <header class="bg-navy-900 border-b border-gray-800 px-3 py-2 flex justify-between items-center shadow-md sticky top-0 z-20">
+
+        <!-- Left: logo + language + auth -->
         <div class="flex items-center gap-2">
+            <!-- Streger icon mark -->
+            <a href="/" style="text-decoration:none;flex-shrink:0" title="Streger">
+                <svg viewBox="0 0 34 34" width="30" height="30" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="34" height="34" rx="7" fill="#070f1e"/>
+                    <rect x="23" y="2" width="5" height="5" rx="1" fill="#22d3ee"/>
+                    <rect x="28" y="2" width="5" height="5" rx="1" fill="#1a2d4a"/>
+                    <rect x="23" y="7" width="5" height="5" rx="1" fill="#1a2d4a"/>
+                    <rect x="28" y="7" width="5" height="5" rx="1" fill="#22d3ee"/>
+                    <path d="M21 8.5Q21 4 17 4Q13 4 13 8.5Q13 13 17 14.5Q21 16 21 20.5Q21 25 17 25Q13 25 13 21.5"
+                          stroke="#22d3ee" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+                    <rect x="5" y="28" width="5" height="4" rx="1" fill="#22d3ee"/>
+                    <rect x="10" y="28" width="5" height="4" rx="1" fill="#1a2d4a"/>
+                    <rect x="15" y="28" width="5" height="4" rx="1" fill="#22d3ee"/>
+                    <rect x="20" y="28" width="5" height="4" rx="1" fill="#1a2d4a"/>
+                    <rect x="25" y="28" width="5" height="4" rx="1" fill="#22d3ee"/>
+                </svg>
+            </a>
+
+            <span class="font-black tracking-widest text-white text-sm leading-none hidden xs:block">STR<span style="color:#22d3ee">EGER</span></span>
+
             <select id="langSelect" onchange="window.setLanguage(this.value)" 
-                    class="text-xs bg-navy-800 px-1 py-0.5 rounded border border-gray-700 text-white cursor-pointer">
+                    class="text-xs bg-navy-800 px-1 py-0.5 rounded border border-gray-700 text-white cursor-pointer ml-1">
                 <option value="en">🇬🇧 EN</option>
                 <option value="he">🇮🇱 HE</option>
                 <option value="fr">🇫🇷 FR</option>
@@ -118,15 +140,15 @@
                 <option value="el">🇬🇷 EL</option>
             </select>
             
-            <div id="googleAuthCompact" class="flex items-center ml-2 min-h-[28px]">
-                <button id="googleSignInBtn" onclick="window.googleSignIn()" class="flex items-center gap-2 bg-white text-gray-700 hover:bg-gray-100 border border-gray-300 px-2 py-1 rounded text-[10px] font-bold transition min-h-[28px]" data-i18n="googleLoginBtn">
+            <!-- Google auth (compact) -->
+            <div id="googleAuthCompact" class="flex items-center min-h-[28px]">
+                <button id="googleSignInBtn" onclick="window.googleSignIn()" class="flex items-center gap-1.5 bg-white text-gray-700 hover:bg-gray-100 border border-gray-300 px-2 py-1 rounded text-[10px] font-bold transition min-h-[28px]" data-i18n="googleLoginBtn">
                     <img src="https://www.google.com/favicon.ico" class="w-3 h-3">
-                    Login
+                    <span class="hidden sm:inline">Login</span>
                 </button>
-
-                <div id="googleUserDisplay" class="hidden flex items-center gap-2 bg-navy-800 border border-gray-600 px-2 py-1 rounded-full min-h-[28px]">
+                <div id="googleUserDisplay" class="hidden flex items-center gap-1.5 bg-navy-800 border border-gray-600 px-2 py-1 rounded-full min-h-[28px]">
                     <img id="googleAvatarSmall" src="" class="w-4 h-4 rounded-full border border-ice">
-                    <span id="googleNameSmall" class="text-xs text-white max-w-[80px] truncate hidden sm:block">User</span>
+                    <span id="googleNameSmall" class="text-xs text-white max-w-[70px] truncate hidden sm:block">User</span>
                     <button onclick="window.googleSignOut()" class="text-gray-400 hover:text-red-400 ml-1">
                         <i class="fas fa-sign-out-alt text-xs"></i>
                     </button>
@@ -134,54 +156,47 @@
             </div>
         </div>
 
-        <div class="flex items-center gap-1 sm:gap-2">
+        <!-- Right: live-race status + actions + overflow -->
+        <div class="flex items-center gap-1">
+            <!-- Status indicators (shown only during race) -->
             <div id="syncControls" class="hidden flex items-center gap-1 bg-navy-800 px-2 py-1 rounded border border-gray-700">
                 <span id="syncDot" class="sync-dot bg-green-500"></span>
                 <span id="syncText" class="text-[10px] text-gray-400" data-i18n="synced">Synced</span>
             </div>
-            
             <div id="liveIndicator" class="hidden sync-dot live-dot"></div>
 
+            <!-- PRO badge -->
             <button id="proStatusBtn" onclick="window.showProStatus()" class="hidden bg-gradient-to-r from-gold/20 to-amber-500/20 hover:from-gold/30 hover:to-amber-500/30 text-gold text-[10px] font-bold px-2 py-1 rounded-full border border-gold/50 transition flex items-center gap-1">
                 ⭐ <span data-i18n="proBadge">PRO</span>
             </button>
 
-            <button id="shareRaceBtn" onclick="window.copyInviteLink()" class="hidden bg-gradient-to-r from-ice to-blue-500 hover:from-blue-400 hover:to-ice text-navy-950 text-xs font-bold px-3 py-1.5 rounded-full shadow-lg transition transform active:scale-95 flex items-center gap-1">
+            <!-- Live-race action buttons: hidden until race mode activated -->
+            <button id="shareRaceBtn" onclick="window.copyInviteLink()" class="hidden bg-gradient-to-r from-ice to-blue-500 hover:from-blue-400 hover:to-ice text-navy-950 text-xs font-bold px-3 py-1.5 rounded-full shadow-lg transition active:scale-95 flex items-center gap-1">
                 <i class="fas fa-link"></i>
                 <span class="hidden sm:inline" data-i18n="invite">Invite</span>
             </button>
-
-            <button id="driverLinkBtn" onclick="window.copyDriverLink()" class="hidden bg-gradient-to-r from-orange-500 to-amber-500 hover:from-amber-400 hover:to-orange-400 text-navy-950 text-xs font-bold px-3 py-1.5 rounded-full shadow-lg transition transform active:scale-95 flex items-center gap-1" title="Copy Driver Link">
+            <button id="driverLinkBtn" onclick="window.copyDriverLink()" class="hidden bg-gradient-to-r from-orange-500 to-amber-500 hover:from-amber-400 hover:to-orange-400 text-navy-950 text-xs font-bold px-2.5 py-1.5 rounded-full shadow-lg transition active:scale-95 flex items-center gap-1" title="Copy Driver Link">
                 <i class="fas fa-car-side"></i>
                 <span class="hidden sm:inline" data-i18n="driverLink">Driver</span>
             </button>
-
-            <button id="broadcastBtn" onclick="window.toggleBroadcastMode()" class="hidden bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-fuchsia-500 hover:to-violet-500 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg transition transform active:scale-95 flex items-center gap-1" title="Broadcast Screen">
+            <button id="broadcastBtn" onclick="window.toggleBroadcastMode()" class="hidden bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-fuchsia-500 hover:to-violet-500 text-white text-xs font-bold px-2.5 py-1.5 rounded-full shadow-lg transition active:scale-95 flex items-center gap-1" title="Broadcast">
                 <i class="fas fa-tower-broadcast"></i>
                 <span class="hidden sm:inline" data-i18n="broadcast">Broadcast</span>
             </button>
-
-            <!-- Visible on sm+ screens only -->
-            <button id="themeToggleBtn" onclick="window.toggleThemePanel()" class="flex bg-navy-800 hover:bg-navy-700 text-gray-300 hover:text-white text-xs font-bold px-2 py-1.5 rounded-full border border-gray-700 hover:border-gray-500 transition transform active:scale-95 items-center gap-1" title="Theme">
-                <i class="fas fa-palette"></i>
-            </button>
-
-            <button id="muteToggleBtn" onclick="window.toggleMute()" class="hidden sm:flex bg-navy-800 hover:bg-navy-700 text-gray-300 hover:text-white text-xs font-bold px-2 py-1.5 rounded-full border border-gray-700 hover:border-gray-500 transition transform active:scale-95 items-center gap-1" title="Mute">
-                <i class="fas fa-volume-up"></i>
-            </button>
-
-            <button id="viewerManageBtn" onclick="window.openViewerApprovalModal()" class="hidden bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white text-xs font-bold px-3 py-1.5 rounded-full shadow-lg transition transform active:scale-95 flex items-center gap-1 relative">
+            <button id="viewerManageBtn" onclick="window.openViewerApprovalModal()" class="hidden bg-gradient-to-r from-purple-600 to-blue-600 text-white text-xs font-bold px-2.5 py-1.5 rounded-full shadow-lg transition active:scale-95 flex items-center gap-1 relative">
                 <i class="fas fa-users-cog"></i>
-                <span class="hidden sm:inline">Manage Viewers</span>
                 <span id="viewerPendingBadge" class="hidden absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold min-w-[18px] h-[18px] flex items-center justify-center rounded-full animate-pulse shadow-lg border-2 border-navy-900">0</span>
             </button>
 
-            <!-- ⋮ Overflow menu (mobile only) -->
-            <div class="relative sm:hidden">
-                <button onclick="document.getElementById('headerOverflowMenu').classList.toggle('hidden')" class="bg-navy-800 hover:bg-navy-700 text-gray-300 hover:text-white text-sm font-bold w-9 h-9 rounded-full border border-gray-700 flex items-center justify-center">
-                    <i class="fas fa-ellipsis-v"></i>
+            <!-- Always-visible overflow menu (theme + sound + shortcuts) -->
+            <div class="relative">
+                <button onclick="document.getElementById('headerOverflowMenu').classList.toggle('hidden')" class="bg-navy-800 hover:bg-navy-700 text-gray-300 hover:text-white text-sm font-bold w-8 h-8 rounded-full border border-gray-700 flex items-center justify-center transition" title="More">
+                    <i class="fas fa-ellipsis-v text-xs"></i>
                 </button>
-                <div id="headerOverflowMenu" class="hidden absolute right-0 top-full mt-1 bg-navy-900 border border-gray-700 rounded-lg shadow-2xl p-1.5 min-w-[160px] z-50 animate-scale-in">
+                <div id="headerOverflowMenu" class="hidden absolute right-0 top-full mt-1 bg-navy-900 border border-gray-700 rounded-xl shadow-2xl p-1.5 min-w-[170px] z-50">
+                    <button onclick="window.toggleThemePanel(); document.getElementById('headerOverflowMenu').classList.add('hidden')" class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm text-gray-300 hover:bg-navy-800 hover:text-white transition text-left">
+                        <i class="fas fa-palette w-4 text-center text-gray-500"></i> <span data-i18n="lblAppearance">Appearance</span>
+                    </button>
                     <button onclick="window.toggleMute(); document.getElementById('headerOverflowMenu').classList.add('hidden')" class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm text-gray-300 hover:bg-navy-800 hover:text-white transition text-left">
                         <i class="fas fa-volume-up w-4 text-center text-gray-500" id="overflowMuteIcon"></i> <span data-i18n="mute">Sound</span>
                     </button>
@@ -193,72 +208,52 @@
         </div>
     </header>
 
-    <div id="setupScreen" class="w-full bg-navy-950 relative p-2">
+    <div id="setupScreen" class="w-full relative p-2">
         
-        <div class="max-w-lg mx-auto text-center mb-2">
-            <div class="header-title font-bold tracking-widest text-white ml-2 sm:block">
-                STR<span class="text-ice">EGER</span>
+        <!-- Hero / Branding -->
+        <div class="max-w-lg md:max-w-3xl mx-auto text-center mb-3 pt-2">
+            <div class="mb-2">
+                <div class="text-[10px] text-gray-500 uppercase tracking-widest" data-i18n="appSubtitle">
+                    Endurance Race Strategy Manager
+                </div>
             </div>
-            <div class="text-[9px] text-gray-400 uppercase tracking-wider ml-2 sm:block" data-i18n="appSubtitle">
-                Endurance Race Strategy Manager
-            </div>
-            <div id="googleActionsBar" class="hidden grid grid-cols-4 gap-2 mb-4">
-                <button onclick="window.showTeamEmailModal()" class="bg-navy-800 border border-gray-700 hover:border-ice p-2 rounded flex flex-col items-center gap-1 group">
-                    <i class="fas fa-envelope text-ice group-hover:scale-110 transition"></i>
+            <!-- Google team quick actions (shown after login) -->
+            <div id="googleActionsBar" class="hidden grid grid-cols-4 gap-2 mb-3 mt-2">
+                <button onclick="window.showTeamEmailModal()" class="bg-navy-800 border border-gray-700 hover:border-ice p-2 rounded-lg flex flex-col items-center gap-1 group transition">
+                    <i class="fas fa-envelope text-ice group-hover:scale-110 transition text-sm"></i>
                     <span class="text-[9px] text-gray-400">Email</span>
                 </button>
-                <button onclick="window.showCalendarModal()" class="bg-navy-800 border border-gray-700 hover:border-neon p-2 rounded flex flex-col items-center gap-1 group">
-                    <i class="fas fa-calendar-plus text-neon group-hover:scale-110 transition"></i>
+                <button onclick="window.showCalendarModal()" class="bg-navy-800 border border-gray-700 hover:border-neon p-2 rounded-lg flex flex-col items-center gap-1 group transition">
+                    <i class="fas fa-calendar-plus text-neon group-hover:scale-110 transition text-sm"></i>
                     <span class="text-[9px] text-gray-400">Calendar</span>
                 </button>
-                <button onclick="window.loadStrategyLibrary()" class="bg-navy-800 border border-gray-700 hover:border-gold p-2 rounded flex flex-col items-center gap-1 group">
-                    <i class="fas fa-book text-gold group-hover:scale-110 transition"></i>
+                <button onclick="window.loadStrategyLibrary()" class="bg-navy-800 border border-gray-700 hover:border-gold p-2 rounded-lg flex flex-col items-center gap-1 group transition">
+                    <i class="fas fa-book text-gold group-hover:scale-110 transition text-sm"></i>
                     <span class="text-[9px] text-gray-400">Library</span>
                 </button>
-                <button onclick="window.checkTeamAvailability()" class="bg-navy-800 border border-gray-700 hover:border-purple-400 p-2 rounded flex flex-col items-center gap-1 group">
-                    <i class="fas fa-clock text-purple-400 group-hover:scale-110 transition"></i>
+                <button onclick="window.checkTeamAvailability()" class="bg-navy-800 border border-gray-700 hover:border-purple-400 p-2 rounded-lg flex flex-col items-center gap-1 group transition">
+                    <i class="fas fa-clock text-purple-400 group-hover:scale-110 transition text-sm"></i>
                     <span class="text-[9px] text-gray-400">Check</span>
                 </button>
-            </div> 
+            </div>
+
+            <!-- Quick-start demo pill (shown only to new users, hidden after first race) -->
+            <button id="quickStartDemoBtn" onclick="window.showDemoConfig && window.showDemoConfig()" class="w-full mt-1 mb-1 flex items-center justify-center gap-2 bg-ice/10 border border-ice/30 hover:bg-ice/20 text-ice text-xs font-bold py-2 rounded-xl transition">
+                <i class="fas fa-play-circle"></i>
+                <span data-i18n="tryDemo">Try a live demo race →</span>
+            </button>
         </div>
 
-        <div id="configPanel" class="space-y-4 transition-opacity duration-300">
-    
-           <div class="bg-gradient-to-r from-red-900/30 to-navy-800 p-3 rounded-lg border border-red-500/50 relative">
-                <span id="proLockLiveTiming" class="hidden absolute top-2 end-2 text-[10px] bg-gold/20 text-gold px-1.5 py-0.5 rounded-full font-bold border border-gold/30">🔒 PRO</span>
-                <div class="flex items-center gap-2 mb-2">
-                    <span class="sync-dot live-dot"></span>
-                    <span class="text-sm font-bold text-white" data-i18n="liveTiming">Live Timing</span>
-                </div>
-                
-                <div class="mb-2">
-                    <input type="url" id="liveTimingUrl" data-i18n="liveTimingUrl" placeholder="Live Timing URL..." class="input-field text-xs mb-1">
-                </div>
+        <!-- outer wrapper: single col on phone, 2-col on tablet -->
+        <div class="max-w-lg md:max-w-3xl mx-auto md:grid md:grid-cols-2 md:gap-4 md:items-start">
 
-                <div class="mb-2">
-                    <label class="text-[10px] text-gray-400 block mb-1" data-i18n="ltSearchType">Filter By:</label>
-                    <div class="flex gap-2 mb-1">
-                        <label class="flex items-center gap-1 cursor-pointer">
-                            <input type="radio" name="searchType" value="team" checked class="accent-red-500 w-3 h-3">
-                            <span class="text-[10px] text-gray-300" data-i18n="ltTeam">Team</span>
-                        </label>
-                        <label class="flex items-center gap-1 cursor-pointer">
-                            <input type="radio" name="searchType" value="driver" class="accent-red-500 w-3 h-3">
-                            <span class="text-[10px] text-gray-300" data-i18n="ltDriver">Driver</span>
-                        </label>
-                        <label class="flex items-center gap-1 cursor-pointer">
-                            <input type="radio" name="searchType" value="kart" class="accent-red-500 w-3 h-3">
-                            <span class="text-[10px] text-gray-300" data-i18n="ltKart">Kart #</span>
-                        </label>
-                    </div>
-                    <input type="text" id="searchValue" class="input-field text-xs" data-i18n="ltPlaceholder" placeholder="Search value...">
-                </div>
+        <!-- ════ COLUMN LEFT: race settings ════ -->
+        <div id="configPanel" class="space-y-3 transition-opacity duration-300">
 
-                <div class="flex gap-2">
-                    <button onclick="window.testLiveTiming()" class="flex-1 bg-red-900/50 border border-red-500/50 text-red-300 text-xs py-1.5 rounded hover:bg-red-900" data-i18n="testBtn">Test</button>
-                    <button onclick="window.openManualInput()" class="flex-1 bg-fuel/20 border border-fuel/50 text-fuel text-xs py-1.5 rounded hover:bg-fuel/30" data-i18n="manualInput">Manual</button>
-                </div>
-                <div id="liveTimingStatus" class="text-[10px] text-gray-500 text-center mt-1"></div>
+            <!-- Step label -->
+            <div class="flex items-center gap-2">
+                <span class="text-[10px] font-black text-ice bg-ice/10 border border-ice/30 rounded-full w-5 h-5 flex items-center justify-center shrink-0">1</span>
+                <span class="text-xs font-bold text-gray-300 uppercase tracking-widest" data-i18n="stepRaceSettings">Race Settings</span>
             </div>
 
             <div id="simResult" class="bg-black/40 border border-ice/30 p-3 rounded text-xs text-ice font-mono text-center whitespace-pre-line hidden">
@@ -269,14 +264,15 @@
                 ⚠️ Invalid Strategy: Average stint <span id="averageStintValue">--</span> is outside bounds [<span id="minStintBound">30</span>-<span id="maxStintBound">65</span>] min
             </div>
 
-            <!-- GENERAL INFO (collapsible) -->
+            <!-- GENERAL INFO -->
             <div class="collapsible-section bg-navy-900/80 p-3 rounded-xl border border-gray-700/60">
                 <h2 class="text-ice text-sm font-bold flex items-center gap-2 cursor-pointer select-none" onclick="this.parentElement.classList.toggle('collapsed')">
                     <i class="fas fa-cog text-ice/70"></i> <span data-i18n="generalInfo">General Info</span>
                     <i class="fas fa-chevron-down ml-auto text-xs text-gray-500 collapse-icon transition-transform"></i>
                 </h2>
                 <div class="collapse-body">
-                <div class="grid grid-cols-2 gap-4">
+                <!-- Row 1: Duration + Stops -->
+                <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="text-xs text-gray-400 font-bold" data-i18n="lblDuration">Duration (Hours)</label>
                         <input type="number" id="raceDuration" value="12" onchange="window.runSim()" class="input-field text-lg font-bold">
@@ -293,7 +289,8 @@
                         <input type="number" id="reqPitStops" value="15" onchange="window.runSim()" class="input-field text-neon text-lg font-bold">
                     </div>
                 </div>
-                <div class="grid grid-cols-3 gap-3 mt-3">
+                <!-- Row 2: Stint limits + Pit time -->
+                <div class="grid grid-cols-3 gap-2 mt-2">
                     <div>
                         <label class="text-xs text-gray-400" data-i18n="lblMinStint">Min Stint (min)</label>
                         <input type="number" id="minStint" value="30" onchange="window.runSim()" class="input-field">
@@ -307,9 +304,10 @@
                         <input type="number" id="minPitTime" value="120" onchange="window.runSim()" class="input-field">
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-4 mt-3">
+                <!-- Row 3: Start time + Date -->
+                <div class="grid grid-cols-2 gap-3 mt-2">
                     <div>
-                        <label class="text-xs text-gray-400 font-bold" data-i18n="lblStartTime">🕐 Race Start Time</label>
+                        <label class="text-xs text-gray-400 font-bold" data-i18n="lblStartTime">🕐 Start Time</label>
                         <input type="time" id="raceStartTime" onchange="window.runSim()" class="input-field">
                     </div>
                     <div>
@@ -317,11 +315,16 @@
                         <input type="date" id="raceStartDate" onchange="window.runSim()" class="input-field">
                     </div>
                 </div>
+                <div class="mt-2">
+                    <label class="text-xs text-gray-400 font-bold">📍 Track / Location</label>
+                    <input type="text" id="raceLocation" placeholder="e.g. Spa-Francorchamps or Tel Aviv Karting" onchange="window.syncRaceLocation && window.syncRaceLocation(this.value); window.runSim()" class="input-field">
+                    <p class="text-[10px] text-gray-500 mt-1">Used in race context, sharing, and weather-focused decisions.</p>
+                </div>
                 </div>
             </div>
 
-            <!-- ADVANCED CONSTRAINTS (collapsible, merged with toggles) -->
-            <div class="collapsible-section bg-navy-900/80 p-3 rounded-xl border border-gray-700/60">
+            <!-- ADVANCED CONSTRAINTS — collapsed by default -->
+            <div class="collapsible-section collapsed bg-navy-900/80 p-3 rounded-xl border border-gray-700/60">
                 <h2 class="text-gray-300 text-sm font-bold flex items-center gap-2 cursor-pointer select-none" onclick="this.parentElement.classList.toggle('collapsed')">
                     <i class="fas fa-sliders-h text-gray-500"></i> <span data-i18n="advancedConstraints">Advanced Constraints</span>
                     <i class="fas fa-chevron-down ml-auto text-[10px] text-gray-600 collapse-icon transition-transform"></i>
@@ -373,7 +376,7 @@
                     </div>
                 </div>
                 <!-- Constraint fields -->
-                <div class="grid grid-cols-2 gap-4 mb-3">
+                <div class="grid grid-cols-2 gap-3 mb-3">
                     <div>
                         <label class="text-xs text-red-400 font-bold" data-i18n="lblPitClosedStart">🚫 Closed Start (min)</label>
                         <input type="number" id="pitClosedStart" value="0" onchange="window.runSim()" class="input-field border-red-900/50">
@@ -383,7 +386,7 @@
                         <input type="number" id="pitClosedEnd" value="0" onchange="window.runSim()" class="input-field border-red-900/50">
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-4 mb-3">
+                <div class="grid grid-cols-2 gap-3 mb-3">
                     <div>
                         <label class="text-xs text-gray-400" data-i18n="lblMinDrive">Min Driver Total (min)</label>
                         <input type="number" id="minDriverTime" placeholder="0" onchange="window.runSim()" class="input-field">
@@ -393,7 +396,7 @@
                         <input type="number" id="maxDriverTime" placeholder="0" onchange="window.runSim()" class="input-field">
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="text-xs text-yellow-400 font-bold" data-i18n="lblBuffer">Pit Alert / Buffer (s)</label>
                         <input type="number" id="releaseBuffer" value="5" onchange="window.runSim()" class="input-field border-yellow-600/50">
@@ -403,11 +406,60 @@
                         <input type="number" id="fuelTime" onchange="window.runSim()" class="input-field border-fuel/50">
                     </div>
                 </div>
-                <hr class="border-gray-700/50 my-3">
                 </div>
             </div>
 
-            <!-- DRIVERS (collapsible) -->
+            <!-- LIVE TIMING — collapsed by default, optional/advanced -->
+            <div class="collapsible-section collapsed bg-navy-900/60 p-3 rounded-xl border border-red-900/40">
+                <h2 class="text-gray-400 text-sm font-bold flex items-center gap-2 cursor-pointer select-none" onclick="this.parentElement.classList.toggle('collapsed')">
+                    <span class="sync-dot live-dot opacity-60"></span>
+                    <span data-i18n="liveTiming">Live Timing</span>
+                    <span class="text-[9px] text-gray-600 font-normal normal-case ml-1" data-i18n="optional">(optional)</span>
+                    <span id="proLockLiveTiming" class="hidden text-[10px] bg-gold/20 text-gold px-1.5 py-0.5 rounded-full font-bold border border-gold/30">🔒 PRO</span>
+                    <i class="fas fa-chevron-down ml-auto text-[10px] text-gray-600 collapse-icon transition-transform"></i>
+                </h2>
+                <div class="collapse-body mt-3">
+                <div class="mb-2">
+                    <input type="url" id="liveTimingUrl" data-i18n="liveTimingUrl" placeholder="Live Timing URL..." class="input-field text-xs mb-1">
+                </div>
+                <div class="mb-2">
+                    <label class="text-[10px] text-gray-400 block mb-1" data-i18n="ltSearchType">Filter By:</label>
+                    <div class="flex gap-2 mb-1">
+                        <label class="flex items-center gap-1 cursor-pointer">
+                            <input type="radio" name="searchType" value="team" checked class="accent-red-500 w-3 h-3">
+                            <span class="text-[10px] text-gray-300" data-i18n="ltTeam">Team</span>
+                        </label>
+                        <label class="flex items-center gap-1 cursor-pointer">
+                            <input type="radio" name="searchType" value="driver" class="accent-red-500 w-3 h-3">
+                            <span class="text-[10px] text-gray-300" data-i18n="ltDriver">Driver</span>
+                        </label>
+                        <label class="flex items-center gap-1 cursor-pointer">
+                            <input type="radio" name="searchType" value="kart" class="accent-red-500 w-3 h-3">
+                            <span class="text-[10px] text-gray-300" data-i18n="ltKart">Kart #</span>
+                        </label>
+                    </div>
+                    <input type="text" id="searchValue" class="input-field text-xs" data-i18n="ltPlaceholder" placeholder="Search value...">
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="window.testLiveTiming()" class="flex-1 bg-red-900/50 border border-red-500/50 text-red-300 text-xs py-1.5 rounded hover:bg-red-900" data-i18n="testBtn">Test</button>
+                    <button onclick="window.openManualInput()" class="flex-1 bg-fuel/20 border border-fuel/50 text-fuel text-xs py-1.5 rounded hover:bg-fuel/30" data-i18n="manualInput">Manual</button>
+                </div>
+                <div id="liveTimingStatus" class="text-[10px] text-gray-500 text-center mt-1"></div>
+                </div>
+            </div>
+
+        </div><!-- end col-left -->
+
+        <!-- ════ COLUMN RIGHT: drivers + actions ════ -->
+        <div class="space-y-3 mt-3 md:mt-0">
+
+            <!-- Step label -->
+            <div class="flex items-center gap-2">
+                <span class="text-[10px] font-black text-ice bg-ice/10 border border-ice/30 rounded-full w-5 h-5 flex items-center justify-center shrink-0">2</span>
+                <span class="text-xs font-bold text-gray-300 uppercase tracking-widest" data-i18n="stepDrivers">Drivers</span>
+            </div>
+
+            <!-- DRIVERS -->
             <div class="collapsible-section bg-navy-900/80 p-3 rounded-xl border border-gray-700/60">
                 <h2 class="text-ice text-sm font-bold flex items-center gap-2 cursor-pointer select-none" onclick="this.parentElement.classList.toggle('collapsed')">
                     <i class="fas fa-users text-ice/70"></i> <span data-i18n="driverConfig">Drivers</span>
@@ -415,17 +467,20 @@
                 </h2>
                 <div class="collapse-body">
                 <div id="driversList" class="space-y-2"></div>
-                
                 <div class="flex gap-2 mt-2">
                     <button onclick="window.addDriverField(); window.runSim()" class="btn-small bg-blue-600 w-full" data-i18n="addDriver">+ Add</button>
                     <button onclick="window.removeDriverField(); window.runSim()" class="btn-small bg-red-600 w-12">-</button>
                 </div>
+                <div class="flex gap-2 mt-1">
+                    <button onclick="window.openSavedDriversModal()" class="btn-small bg-gray-700 hover:bg-gray-600 flex-1 text-[11px]">
+                        <i class="fas fa-clipboard-list mr-1"></i><span data-i18n="importDrivers">Import Saved</span>
+                    </button>
+                    <button onclick="window.saveDriverTemplate()" class="btn-small bg-gray-700 hover:bg-gray-600 flex-1 text-[11px]">
+                        <i class="fas fa-save mr-1"></i><span data-i18n="saveDrivers">Save List</span>
+                    </button>
+                </div>
                 </div>
             </div>
-            
-
-
-
 
             <!-- RACE COUNTDOWN BANNER -->
             <div id="raceCountdownBanner" class="hidden rounded-lg border border-ice/30 p-2 text-center transition-all duration-500">
@@ -438,30 +493,38 @@
                 </div>
             </div>
 
-            <div class="pt-2 space-y-2">
+            <!-- Step label -->
+            <div class="flex items-center gap-2 mt-1">
+                <span class="text-[10px] font-black text-neon bg-neon/10 border border-neon/30 rounded-full w-5 h-5 flex items-center justify-center shrink-0">3</span>
+                <span class="text-xs font-bold text-gray-300 uppercase tracking-widest" data-i18n="stepGo">Let's Go</span>
+            </div>
+
+            <div class="space-y-2">
                 <button onclick="window.generatePreview(false, true)" class="w-full bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-500 hover:to-fuchsia-500 text-white font-bold py-3 rounded shadow-lg transition">
                     <i class="fas fa-chart-bar mr-2"></i> <span data-i18n="previewStrategy">Preview Strategy</span>
                 </button>
-                <button onclick="window.requestAIStrategy()" class="w-full bg-gradient-to-r from-indigo-700 to-violet-600 hover:from-indigo-600 hover:to-violet-500 text-white font-bold py-2.5 rounded shadow-lg transition text-sm flex items-center justify-center gap-2">
-                    <i class="fas fa-robot"></i> <span data-i18n="aiOptimize">AI Optimize Strategy</span> <span class="text-[9px] bg-gold/30 text-gold px-1.5 rounded-full font-bold">PRO</span>
+
+                <button id="startRaceBtn" onclick="window.initRace()" class="w-full bg-ice hover:bg-cyan-300 text-navy-950 font-bold py-4 rounded text-xl shadow-[0_0_15px_rgba(34,211,238,0.4)] transition uppercase tracking-wider" data-i18n="startRace">
+                    Start Race
                 </button>
 
                 <div class="flex gap-2">
-                    <button id="startRaceBtn" onclick="window.initRace()" class="flex-1 bg-ice hover:bg-cyan-300 text-navy-950 font-bold py-4 rounded text-xl shadow-[0_0_15px_rgba(34,211,238,0.4)] transition uppercase tracking-wider" data-i18n="startRace">
-                        Start Race
-                    </button>
-                    <button onclick="window.showDemoConfig()" class="bg-neon/20 border-2 border-neon/50 text-neon font-bold py-4 px-4 rounded text-sm hover:bg-neon/30 transition" title="Start a 30-min demo race with simulated competitors">
-                        <i class="fas fa-play-circle mr-1"></i> <span data-i18n="demoRace">Demo</span>
-                    </button>
-                </div>
-                <div class="flex gap-2">
-                    <button onclick="window.showDriverEntryScreen()" class="flex-1 bg-navy-800 border border-orange-500/30 hover:border-orange-400 text-orange-400 font-bold py-2 rounded text-sm transition flex items-center justify-center gap-2">
-                        <i class="fas fa-car-side"></i> <span data-i18n="joinAsDriver">Join as Driver</span>
+                    <button onclick="window.showDriverEntryScreen()" class="flex-1 bg-navy-800 border border-orange-500/30 hover:border-orange-400 text-orange-400 font-bold py-2 rounded text-sm transition flex flex-col items-center justify-center gap-0.5">
+                        <div class="flex items-center gap-1.5">
+                            <i class="fas fa-car-side text-xs"></i>
+                            <span data-i18n="joinAsDriver">Join as Driver</span>
+                        </div>
+                        <span class="text-[9px] text-orange-400/50 font-normal leading-none" data-i18n="joinAsDriverHint">Enter a race running on another device</span>
                     </button>
                     <button onclick="window.showRaceHistory()" class="bg-navy-800 border border-gray-600 hover:border-ice/50 text-gray-400 hover:text-ice font-bold py-2 px-3 rounded text-sm transition flex items-center justify-center gap-2" title="Past race results">
                         <i class="fas fa-history"></i> <span class="hidden sm:inline" data-i18n="raceHistory">History</span>
                     </button>
                 </div>
+
+                <!-- AI Optimize — muted, secondary -->
+                <button onclick="window.requestAIStrategy()" class="w-full bg-navy-800/50 border border-gray-700/40 hover:border-indigo-500/40 hover:text-indigo-300 text-gray-500 font-medium py-2 rounded transition text-xs flex items-center justify-center gap-2">
+                    <i class="fas fa-robot text-[11px]"></i> <span data-i18n="aiOptimize">AI Optimize Strategy</span> <span class="text-[9px] bg-gold/20 text-gold px-1.5 rounded-full font-bold border border-gold/20">PRO</span>
+                </button>
             </div>
 
             <!-- PRO UPGRADE BANNER (free tier only) -->
@@ -480,7 +543,8 @@
                 </button>
             </div>
 
-        </div>
+        </div><!-- end col-right -->
+        </div><!-- end 2-col grid -->
     </div>
 
     <div id="previewScreen" class="hidden fixed inset-0 bg-navy-950 z-50 overflow-y-auto p-4 flex flex-col">
@@ -541,11 +605,11 @@
                 <button onclick="document.getElementById('previewScreen').classList.add('hidden'); document.getElementById('setupScreen').classList.remove('hidden');" class="flex-1 min-w-[80px] bg-navy-700 hover:bg-navy-600 text-gray-300 font-bold py-3 rounded-lg transition" data-i18n="close">
                     Close
                 </button>
-                <button onclick="window.exportStrategyImage()" class="bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/50 text-purple-300 font-bold py-3 px-4 rounded-lg transition text-sm flex items-center gap-1" title="Share as Image">
-                    <i class="fas fa-image"></i>
+                <button onclick="window.exportStrategyImage()" class="bg-fuchsia-600/20 hover:bg-fuchsia-600/30 border border-fuchsia-500/60 text-fuchsia-300 font-bold py-3 px-4 rounded-lg transition text-sm flex items-center gap-1" title="Share as Image">
+                    <i class="fas fa-image"></i> <span class="text-[10px] bg-gold/20 text-gold px-1.5 rounded-full font-bold border border-gold/20">PRO</span>
                 </button>
                 <button onclick="window.exportStrategyPdf()" class="bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/50 text-blue-300 font-bold py-3 px-4 rounded-lg transition text-sm flex items-center gap-1" title="Export PDF">
-                    <i class="fas fa-file-pdf"></i> <span class="hidden sm:inline" data-i18n="exportPdf">PDF</span>
+                    <i class="fas fa-file-pdf"></i> <span class="hidden sm:inline" data-i18n="exportPdf">PDF</span> <span class="text-[10px] bg-gold/20 text-gold px-1.5 rounded-full font-bold border border-gold/20">PRO</span>
                 </button>
                 <button onclick="window.saveStrategy()" class="flex-1 min-w-[80px] bg-gold/20 hover:bg-gold/30 text-gold font-bold py-3 rounded-lg border border-gold/50 transition" data-i18n="saveStratTitle">
                     Save
@@ -557,7 +621,7 @@
         </div>
     </div>
 
-    <div id="raceDashboard" class="hidden flex flex-col h-full min-h-0 bg-navy-950 w-full relative">
+    <div id="raceDashboard" class="hidden flex flex-col h-full min-h-0 w-full relative">
 
         <div id="dashboardInfoBar" class="bg-navy-900 border-b border-gray-800 shrink-0 p-2 grid grid-cols-4 gap-1 items-center z-[15] shadow-md sticky top-[42px]">
             <div class="flex items-center justify-center">
@@ -601,7 +665,7 @@
         </div>
 
         <div id="dashboardScrollArea" class="flex-1 overflow-y-auto overflow-x-hidden p-2 space-y-2">
-            <div id="liveTimingPanel" class="hidden bg-navy-900/80 border-b border-red-500/50 p-2 rounded mb-2">
+            <div id="liveTimingPanel" class="hidden tablet-collapsible tablet-collapsed bg-navy-900/80 border-b border-red-500/50 p-2 rounded mb-2">
                 <div class="flex justify-between items-center mb-1">
                     <div class="flex items-center gap-2">
                         <span class="sync-dot live-dot"></span> 
@@ -609,11 +673,13 @@
                         <span id="liveHeartbeat" class="text-[10px] text-gray-400">HB --</span>
                     </div>
                     <div class="flex items-center gap-1">
+                        <button onclick="window.toggleTabletCollapse('liveTimingPanel', this)" class="text-[10px] bg-navy-700 border border-gray-600 text-gray-300 px-2 py-0.5 rounded" title="Expand/collapse">▾</button>
                         <button id="competitorsToggleBtn" onclick="window.toggleCompetitorsTable()" class="text-[10px] bg-navy-700 border border-gray-600 text-gray-300 px-2 py-0.5 rounded" title="Toggle competitors table">📋</button>
                         <button id="apexViewToggle" onclick="window.toggleApexIframe()" class="text-[10px] bg-navy-700 border border-gray-600 text-gray-300 px-2 py-0.5 rounded" title="Toggle original Apex view">🌐</button>
                         <button onclick="window.stopLiveTiming()" class="text-[10px] bg-red-900 text-white px-2 rounded" data-i18n="stop">Stop</button>
                     </div>
                 </div>
+                <div class="tablet-collapse-body">
                 <div class="grid grid-cols-3 gap-1 text-center">
                     <div class="bg-navy-950 rounded border border-gray-700 p-1">
                         <div class="text-[9px] text-gray-500" data-i18n="pos">POS</div>
@@ -650,6 +716,7 @@
                     <iframe id="apexIframe" src="" class="w-full rounded" style="height:300px;border:none;background:#0a1120;" sandbox="allow-scripts allow-forms allow-popups"></iframe>
                 </div>
                 <div id="kartRankingPanel" class="hidden mt-1 p-2 bg-navy-950 rounded border border-gray-700/50"></div>
+                </div>
             </div>
 
             <div id="strategyBox" class="p-2 text-center bg-navy-900 border border-gray-700 rounded-lg shadow-sm">
@@ -733,7 +800,12 @@
                 </div>
             </div>
 
-            <div class="bg-navy-900 border border-gray-700 rounded-lg overflow-hidden">
+            <div id="driverStatsPanel" class="tablet-collapsible tablet-collapsed bg-navy-900 border border-gray-700 rounded-lg overflow-hidden">
+                <button onclick="window.toggleTabletCollapse('driverStatsPanel', this)" class="hidden md:flex lg:hidden w-full items-center justify-between text-[10px] font-bold uppercase tracking-wider text-gray-400 bg-navy-950 px-2.5 py-2 border-b border-gray-700">
+                    <span>Driver Stats</span>
+                    <span>▾</span>
+                </button>
+                <div class="tablet-collapse-body">
                 <table class="w-full text-sm">
                     <thead class="text-gray-400 text-[10px] bg-navy-950 border-b border-gray-700">
                         <tr>
@@ -745,6 +817,7 @@
                     </thead>
                     <tbody id="statsTable" class="divide-y divide-gray-800"></tbody>
                 </table>
+                </div>
             </div>
             
             <div class="h-2"></div>
@@ -1250,53 +1323,101 @@
                     <span class="absolute bottom-0 inset-x-0 text-[8px] text-orange-400 bg-black/70 text-center py-0.5 opacity-0 group-hover:opacity-100 transition">🌋 Volcanic</span>
                 </button>
 
-                <!-- ─── 📸 Photo themes (requires internet) ─── -->
+                <!-- ─── ☀️ Light themes ─── -->
                 <div class="col-span-4 flex items-center gap-2 mt-1">
                     <div class="flex-1 h-px bg-gray-700"></div>
-                    <span class="text-[9px] text-gray-500 font-bold tracking-widest uppercase">📸 Photo</span>
+                    <span class="text-[9px] text-gray-500 font-bold tracking-widest uppercase">☀️ Light</span>
                     <div class="flex-1 h-px bg-gray-700"></div>
                 </div>
 
-                <button class="bg-swatch w-full aspect-[3/2] rounded-lg border-2 border-gray-600 hover:border-cyan-300 transition overflow-hidden relative group" data-bg="kart-race" title="Kart Race" onclick="window.setPageBackground('kart-race')">
-                    <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=400&q=60" class="absolute inset-0 w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'">
-                    <div class="absolute inset-0 bg-black/25"></div>
-                    <span class="absolute bottom-0 inset-x-0 text-[8px] text-white bg-black/70 text-center py-0.5 opacity-0 group-hover:opacity-100 transition">🏎️ Race</span>
+                <button class="bg-swatch w-full aspect-[3/2] rounded-lg border-2 border-gray-400 hover:border-white transition overflow-hidden relative group" data-bg="pure-white" title="Pure White" onclick="window.setPageBackground('pure-white')">
+                    <div class="absolute inset-0" style="background:#f8f9fa;"></div>
+                    <span class="absolute bottom-0 inset-x-0 text-[8px] text-gray-600 bg-white/70 text-center py-0.5 opacity-0 group-hover:opacity-100 transition">⬜ White</span>
                 </button>
-                <button class="bg-swatch w-full aspect-[3/2] rounded-lg border-2 border-gray-600 hover:border-purple-400 transition overflow-hidden relative group" data-bg="kart-night" title="Night Race" onclick="window.setPageBackground('kart-night')">
-                    <img src="https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=400&q=60" class="absolute inset-0 w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'">
-                    <div class="absolute inset-0 bg-black/25"></div>
-                    <span class="absolute bottom-0 inset-x-0 text-[8px] text-white bg-black/70 text-center py-0.5 opacity-0 group-hover:opacity-100 transition">🌙 Night</span>
+                <button class="bg-swatch w-full aspect-[3/2] rounded-lg border-2 border-cyan-300 hover:border-cyan-400 transition overflow-hidden relative group" data-bg="light-cyan" title="Light Cyan" onclick="window.setPageBackground('light-cyan')">
+                    <div class="absolute inset-0" style="background: linear-gradient(180deg, #e0f7fa 0%, #b2ebf2 50%, #e0f7fa 100%);"></div>
+                    <span class="absolute bottom-0 inset-x-0 text-[8px] text-cyan-800 bg-cyan-100/70 text-center py-0.5 opacity-0 group-hover:opacity-100 transition">🩵 Cyan</span>
                 </button>
-                <button class="bg-swatch w-full aspect-[3/2] rounded-lg border-2 border-gray-600 hover:border-yellow-400 transition overflow-hidden relative group" data-bg="kart-pit" title="Pit Stop" onclick="window.setPageBackground('kart-pit')">
-                    <img src="https://images.unsplash.com/photo-1541348263662-e068662d82af?auto=format&fit=crop&w=400&q=60" class="absolute inset-0 w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'">
-                    <div class="absolute inset-0 bg-black/25"></div>
-                    <span class="absolute bottom-0 inset-x-0 text-[8px] text-white bg-black/70 text-center py-0.5 opacity-0 group-hover:opacity-100 transition">🔧 Pit Stop</span>
+                <button class="bg-swatch w-full aspect-[3/2] rounded-lg border-2 border-pink-300 hover:border-pink-400 transition overflow-hidden relative group" data-bg="light-pink" title="Light Pink" onclick="window.setPageBackground('light-pink')">
+                    <div class="absolute inset-0" style="background: linear-gradient(180deg, #fce4ec 0%, #f8bbd0 50%, #fce4ec 100%);"></div>
+                    <span class="absolute bottom-0 inset-x-0 text-[8px] text-pink-700 bg-pink-100/70 text-center py-0.5 opacity-0 group-hover:opacity-100 transition">🩷 Pink</span>
                 </button>
-                <button class="bg-swatch w-full aspect-[3/2] rounded-lg border-2 border-gray-600 hover:border-white transition overflow-hidden relative group" data-bg="kart-onboard" title="Onboard View" onclick="window.setPageBackground('kart-onboard')">
-                    <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=400&q=60" class="absolute inset-0 w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'">
-                    <div class="absolute inset-0 bg-black/25"></div>
-                    <span class="absolute bottom-0 inset-x-0 text-[8px] text-white bg-black/70 text-center py-0.5 opacity-0 group-hover:opacity-100 transition">🎥 Onboard</span>
+                <button class="bg-swatch w-full aspect-[3/2] rounded-lg border-2 border-yellow-300 hover:border-yellow-400 transition overflow-hidden relative group" data-bg="soft-yellow" title="Soft Yellow" onclick="window.setPageBackground('soft-yellow')">
+                    <div class="absolute inset-0" style="background: linear-gradient(180deg, #fffde7 0%, #fff9c4 50%, #fffde7 100%);"></div>
+                    <span class="absolute bottom-0 inset-x-0 text-[8px] text-yellow-700 bg-yellow-100/70 text-center py-0.5 opacity-0 group-hover:opacity-100 transition">💛 Yellow</span>
                 </button>
-                <button class="bg-swatch w-full aspect-[3/2] rounded-lg border-2 border-gray-600 hover:border-blue-300 transition overflow-hidden relative group" data-bg="kart-wet" title="Wet Race" onclick="window.setPageBackground('kart-wet')">
-                    <img src="https://images.unsplash.com/photo-1543466835-00a7b8755b4c?auto=format&fit=crop&w=400&q=60" class="absolute inset-0 w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'">
-                    <div class="absolute inset-0 bg-black/25"></div>
-                    <span class="absolute bottom-0 inset-x-0 text-[8px] text-white bg-black/70 text-center py-0.5 opacity-0 group-hover:opacity-100 transition">🌧️ Wet</span>
-                </button>
-                <button class="bg-swatch w-full aspect-[3/2] rounded-lg border-2 border-gray-600 hover:border-red-300 transition overflow-hidden relative group" data-bg="kart-grid" title="Starting Grid" onclick="window.setPageBackground('kart-grid')">
-                    <img src="https://images.unsplash.com/photo-1504707748692-419802cf939d?auto=format&fit=crop&w=400&q=60" class="absolute inset-0 w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'">
-                    <div class="absolute inset-0 bg-black/25"></div>
-                    <span class="absolute bottom-0 inset-x-0 text-[8px] text-white bg-black/70 text-center py-0.5 opacity-0 group-hover:opacity-100 transition">🚦 Grid</span>
-                </button>
-                <button class="bg-swatch w-full aspect-[3/2] rounded-lg border-2 border-gray-600 hover:border-orange-400 transition overflow-hidden relative group" data-bg="kart-blaze" title="Speed Blaze" onclick="window.setPageBackground('kart-blaze')">
-                    <img src="https://images.unsplash.com/photo-1583394293214-fb28a5a16b6d?auto=format&fit=crop&w=400&q=60" class="absolute inset-0 w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'">
-                    <div class="absolute inset-0 bg-black/25"></div>
-                    <span class="absolute bottom-0 inset-x-0 text-[8px] text-white bg-black/70 text-center py-0.5 opacity-0 group-hover:opacity-100 transition">💨 Speed</span>
-                </button>
-                <button class="bg-swatch w-full aspect-[3/2] rounded-lg border-2 border-gray-600 hover:border-gray-300 transition overflow-hidden relative group" data-bg="kart-helmet" title="Helmet" onclick="window.setPageBackground('kart-helmet')">
-                    <img src="https://images.unsplash.com/photo-1594398901-e69f3a2c1e23?auto=format&fit=crop&w=400&q=60" class="absolute inset-0 w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'">
-                    <div class="absolute inset-0 bg-black/25"></div>
-                    <span class="absolute bottom-0 inset-x-0 text-[8px] text-white bg-black/70 text-center py-0.5 opacity-0 group-hover:opacity-100 transition">🪖 Helmet</span>
-                </button>
+
+                <!-- ─── ⭐ Pro section: Photos + Custom ─── -->
+                <div class="col-span-4 flex items-center gap-2 mt-1">
+                    <div class="flex-1 h-px bg-gray-700"></div>
+                    <span class="text-[9px] text-gold font-bold tracking-widest uppercase flex items-center gap-1">⭐ PRO</span>
+                    <div class="flex-1 h-px bg-gray-700"></div>
+                </div>
+
+                <!-- Pro content (hidden for free users) -->
+                <div id="themePanelProSection" class="hidden col-span-4 grid grid-cols-4 gap-2">
+                    <button class="bg-swatch w-full aspect-[3/2] rounded-lg border-2 border-dashed border-gray-500 hover:border-ice transition overflow-hidden relative group flex flex-col items-center justify-center gap-1" data-bg="custom-image" title="Upload Image" onclick="window.triggerCustomBgUpload()">
+                        <i class="fas fa-image text-gray-400 group-hover:text-ice transition text-lg"></i>
+                        <span class="text-[8px] text-gray-400 group-hover:text-ice transition">Upload</span>
+                    </button>
+                    <label class="bg-swatch w-full aspect-[3/2] rounded-lg border-2 border-dashed border-gray-500 hover:border-ice transition overflow-hidden relative group flex flex-col items-center justify-center gap-1 cursor-pointer" data-bg="custom-color" title="Custom Color">
+                        <i class="fas fa-fill-drip text-gray-400 group-hover:text-ice transition text-lg"></i>
+                        <span class="text-[8px] text-gray-400 group-hover:text-ice transition">Color</span>
+                        <input type="color" id="customBgColorPicker" value="#1e293b" class="absolute opacity-0 w-full h-full cursor-pointer" onchange="window.applyCustomBgColor(this.value)">
+                    </label>
+                    <button class="bg-swatch w-full aspect-[3/2] rounded-lg border-2 border-gray-600 hover:border-cyan-300 transition overflow-hidden relative group" data-bg="kart-race" title="Kart Race" onclick="window.setPageBackground('kart-race')">
+                        <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=400&q=60" class="absolute inset-0 w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'">
+                        <div class="absolute inset-0 bg-black/25"></div>
+                        <span class="absolute bottom-0 inset-x-0 text-[8px] text-white bg-black/70 text-center py-0.5 opacity-0 group-hover:opacity-100 transition">🏎️ Race</span>
+                    </button>
+                    <button class="bg-swatch w-full aspect-[3/2] rounded-lg border-2 border-gray-600 hover:border-purple-400 transition overflow-hidden relative group" data-bg="kart-night" title="Night Race" onclick="window.setPageBackground('kart-night')">
+                        <img src="https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=400&q=60" class="absolute inset-0 w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'">
+                        <div class="absolute inset-0 bg-black/25"></div>
+                        <span class="absolute bottom-0 inset-x-0 text-[8px] text-white bg-black/70 text-center py-0.5 opacity-0 group-hover:opacity-100 transition">🌙 Night</span>
+                    </button>
+                    <button class="bg-swatch w-full aspect-[3/2] rounded-lg border-2 border-gray-600 hover:border-yellow-400 transition overflow-hidden relative group" data-bg="kart-pit" title="Pit Stop" onclick="window.setPageBackground('kart-pit')">
+                        <img src="https://images.unsplash.com/photo-1541348263662-e068662d82af?auto=format&fit=crop&w=400&q=60" class="absolute inset-0 w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'">
+                        <div class="absolute inset-0 bg-black/25"></div>
+                        <span class="absolute bottom-0 inset-x-0 text-[8px] text-white bg-black/70 text-center py-0.5 opacity-0 group-hover:opacity-100 transition">🔧 Pit</span>
+                    </button>
+                    <button class="bg-swatch w-full aspect-[3/2] rounded-lg border-2 border-gray-600 hover:border-white transition overflow-hidden relative group" data-bg="kart-onboard" title="Onboard View" onclick="window.setPageBackground('kart-onboard')">
+                        <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?auto=format&fit=crop&w=400&q=60" class="absolute inset-0 w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'">
+                        <div class="absolute inset-0 bg-black/25"></div>
+                        <span class="absolute bottom-0 inset-x-0 text-[8px] text-white bg-black/70 text-center py-0.5 opacity-0 group-hover:opacity-100 transition">🎥 Onboard</span>
+                    </button>
+                    <button class="bg-swatch w-full aspect-[3/2] rounded-lg border-2 border-gray-600 hover:border-blue-300 transition overflow-hidden relative group" data-bg="kart-wet" title="Wet Race" onclick="window.setPageBackground('kart-wet')">
+                        <img src="https://images.unsplash.com/photo-1614623510776-dc4bc0d29ec2?auto=format&fit=crop&w=400&q=60" class="absolute inset-0 w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'">
+                        <div class="absolute inset-0 bg-black/25"></div>
+                        <span class="absolute bottom-0 inset-x-0 text-[8px] text-white bg-black/70 text-center py-0.5 opacity-0 group-hover:opacity-100 transition">🌧️ Wet</span>
+                    </button>
+                    <button class="bg-swatch w-full aspect-[3/2] rounded-lg border-2 border-gray-600 hover:border-red-300 transition overflow-hidden relative group" data-bg="kart-grid" title="Starting Grid" onclick="window.setPageBackground('kart-grid')">
+                        <img src="https://images.unsplash.com/photo-1504707748692-419802cf939d?auto=format&fit=crop&w=400&q=60" class="absolute inset-0 w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'">
+                        <div class="absolute inset-0 bg-black/25"></div>
+                        <span class="absolute bottom-0 inset-x-0 text-[8px] text-white bg-black/70 text-center py-0.5 opacity-0 group-hover:opacity-100 transition">🚦 Grid</span>
+                    </button>
+                    <button class="bg-swatch w-full aspect-[3/2] rounded-lg border-2 border-gray-600 hover:border-orange-400 transition overflow-hidden relative group" data-bg="kart-blaze" title="Speed Blaze" onclick="window.setPageBackground('kart-blaze')">
+                        <img src="https://images.unsplash.com/photo-1561495376-dc9c7c5b8c86?auto=format&fit=crop&w=400&q=60" class="absolute inset-0 w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'">
+                        <div class="absolute inset-0 bg-black/25"></div>
+                        <span class="absolute bottom-0 inset-x-0 text-[8px] text-white bg-black/70 text-center py-0.5 opacity-0 group-hover:opacity-100 transition">💨 Speed</span>
+                    </button>
+                    <button class="bg-swatch w-full aspect-[3/2] rounded-lg border-2 border-gray-600 hover:border-gray-300 transition overflow-hidden relative group" data-bg="kart-helmet" title="Helmet" onclick="window.setPageBackground('kart-helmet')">
+                        <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=400&q=60" class="absolute inset-0 w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'">
+                        <div class="absolute inset-0 bg-black/25"></div>
+                        <span class="absolute bottom-0 inset-x-0 text-[8px] text-white bg-black/70 text-center py-0.5 opacity-0 group-hover:opacity-100 transition">🪖 Helmet</span>
+                    </button>
+                </div>
+
+                <!-- Pro lock (shown when not Pro) -->
+                <div id="themePanelProLock" class="col-span-4">
+                    <button onclick="window.showProGate('Photos &amp; Custom BG')" class="w-full flex items-center justify-center gap-2 bg-navy-800 border border-gold/40 hover:border-gold/70 rounded-xl py-3 transition group">
+                        <span class="text-base">🔒</span>
+                        <span class="text-xs font-bold text-gold">Unlock Photos &amp; Custom BG with Pro</span>
+                        <i class="fas fa-chevron-right text-[10px] text-gold/60 group-hover:text-gold transition"></i>
+                    </button>
+                </div>
+
+                <!-- Hidden file input for custom image upload -->
+                <input type="file" id="customBgImageInput" accept="image/*" class="hidden" onchange="window.handleCustomBgUpload(this)">
             </div>
         </div>
     </div>
@@ -1457,6 +1578,24 @@
         </div>
     </div>
 
+    <!-- Saved Drivers Modal -->
+    <div id="savedDriversModal" class="hidden fixed inset-0 bg-black/90 z-[135] flex items-center justify-center p-3" onclick="if(event.target===this)document.getElementById('savedDriversModal').classList.add('hidden')">
+        <div class="bg-navy-900 border border-gray-700 rounded-2xl shadow-2xl max-w-md w-full p-5">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                    <i class="fas fa-clipboard-list text-ice"></i>
+                    <span data-i18n="savedDriverTemplates">Saved Driver Lists</span>
+                </h2>
+                <button onclick="document.getElementById('savedDriversModal').classList.add('hidden')" class="text-gray-400 hover:text-white text-xl">&times;</button>
+            </div>
+            <div id="savedDriversTemplateList" class="space-y-2 max-h-60 overflow-y-auto mb-4"></div>
+            <div id="savedDriversEmpty" class="hidden text-center text-gray-500 py-6">
+                <i class="fas fa-users-slash text-3xl mb-2 text-gray-700"></i>
+                <p class="text-sm" data-i18n="noSavedDrivers">No saved driver lists. Set up your drivers and click "Save List".</p>
+            </div>
+        </div>
+    </div>
+
     <!-- Confirm Modal (replaces native confirm()) -->
     <div id="confirmModal" class="hidden fixed inset-0 bg-black/85 z-[250] flex items-center justify-center p-4" onclick="if(event.target===this)window.dismissConfirmModal()">
         <div class="bg-navy-900 border border-gray-700 rounded-2xl shadow-2xl max-w-sm w-full p-5 space-y-3">
@@ -1481,12 +1620,18 @@
             <div class="space-y-2">
                 <div class="bg-navy-800 p-3 rounded-lg border border-gray-700/80">
                     <label class="text-[10px] text-gray-400 uppercase tracking-wider font-bold" data-i18n="demoRaceLength">Race Length</label>
-                    <select id="demoRaceLength" class="input-field mt-1 text-sm">
+                    <select id="demoRaceLength" class="input-field mt-1 text-sm mb-2">
                         <option value="sprint" data-i18n-opt="demoLenSprint">Sprint 30m</option>
                         <option value="club" data-i18n-opt="demoLenClub">Club 1h</option>
                         <option value="endurance" selected data-i18n-opt="demoLenEndurance">Endurance 3h</option>
                         <option value="pro" data-i18n-opt="demoLenPro">Pro 6h</option>
+                        <option value="custom" data-i18n-opt="demoLenCustom">Custom…</option>
                     </select>
+                    <div id="demoCustomLengthFields" class="flex gap-2 mt-1 hidden">
+                        <input id="demoCustomHours" type="number" min="0" max="48" placeholder="Hrs" class="input-field w-16 text-xs" />
+                        <input id="demoCustomMinutes" type="number" min="0" max="59" placeholder="Min" class="input-field w-16 text-xs" />
+                        <span class="text-[10px] text-gray-500 self-center">(Custom)</span>
+                    </div>
                     <div class="grid grid-cols-2 gap-2 mt-2">
                         <div>
                             <label class="text-[10px] text-gray-500" data-i18n="demoGridSize">Grid Size</label>

@@ -1,4 +1,35 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="192" height="192" viewBox="0 0 192 192">
-  <rect fill="#22d3ee" width="192" height="192" rx="28"/>
-  <text x="96" y="124" text-anchor="middle" font-size="120" fill="#020617" font-weight="bold" font-family="Arial, sans-serif">S</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <!-- Background -->
+  <rect width="192" height="192" rx="34" fill="#070f1e"/>
+
+  <!-- Checkered flag accent — top-right corner -->
+  <rect x="136" y="10" width="17" height="17" rx="3" fill="#22d3ee"/>
+  <rect x="153" y="10" width="17" height="17" rx="3" fill="#1a2d4a"/>
+  <rect x="136" y="27" width="17" height="17" rx="3" fill="#1a2d4a"/>
+  <rect x="153" y="27" width="17" height="17" rx="3" fill="#22d3ee"/>
+  <rect x="136" y="44" width="17" height="17" rx="3" fill="#22d3ee"/>
+  <rect x="153" y="44" width="17" height="17" rx="3" fill="#1a2d4a"/>
+
+  <!-- Soft glow filter -->
+  <defs>
+    <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="5" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Bold "S" letterform with ice glow -->
+  <path d="M120 46 Q120 28 96 28 Q72 28 72 50 Q72 72 96 78 Q120 84 120 106 Q120 130 96 130 Q72 130 72 112"
+        stroke="#22d3ee" stroke-width="20" fill="none"
+        stroke-linecap="round" stroke-linejoin="round"
+        filter="url(#glow)"/>
+
+  <!-- Bottom checkered finish stripe -->
+  <rect x="22" y="156" width="21" height="12" rx="3" fill="#22d3ee"/>
+  <rect x="43" y="156" width="21" height="12" rx="3" fill="#1a2d4a"/>
+  <rect x="64" y="156" width="21" height="12" rx="3" fill="#22d3ee"/>
+  <rect x="85" y="156" width="21" height="12" rx="3" fill="#1a2d4a"/>
+  <rect x="106" y="156" width="21" height="12" rx="3" fill="#22d3ee"/>
+  <rect x="127" y="156" width="21" height="12" rx="3" fill="#1a2d4a"/>
+  <rect x="148" y="156" width="21" height="12" rx="3" fill="#22d3ee"/>
 </svg>
