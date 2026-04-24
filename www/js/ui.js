@@ -268,7 +268,7 @@ const _BG_THEMES = {
     'volcanic': 'background: linear-gradient(180deg, #0a0000 0%, #1a0500 20%, #2d0800 35%, #401005 50%, #2d0800 65%, #1a0500 80%, #0a0000 100%);',
     // === 📸 PHOTO THEMES (requires internet) ===
     'kart-race':    _photo('photo-1558618666-fcd25c85cd64'),
-    'kart-night':   _photo('photo-1568605117036-5fe5e7bab0b7'),
+    'kart-night':   'background: radial-gradient(ellipse at 20% 20%, rgba(95,58,178,0.35) 0%, transparent 45%), radial-gradient(ellipse at 80% 80%, rgba(0,80,160,0.3) 0%, transparent 50%), linear-gradient(180deg, #070812 0%, #0b1022 55%, #06070f 100%);',
     'kart-pit':     _photo('photo-1541348263662-e068662d82af'),
     'kart-onboard': _photo('photo-1503376780353-7e6692767b70'),
     'kart-wet':     _photo('photo-1543466835-00a7b8755b4c'),

@@ -471,6 +471,11 @@
                     <button onclick="window.addDriverField(); window.runSim()" class="btn-small bg-blue-600 w-full" data-i18n="addDriver">+ Add</button>
                     <button onclick="window.removeDriverField(); window.runSim()" class="btn-small bg-red-600 w-12">-</button>
                 </div>
+                <div class="mt-1">
+                    <button onclick="window.addDriversCustom(); window.runSim()" class="btn-small bg-cyan-700 hover:bg-cyan-600 w-full text-[11px]">
+                        <i class="fas fa-user-plus mr-1"></i><span data-i18n="addDriversCustom">Custom Add</span>
+                    </button>
+                </div>
                 <div class="flex gap-2 mt-1">
                     <button onclick="window.openSavedDriversModal()" class="btn-small bg-gray-700 hover:bg-gray-600 flex-1 text-[11px]">
                         <i class="fas fa-clipboard-list mr-1"></i><span data-i18n="importDrivers">Import Saved</span>
@@ -574,9 +579,6 @@
                     </div>
                 </div>
                 
-                <button onclick="window.addToGoogleCalendar()" class="w-full mt-3 bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/50 text-blue-300 font-bold py-2 rounded-lg flex items-center justify-center gap-2 transition text-sm">
-                    <i class="fab fa-google"></i> <span data-i18n="addToCalendar">Add to Google Calendar</span>
-                </button>
             </div>
 
             <div class="flex-1 overflow-hidden flex flex-col gap-3 min-h-0">
@@ -594,7 +596,12 @@
                 <div class="flex-[2] flex flex-col min-h-0 bg-navy-900 rounded-lg border border-gray-700 overflow-hidden">
                     <div class="p-2 bg-navy-800 border-b border-gray-700 font-bold text-xs text-gray-300 uppercase tracking-wider shrink-0 flex justify-between items-center" data-i18n="timeline">
                         <span>Timeline</span>
-                        <span class="text-[9px] text-gray-500 font-normal normal-case sm:hidden">▲▼ to reorder</span>
+                        <div class="flex items-center gap-2">
+                            <button onclick="window.addToGoogleCalendar()" class="bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/50 text-blue-300 font-bold px-2 py-1 rounded-lg flex items-center justify-center gap-1 transition text-[10px] normal-case" title="Add to Google Calendar">
+                                <i class="fab fa-google"></i> <span data-i18n="addToCalendar">Add to Google Calendar</span>
+                            </button>
+                            <span class="text-[9px] text-gray-500 font-normal normal-case sm:hidden">▲▼ to reorder</span>
+                        </div>
                     </div>
                     <div id="driverScheduleList" class="flex-1 overflow-y-auto overscroll-contain p-2 space-y-1" style="-webkit-overflow-scrolling:touch;">
                         </div>
@@ -1371,8 +1378,7 @@
                         <span class="absolute bottom-0 inset-x-0 text-[8px] text-white bg-black/70 text-center py-0.5 opacity-0 group-hover:opacity-100 transition">🏎️ Race</span>
                     </button>
                     <button class="bg-swatch w-full aspect-[3/2] rounded-lg border-2 border-gray-600 hover:border-purple-400 transition overflow-hidden relative group" data-bg="kart-night" title="Night Race" onclick="window.setPageBackground('kart-night')">
-                        <img src="https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=400&q=60" class="absolute inset-0 w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'">
-                        <div class="absolute inset-0 bg-black/25"></div>
+                        <div class="absolute inset-0" style="background: radial-gradient(ellipse at 20% 20%, rgba(95,58,178,0.6) 0%, transparent 45%), radial-gradient(ellipse at 80% 80%, rgba(0,80,160,0.5) 0%, transparent 50%), linear-gradient(180deg, #070812 0%, #0b1022 55%, #06070f 100%);"></div>
                         <span class="absolute bottom-0 inset-x-0 text-[8px] text-white bg-black/70 text-center py-0.5 opacity-0 group-hover:opacity-100 transition">🌙 Night</span>
                     </button>
                     <button class="bg-swatch w-full aspect-[3/2] rounded-lg border-2 border-gray-600 hover:border-yellow-400 transition overflow-hidden relative group" data-bg="kart-pit" title="Pit Stop" onclick="window.setPageBackground('kart-pit')">
@@ -1396,8 +1402,7 @@
                         <span class="absolute bottom-0 inset-x-0 text-[8px] text-white bg-black/70 text-center py-0.5 opacity-0 group-hover:opacity-100 transition">🚦 Grid</span>
                     </button>
                     <button class="bg-swatch w-full aspect-[3/2] rounded-lg border-2 border-gray-600 hover:border-orange-400 transition overflow-hidden relative group" data-bg="kart-blaze" title="Speed Blaze" onclick="window.setPageBackground('kart-blaze')">
-                        <img src="https://images.unsplash.com/photo-1561495376-dc9c7c5b8c86?auto=format&fit=crop&w=400&q=60" class="absolute inset-0 w-full h-full object-cover" loading="lazy" onerror="this.style.display='none'">
-                        <div class="absolute inset-0 bg-black/25"></div>
+                        <div class="absolute inset-0" style="background: radial-gradient(ellipse at 30% 70%, rgba(255,120,0,0.55) 0%, transparent 45%), radial-gradient(ellipse at 70% 25%, rgba(255,56,0,0.45) 0%, transparent 45%), linear-gradient(180deg, #1a0904 0%, #2a1208 55%, #110704 100%);"></div>
                         <span class="absolute bottom-0 inset-x-0 text-[8px] text-white bg-black/70 text-center py-0.5 opacity-0 group-hover:opacity-100 transition">💨 Speed</span>
                     </button>
                     <button class="bg-swatch w-full aspect-[3/2] rounded-lg border-2 border-gray-600 hover:border-gray-300 transition overflow-hidden relative group" data-bg="kart-helmet" title="Helmet" onclick="window.setPageBackground('kart-helmet')">
@@ -1584,14 +1589,14 @@
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-lg font-bold text-white flex items-center gap-2">
                     <i class="fas fa-clipboard-list text-ice"></i>
-                    <span data-i18n="savedDriverTemplates">Saved Driver Lists</span>
+                    <span data-i18n="savedDriverTemplates">Group Drivers Pool</span>
                 </h2>
                 <button onclick="document.getElementById('savedDriversModal').classList.add('hidden')" class="text-gray-400 hover:text-white text-xl">&times;</button>
             </div>
             <div id="savedDriversTemplateList" class="space-y-2 max-h-60 overflow-y-auto mb-4"></div>
             <div id="savedDriversEmpty" class="hidden text-center text-gray-500 py-6">
                 <i class="fas fa-users-slash text-3xl mb-2 text-gray-700"></i>
-                <p class="text-sm" data-i18n="noSavedDrivers">No saved driver lists. Set up your drivers and click "Save List".</p>
+                <p class="text-sm" data-i18n="noSavedDrivers">No group drivers yet. Add drivers and click "Save List".</p>
             </div>
         </div>
     </div>
@@ -1847,12 +1852,12 @@
         </div>
     </div>
 
-    <script src="js/state.js?v=5"></script>
-    <script src="js/auth.js?v=5"></script>
-    <script src="js/network.js?v=5"></script>
-    <script src="js/strategy.js?v=5"></script>
+    <script src="js/state.js?v=6"></script>
+    <script src="js/auth.js?v=6"></script>
+    <script src="js/network.js?v=6"></script>
+    <script src="js/strategy.js?v=6"></script>
     <script src="js/live-timing.js?v=6"></script>
-    <script src="js/ui.js?v=5"></script>
-    <script src="js/main.js?v=5"></script>
+    <script src="js/ui.js?v=6"></script>
+    <script src="js/main.js?v=6"></script>
 </body>
 </html>

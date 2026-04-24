@@ -274,12 +274,13 @@ const _BG_THEMES = {
     'soft-yellow': 'background: linear-gradient(180deg, #fffde7 0%, #fff9c4 50%, #fffde7 100%);',
     // === 📸 PHOTO THEMES — Pro only ===
     'kart-race':    _photo('photo-1558618666-fcd25c85cd64'),
-    'kart-night':   _photo('photo-1568605117036-5fe5e7bab0b7'),
+    // Removed broken remote photo URLs to avoid 404s.
+    'kart-night':   'background: radial-gradient(ellipse at 20% 20%, rgba(95,58,178,0.35) 0%, transparent 45%), radial-gradient(ellipse at 80% 80%, rgba(0,80,160,0.3) 0%, transparent 50%), linear-gradient(180deg, #070812 0%, #0b1022 55%, #06070f 100%);',
     'kart-pit':     _photo('photo-1541348263662-e068662d82af'),
     'kart-onboard': _photo('photo-1503376780353-7e6692767b70'),
     'kart-wet':     _photo('photo-1614623510776-dc4bc0d29ec2'),
     'kart-grid':    _photo('photo-1504707748692-419802cf939d'),
-    'kart-blaze':   _photo('photo-1561495376-dc9c7c5b8c86'),
+    'kart-blaze':   'background: radial-gradient(ellipse at 30% 70%, rgba(255,120,0,0.35) 0%, transparent 45%), radial-gradient(ellipse at 70% 25%, rgba(255,56,0,0.25) 0%, transparent 45%), linear-gradient(180deg, #1a0904 0%, #2a1208 55%, #110704 100%);',
     'kart-helmet':  _photo('photo-1540575467063-178a50c2df87'),
 };
 
@@ -324,6 +325,33 @@ const _THEME_TINTS = {
     'custom-image': { main: '#050505', panel: '#0c0c0c', border: '#222222' },
 };
 
+function _hexToRgb(hex) {
+    const raw = String(hex || '').trim().replace('#', '');
+    if (!/^[0-9a-fA-F]{6}$/.test(raw)) return null;
+    return {
+        r: parseInt(raw.slice(0, 2), 16),
+        g: parseInt(raw.slice(2, 4), 16),
+        b: parseInt(raw.slice(4, 6), 16),
+    };
+}
+
+function _rgbToHex(r, g, b) {
+    const clamp = (v) => Math.max(0, Math.min(255, Math.round(v)));
+    return `#${[clamp(r), clamp(g), clamp(b)].map((v) => v.toString(16).padStart(2, '0')).join('')}`;
+}
+
+function _mixHex(hexA, hexB, ratio = 0.5) {
+    const a = _hexToRgb(hexA);
+    const b = _hexToRgb(hexB);
+    if (!a || !b) return hexA;
+    const t = Math.max(0, Math.min(1, ratio));
+    return _rgbToHex(
+        a.r + (b.r - a.r) * t,
+        a.g + (b.g - a.g) * t,
+        a.b + (b.b - a.b) * t
+    );
+}
+
 window.setPageBackground = function(bg) {
     const LIGHT_THEMES = new Set(['pure-white', 'light-cyan', 'light-pink', 'soft-yellow']);
     // Toggle light-bg class for contrast handling
@@ -336,8 +364,18 @@ window.setPageBackground = function(bg) {
     // Handle Pro custom modes
     if (bg === 'custom-color') {
         const hex = localStorage.getItem('strateger_bg_color') || '#1e293b';
-        document.documentElement.style.background = hex;
-        document.body.style.background = hex;
+        const top = _mixHex(hex, '#000000', 0.2);
+        const bottom = _mixHex(hex, '#000000', 0.45);
+        const panel = _mixHex(hex, '#000000', 0.6);
+        const border = _mixHex(hex, '#ffffff', 0.14);
+
+        document.documentElement.style.background = `linear-gradient(180deg, ${top} 0%, ${hex} 45%, ${bottom} 100%)`;
+        document.body.style.background = `linear-gradient(180deg, ${top} 0%, ${hex} 45%, ${bottom} 100%)`;
+
+        // Dynamic tint for custom color so UI keeps the same polished structure as preset themes.
+        document.documentElement.style.setProperty('--theme-main', bottom);
+        document.documentElement.style.setProperty('--theme-panel', panel);
+        document.documentElement.style.setProperty('--theme-border', border);
     } else if (bg === 'custom-image') {
         const dataUrl = localStorage.getItem('strateger_bg_image');
         if (dataUrl) {
@@ -377,7 +415,11 @@ window.setPageBackground = function(bg) {
     const dashboard = document.getElementById('raceDashboard');
     const infoBar = document.getElementById('dashboardInfoBar');
     const headerEl = document.querySelector('header');
-    if (tint.main) {
+    if (bg === 'custom-color') {
+        if (dashboard) dashboard.style.backgroundColor = '';
+        if (infoBar) infoBar.style.backgroundColor = '';
+        if (headerEl) headerEl.style.backgroundColor = '';
+    } else if (tint.main) {
         if (dashboard) dashboard.style.backgroundColor = tint.main;
         if (infoBar) infoBar.style.backgroundColor = tint.panel;
         if (headerEl) headerEl.style.backgroundColor = tint.panel;
@@ -417,6 +459,10 @@ window.toggleThemePanel = function() {
         panel.querySelectorAll('.bg-swatch').forEach(s => {
             s.classList.toggle('active', s.dataset.bg === current);
         });
+        const customPicker = document.getElementById('customBgColorPicker');
+        if (customPicker) {
+            customPicker.value = localStorage.getItem('strateger_bg_color') || '#1e293b';
+        }
         // Show/hide pro section based on status
         const proSection = document.getElementById('themePanelProSection');
         if (proSection) proSection.classList.toggle('hidden', !window._proUnlocked);
@@ -475,6 +521,83 @@ function formatHours(ms) {
     let m = Math.floor((ms % 3600000) / 60000);
     return `${h}:${m.toString().padStart(2, '0')}`;
 }
+
+const _VENUE_ALIASES = {
+    'lignano circuit': 'Lignano Sabbiadoro Circuit, Italy',
+    'lignano': 'Lignano Sabbiadoro Circuit, Italy',
+};
+
+window._venueWeather = { key: '', status: 'idle', fetchedAt: 0, data: null, resolvedName: '' };
+window._venueWeatherInFlight = false;
+
+window.refreshVenueWeather = async function(rawLocation) {
+    const input = String(rawLocation || '').trim();
+    if (!input) return;
+
+    const normalized = input.toLowerCase();
+    const query = _VENUE_ALIASES[normalized] || input;
+    const cacheFreshMs = 10 * 60 * 1000;
+    if (window._venueWeather.key === query && (Date.now() - window._venueWeather.fetchedAt) < cacheFreshMs) {
+        return;
+    }
+    if (window._venueWeatherInFlight) return;
+
+    window._venueWeatherInFlight = true;
+    window._venueWeather = { key: query, status: 'loading', fetchedAt: Date.now(), data: null, resolvedName: '' };
+
+    try {
+        const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1&language=en&format=json`;
+        const geoRes = await fetch(geoUrl, { cache: 'no-store' });
+        const geo = await geoRes.json();
+        const best = Array.isArray(geo.results) ? geo.results[0] : null;
+        if (!best) throw new Error('Location not found');
+
+        const lat = best.latitude;
+        const lon = best.longitude;
+        const resolvedName = [best.name, best.admin1, best.country].filter(Boolean).join(', ');
+
+        const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,wind_speed_10m,precipitation,weather_code&timezone=auto`;
+        const weatherRes = await fetch(weatherUrl, { cache: 'no-store' });
+        const weather = await weatherRes.json();
+        const current = weather.current || {};
+
+        const codeMap = {
+            0: 'Clear', 1: 'Mostly clear', 2: 'Partly cloudy', 3: 'Overcast',
+            45: 'Fog', 48: 'Rime fog', 51: 'Light drizzle', 53: 'Drizzle', 55: 'Dense drizzle',
+            61: 'Light rain', 63: 'Rain', 65: 'Heavy rain', 66: 'Freezing rain', 67: 'Heavy freezing rain',
+            71: 'Light snow', 73: 'Snow', 75: 'Heavy snow', 77: 'Snow grains',
+            80: 'Rain showers', 81: 'Showers', 82: 'Violent showers',
+            95: 'Thunderstorm', 96: 'Storm + hail', 99: 'Severe storm + hail'
+        };
+
+        window._venueWeather = {
+            key: query,
+            status: 'ready',
+            fetchedAt: Date.now(),
+            resolvedName,
+            data: {
+                temp: current.temperature_2m,
+                wind: current.wind_speed_10m,
+                precipitation: current.precipitation,
+                weatherText: codeMap[current.weather_code] || 'Weather unavailable',
+            }
+        };
+    } catch (err) {
+        console.warn('[venue-weather] failed:', err?.message || err);
+        window._venueWeather = {
+            key: query,
+            status: 'error',
+            fetchedAt: Date.now(),
+            data: null,
+            resolvedName: ''
+        };
+    } finally {
+        window._venueWeatherInFlight = false;
+        if (!document.getElementById('previewScreen')?.classList.contains('hidden')) {
+            window.renderPreview();
+        }
+    }
+};
 
 window.renderPreview = function() {
     if (!window.previewData || !window.previewData.timeline) return;
@@ -567,7 +690,7 @@ window.renderPreview = function() {
                     <button onclick="window.moveStint(${index}, 1)" class="text-gray-500 hover:text-white text-[10px] leading-none px-1 ${isLast ? 'invisible' : ''}" title="Move Down">▼</button>
                 </div>
                 <div class="flex-1 min-w-0">
-                    <div class="font-bold text-white truncate">${stint.driverName}</div>
+                    <div class="font-bold text-white leading-tight break-words whitespace-normal">${stint.driverName}</div>
                     <div class="flex items-center gap-1 text-gray-400 text-[10px]">
                         <span>${startTimeStr}</span>
                         <span class="text-ice">${arrow}</span>
@@ -613,10 +736,14 @@ window.renderPreview = function() {
         summary[s.driverName].stints += 1;
     });
 
+    if (window.config?.raceLocation) {
+        window.refreshVenueWeather(window.config.raceLocation);
+    }
+
     const summaryHtml = Object.entries(summary).map(([name, data]) => {
         return `
             <div class="bg-navy-950 p-1.5 sm:p-2 rounded border-t-2 flex flex-col items-center justify-center text-center shadow-md h-14 sm:h-20" style="border-color: ${data.color}">
-                <div class="text-[9px] sm:text-[10px] font-bold text-gray-300 truncate w-full">${name}</div>
+                <div class="text-[9px] sm:text-[10px] font-bold text-gray-300 w-full break-words whitespace-normal leading-tight">${name}</div>
                 <div class="text-xs sm:text-sm text-white font-mono font-bold my-0.5 sm:my-1">${window.formatTimeHMS(data.time)}</div>
                 <div class="text-[8px] sm:text-[9px] text-gray-500 bg-navy-900 px-1.5 sm:px-2 rounded-full">${data.stints} ${window.t ? window.t('stints') : 'stints'}</div>
             </div>
@@ -626,11 +753,23 @@ window.renderPreview = function() {
     const summaryEl = document.getElementById('strategySummary');
     if (summaryEl) {
         summaryEl.className = "grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-1.5 sm:gap-2 p-2";
+        const weather = window._venueWeather;
+        let weatherLine = '<div class="text-[10px] text-gray-400 mt-1">Weather and race context stay anchored to this location.</div>';
+        if (window.config?.raceLocation && weather?.status === 'loading') {
+            weatherLine = '<div class="text-[10px] text-blue-300 mt-1">⏳ Fetching live weather for venue…</div>';
+        } else if (window.config?.raceLocation && weather?.status === 'ready' && weather?.data) {
+            weatherLine = `<div class="text-[10px] text-cyan-300 mt-1">🌤️ ${weather.data.temp ?? '-'}°C · ${weather.data.weatherText} · 💨 ${weather.data.wind ?? '-'} km/h · 🌧️ ${weather.data.precipitation ?? 0} mm</div>`;
+            if (weather.resolvedName) {
+                weatherLine += `<div class="text-[9px] text-gray-500 mt-0.5">Resolved: ${weather.resolvedName}</div>`;
+            }
+        } else if (window.config?.raceLocation && weather?.status === 'error') {
+            weatherLine = '<div class="text-[10px] text-amber-300 mt-1">⚠️ Could not fetch live weather for this location.</div>';
+        }
         const locationCard = window.config?.raceLocation ? `
             <div class="bg-gradient-to-br from-ice/10 to-cyan-500/10 rounded-lg border border-ice/20 p-2 sm:p-3 text-left sm:text-center col-span-3 md:col-span-2 lg:col-span-2">
                 <div class="text-[10px] uppercase tracking-[0.2em] text-ice font-bold">Venue</div>
                 <div class="text-sm sm:text-base text-white font-bold mt-1 break-words">📍 ${window.config.raceLocation}</div>
-                <div class="text-[10px] text-gray-400 mt-1">Weather and race context stay anchored to this location.</div>
+                ${weatherLine}
             </div>
         ` : '';
         summaryEl.innerHTML = locationCard + summaryHtml;
@@ -1797,101 +1936,241 @@ window.renderChatMessage = function(msg) {
     }
 };
 
-// ─── Saved Driver Templates ───────────────────────────────────────────────────
-const SAVED_DRIVERS_KEY = 'strateger_saved_drivers';
+// ─── Driver Pool (guest local + signed-in cross-device) ─────────────────────
+const DRIVER_POOL_KEY = 'strateger_driver_pool_local';
 
-/** Collect current driver list and save as a named template */
-window.saveDriverTemplate = function() {
-    const driverRows = document.querySelectorAll('#driversList > div');
-    if (!driverRows.length) { window.showToast && window.showToast(window.t('noDriversToSave') || 'No drivers to save'); return; }
-
-    const drivers = Array.from(driverRows).map(row => ({
-        name: row.querySelector('.driver-input')?.value || '',
-        color: row.querySelector('.driver-color-picker')?.value || '#22d3ee',
-        squad: parseInt(row.querySelector('.squad-value')?.value || '0', 10),
-        starter: row.querySelector('input[type="radio"]')?.checked || false,
-    }));
-
-    let saved = [];
-    try { saved = JSON.parse(localStorage.getItem(SAVED_DRIVERS_KEY) || '[]'); } catch(e) {}
-
-    const name = prompt(window.t('nameDriverTemplate') || 'Template name:', `Team ${saved.length + 1}`) || '';
-    if (!name.trim()) return;
-
-    saved.push({ name: name.trim(), drivers, savedAt: Date.now() });
-    localStorage.setItem(SAVED_DRIVERS_KEY, JSON.stringify(saved));
-    window.showToast && window.showToast((window.t('driversSaved') || 'Driver list saved') + `: "${name.trim()}"`);
+window._getSignedInEmail = function() {
+    try {
+        const u = JSON.parse(localStorage.getItem('strateger_google_user') || 'null');
+        return String(u?.email || '').trim().toLowerCase();
+    } catch {
+        return '';
+    }
 };
 
-/** Open the saved drivers picker modal */
-window.openSavedDriversModal = function() {
-    let saved = [];
-    try { saved = JSON.parse(localStorage.getItem(SAVED_DRIVERS_KEY) || '[]'); } catch(e) {}
+window._collectCurrentDrivers = function() {
+    const rows = document.querySelectorAll('#driversList > div');
+    return Array.from(rows).map((row) => ({
+        name: String(row.querySelector('.driver-input')?.value || '').trim(),
+        color: row.querySelector('.driver-color-picker')?.value || '#22d3ee',
+        squad: parseInt(row.querySelector('.squad-value')?.value || '0', 10),
+    })).filter((d) => d.name);
+};
 
+window._saveDriverPoolRemote = async function(email, drivers) {
+    const res = await fetch(window.APP_CONFIG.API_BASE + '/.netlify/functions/save-driver-pool', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, drivers })
+    });
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.error || 'Driver pool save failed');
+    return data.drivers || drivers;
+};
+
+window._loadDriverPoolRemote = async function(email) {
+    const url = window.APP_CONFIG.API_BASE + '/.netlify/functions/get-driver-pool?email=' + encodeURIComponent(email);
+    const res = await fetch(url);
+    const data = await res.json();
+    if (!res.ok || !data.success) throw new Error(data.error || 'Driver pool load failed');
+    return Array.isArray(data.drivers) ? data.drivers : [];
+};
+
+window._saveDriverPoolLocal = function(drivers) {
+    localStorage.setItem(DRIVER_POOL_KEY, JSON.stringify(drivers || []));
+};
+
+window._loadDriverPoolLocal = function() {
+    try {
+        const arr = JSON.parse(localStorage.getItem(DRIVER_POOL_KEY) || '[]');
+        return Array.isArray(arr) ? arr : [];
+    } catch {
+        return [];
+    }
+};
+
+window._renderDriverPoolModal = function(poolDrivers) {
+    const t = window.t || ((k) => k);
     const modal = document.getElementById('savedDriversModal');
     const list = document.getElementById('savedDriversTemplateList');
     const empty = document.getElementById('savedDriversEmpty');
     if (!modal || !list || !empty) return;
 
+    const current = new Set(window._collectCurrentDrivers().map((d) => d.name.toLowerCase()));
     list.innerHTML = '';
-    if (!saved.length) {
+
+    if (!poolDrivers.length) {
         empty.classList.remove('hidden');
+        list.innerHTML = `<div class="text-xs text-gray-500 text-center py-2">${t('noSavedDrivers') || 'No saved driver pool yet.'}</div>`;
     } else {
         empty.classList.add('hidden');
-        saved.forEach((tpl, idx) => {
+        poolDrivers.forEach((d, idx) => {
+            const checked = current.has(String(d.name || '').toLowerCase());
             const row = document.createElement('div');
             row.className = 'flex items-center justify-between bg-navy-800 border border-gray-600 rounded-lg px-3 py-2';
             row.innerHTML = `
-                <div>
-                    <div class="text-sm font-bold text-white">${tpl.name}</div>
-                    <div class="text-xs text-gray-400">${tpl.drivers.length} ${window.t('ltDriver').toLowerCase()}s</div>
-                </div>
-                <div class="flex gap-2">
-                    <button onclick="window.applyDriverTemplate(${idx})" class="btn-small bg-blue-600 text-xs px-2 py-1">
-                        <i class="fas fa-download mr-1"></i>${window.t('importDrivers') || 'Load'}
-                    </button>
-                    <button onclick="window.deleteDriverTemplate(${idx})" class="btn-small bg-red-700 text-xs px-2 py-1">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
+                <label class="flex items-center gap-2 min-w-0 flex-1 cursor-pointer">
+                    <input type="checkbox" class="accent-cyan-400" data-driver-pool-check="${idx}" ${checked ? 'checked' : ''}>
+                    <span class="inline-block w-2.5 h-2.5 rounded-full" style="background:${d.color || '#22d3ee'}"></span>
+                    <span class="text-sm font-bold text-white break-words">${d.name}</span>
+                </label>
+                <button onclick="window.removeDriverFromPool(${idx})" class="btn-small bg-red-700 text-xs px-2 py-1" title="Remove">
+                    <i class="fas fa-trash"></i>
+                </button>
             `;
             list.appendChild(row);
         });
     }
+
+    const controls = document.createElement('div');
+    controls.className = 'flex gap-2 pt-2 border-t border-gray-700 mt-2';
+    controls.innerHTML = `
+        <button onclick="window.applyDriverPoolSelection()" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2 rounded">
+            ${t('importDrivers') || 'Use selected'}
+        </button>
+        <button onclick="window.saveDriverTemplate()" class="flex-1 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold py-2 rounded">
+            ${t('saveDrivers') || 'Update group'}
+        </button>
+    `;
+    list.appendChild(controls);
+
     modal.classList.remove('hidden');
 };
 
-/** Load a saved template into the driver list */
-window.applyDriverTemplate = function(idx) {
-    let saved = [];
-    try { saved = JSON.parse(localStorage.getItem(SAVED_DRIVERS_KEY) || '[]'); } catch(e) {}
-    const tpl = saved[idx];
-    if (!tpl) return;
+window._getCurrentPool = async function() {
+    const email = window._getSignedInEmail();
+    if (!email) return window._loadDriverPoolLocal();
+    try {
+        const drivers = await window._loadDriverPoolRemote(email);
+        // Keep local cache for offline fallback.
+        window._saveDriverPoolLocal(drivers);
+        return drivers;
+    } catch {
+        return window._loadDriverPoolLocal();
+    }
+};
+
+window.saveDriverTemplate = async function() {
+    const t = window.t || ((k) => k);
+    const drivers = window._collectCurrentDrivers();
+    if (!drivers.length) {
+        window.showToast && window.showToast(t('noDriversToSave') || 'No drivers to save', 'warning');
+        return;
+    }
+
+    const email = window._getSignedInEmail();
+    try {
+        if (email) {
+            await window._saveDriverPoolRemote(email, drivers);
+            window.showToast && window.showToast((t('driversSaved') || 'Driver group saved') + ' · cloud sync', 'success');
+        } else {
+            window._saveDriverPoolLocal(drivers);
+            window.showToast && window.showToast((t('driversSaved') || 'Driver group saved') + ' · local device', 'success');
+        }
+    } catch (e) {
+        // Never lose data — fallback local.
+        window._saveDriverPoolLocal(drivers);
+        window.showToast && window.showToast((t('driversSaved') || 'Driver group saved') + ' · local fallback', 'warning');
+        console.warn('Driver pool cloud save failed:', e?.message || e);
+    }
+};
+
+window.openSavedDriversModal = async function() {
+    const drivers = await window._getCurrentPool();
+    window._renderDriverPoolModal(drivers);
+};
+
+window.applyDriverPoolSelection = async function() {
+    const checks = Array.from(document.querySelectorAll('[data-driver-pool-check]'));
+    const pool = await window._getCurrentPool();
+    const selected = checks
+        .filter((el) => el.checked)
+        .map((el) => pool[parseInt(el.getAttribute('data-driver-pool-check'), 10)])
+        .filter(Boolean);
+
+    if (!selected.length) {
+        window.showToast && window.showToast('בחר לפחות נהג אחד', 'warning');
+        return;
+    }
 
     const list = document.getElementById('driversList');
     if (!list) return;
     list.innerHTML = '';
 
-    tpl.drivers.forEach((d, i) => {
-        const numSquads = parseInt(document.getElementById('numSquads')?.value) || 0;
-        window.createDriverInput(d.name, i === 0, d.squad);
-        // Restore color after createDriverInput appended the row
+    selected.forEach((d, i) => {
+        window.createDriverInput(d.name, i === 0, d.squad || 0);
         const rows = list.querySelectorAll(':scope > div');
         const lastRow = rows[rows.length - 1];
         const picker = lastRow?.querySelector('.driver-color-picker');
-        if (picker) { picker.value = d.color; }
+        if (picker && d.color) picker.value = d.color;
     });
 
     document.getElementById('savedDriversModal').classList.add('hidden');
-    window.runSim();
-    window.showToast && window.showToast(`${window.t('importDrivers') || 'Loaded'}: "${tpl.name}"`);
+    if (typeof window.runSim === 'function') window.runSim();
 };
 
-/** Delete a saved driver template */
-window.deleteDriverTemplate = function(idx) {
-    let saved = [];
-    try { saved = JSON.parse(localStorage.getItem(SAVED_DRIVERS_KEY) || '[]'); } catch(e) {}
-    saved.splice(idx, 1);
-    localStorage.setItem(SAVED_DRIVERS_KEY, JSON.stringify(saved));
-    window.openSavedDriversModal(); // re-render modal
+window.applyDriverTemplate = window.applyDriverPoolSelection;
+
+window.removeDriverFromPool = async function(idx) {
+    const pool = await window._getCurrentPool();
+    if (idx < 0 || idx >= pool.length) return;
+    pool.splice(idx, 1);
+
+    const email = window._getSignedInEmail();
+    try {
+        if (email) {
+            await window._saveDriverPoolRemote(email, pool);
+        } else {
+            window._saveDriverPoolLocal(pool);
+        }
+    } catch {
+        window._saveDriverPoolLocal(pool);
+    }
+    window._renderDriverPoolModal(pool);
+};
+
+window.deleteDriverTemplate = window.removeDriverFromPool;
+
+/** Add multiple drivers by custom list (one per line or comma-separated). */
+window.addDriversCustom = function() {
+    const t = window.t || ((k) => k);
+    const raw = prompt(
+        t('addDriversPrompt') || 'Enter driver names (one per line or comma-separated):',
+        ''
+    );
+    if (!raw) return;
+
+    const names = raw
+        .split(/[\n,;]+/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+
+    if (!names.length) return;
+
+    const list = document.getElementById('driversList');
+    if (!list) return;
+
+    const existing = new Set(Array.from(list.querySelectorAll('.driver-input')).map((el) => String(el.value || '').trim().toLowerCase()));
+    const unique = names.filter((n) => !existing.has(n.toLowerCase()));
+
+    unique.forEach((name) => {
+        const isFirst = list.children.length === 0;
+        const numSquads = parseInt(document.getElementById('numSquads')?.value, 10) || 0;
+        const squadIdx = numSquads > 0 ? (list.children.length % numSquads) : 0;
+        window.createDriverInput(name, isFirst, squadIdx);
+    });
+
+    if (typeof window.toggleSquadsInput === 'function') window.toggleSquadsInput();
+    if (typeof window.runSim === 'function') window.runSim();
+
+    // Merge into driver pool so user can select from the group later.
+    const current = window._collectCurrentDrivers();
+    const email = window._getSignedInEmail();
+    if (email) {
+        window._saveDriverPoolRemote(email, current).catch(() => window._saveDriverPoolLocal(current));
+    } else {
+        window._saveDriverPoolLocal(current);
+    }
+
+    window.showToast && window.showToast(`${unique.length} ${t('driversAdded') || 'drivers added'}`, 'success');
 };

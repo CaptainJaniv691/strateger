@@ -6,7 +6,10 @@
 const { Resend } = require('resend');
 
 const ALLOWED_ORIGINS = [
+    'https://streger.netlify.app',
+    'https://streger-staging.netlify.app',
     'https://strateger.onrender.com',
+    'https://strateger.netlify.app',
     'http://localhost:3000'
 ];
 
@@ -33,7 +36,7 @@ exports.handler = async (event, context) => {
         (event.headers && (event.headers.origin || event.headers.Origin)) || '';
     const corsOrigin = ALLOWED_ORIGINS.includes(requestOrigin)
         ? requestOrigin
-        : ALLOWED_ORIGINS[0];
+        : '*';
 
     const headers = {
         'Access-Control-Allow-Origin': corsOrigin,

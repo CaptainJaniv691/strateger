@@ -11,6 +11,9 @@ window.syncRaceLocation = function(value) {
     if (calendarLocation && raceLocation) {
         calendarLocation.value = raceLocation;
     }
+    if (raceLocation && typeof window.refreshVenueWeather === 'function') {
+        window.refreshVenueWeather(raceLocation);
+    }
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -3443,6 +3446,100 @@ window.skipOnboarding = function() {
 // 📄 PDF / IMAGE EXPORT
 // ==========================================
 
+function _prepareExportCapture(target) {
+    const savedStyles = [];
+    const savedClasses = [];
+    const restoredDurationInputs = [];
+
+    const previewScreen = document.getElementById('previewScreen');
+    const summary = document.getElementById('strategySummary');
+    const timeline = document.getElementById('driverScheduleList');
+
+    const mark = (el) => {
+        if (!el) return;
+        savedStyles.push({ el, style: el.style.cssText });
+    };
+
+    mark(previewScreen);
+    mark(target);
+    mark(summary);
+    mark(timeline);
+
+    if (previewScreen) {
+        previewScreen.style.height = 'auto';
+        previewScreen.style.overflow = 'visible';
+        previewScreen.style.maxHeight = 'none';
+    }
+    if (target) {
+        target.style.height = 'auto';
+        target.style.maxHeight = 'none';
+        target.style.overflow = 'visible';
+        target.style.display = 'block';
+    }
+    if (summary) {
+        summary.style.height = 'auto';
+        summary.style.maxHeight = 'none';
+        summary.style.overflow = 'visible';
+    }
+    if (timeline) {
+        timeline.style.height = 'auto';
+        timeline.style.maxHeight = 'none';
+        timeline.style.overflow = 'visible';
+        timeline.style.flex = 'none';
+    }
+
+    // Expand all descendants that commonly clip content.
+    if (target) {
+        target.querySelectorAll('[class*="overflow-"], [class*="max-h-"], [class*="h-full"], [class*="min-h-0"], [class*="flex-1"], [class*="truncate"]').forEach((el) => {
+            mark(el);
+            if (typeof el.className === 'string' && el.className.includes('truncate')) {
+                savedClasses.push({ el, className: el.className });
+                el.className = el.className.replace(/\btruncate\b/g, '').trim();
+            }
+            el.style.overflow = 'visible';
+            el.style.maxHeight = 'none';
+            el.style.height = 'auto';
+            el.style.minHeight = 'auto';
+            el.style.flex = 'none';
+            el.style.whiteSpace = 'normal';
+            el.style.textOverflow = 'clip';
+        });
+    }
+
+    // html2canvas can miss number input values, mirror them as static labels.
+    if (timeline) {
+        timeline.querySelectorAll('input[type="number"]').forEach((input) => {
+            const value = input.value || input.getAttribute('value') || '';
+            if (!value) return;
+
+            const mirror = document.createElement('span');
+            mirror.className = 'inline-flex items-center rounded px-2 py-1 text-xs font-mono font-bold bg-navy-800 border border-gray-600 text-white';
+            mirror.textContent = `${value}m`;
+            mirror.setAttribute('data-export-duration', 'true');
+
+            restoredDurationInputs.push({ input, parent: input.parentNode, mirror });
+            input.style.display = 'none';
+            input.parentNode.insertBefore(mirror, input.nextSibling);
+        });
+    }
+
+    return { savedStyles, savedClasses, restoredDurationInputs };
+}
+
+function _restoreExportCapture(snapshot) {
+    const { savedStyles = [], savedClasses = [], restoredDurationInputs = [] } = snapshot || {};
+    restoredDurationInputs.forEach(({ input, mirror }) => {
+        if (mirror && mirror.parentNode) mirror.parentNode.removeChild(mirror);
+        if (input) input.style.display = '';
+    });
+    savedClasses.forEach(({ el, className }) => {
+        if (el) el.className = className;
+    });
+    savedStyles.forEach(({ el, style }) => {
+        if (el) el.style.cssText = style;
+    });
+}
+
 window.exportStrategyImage = async function() {
     if (!window.checkProFeature('pdfExport')) {
         window.showProGate('Image Export');
@@ -3455,59 +3552,9 @@ window.exportStrategyImage = async function() {
         return;
     }
     
+    let snapshot = null;
     try {
-        // Temporarily expand all scrollable/capped containers so html2canvas captures everything
-        const summary = document.getElementById('strategySummary');
-        const timeline = document.getElementById('driverScheduleList');
-        const summaryParent = summary ? summary.closest('.max-h-\\[30vh\\], [class*="max-h-"]') : null;
-        const timelineParent = timeline ? timeline.closest('.flex-\\[2\\], [class*="flex-"]') : null;
-
-        // Save original styles
-        const savedStyles = [];
-        [summary, timeline, summaryParent, timelineParent].forEach(el => {
-            if (el) {
-                savedStyles.push({ el, style: el.style.cssText, cls: el.className });
-                el.style.maxHeight = 'none';
-                el.style.overflow = 'visible';
-                el.style.height = 'auto';
-                el.style.flex = 'none';
-            }
-        });
-        // Also expand the outer preview screen
-        const previewScreen = document.getElementById('previewScreen');
-        if (previewScreen) {
-            savedStyles.push({ el: previewScreen, style: previewScreen.style.cssText });
-            previewScreen.style.height = 'auto';
-            previewScreen.style.overflow = 'visible';
-        }
-        if (target) {
-            savedStyles.push({ el: target, style: target.style.cssText });
-            target.style.height = 'auto';
-            target.style.overflow = 'visible';
-        }
-
-        // html2canvas is inconsistent with input values, so mirror stint durations as static labels.
-        const restoredDurationInputs = [];
-        if (timeline) {
-            timeline.querySelectorAll('input[type="number"]').forEach((input) => {
-                const value = input.value || input.getAttribute('value') || '';
-                if (!value) return;
-
-                const mirror = document.createElement('span');
-                mirror.className = 'inline-flex items-center rounded px-2 py-1 text-xs font-mono font-bold bg-navy-800 border border-gray-600 text-white';
-                mirror.textContent = `${value}m`;
-                mirror.setAttribute('data-export-duration', 'true');
-
-                restoredDurationInputs.push({
-                    input,
-                    nextSibling: input.nextSibling,
-                    parent: input.parentNode,
-                });
-
-                input.style.display = 'none';
-                input.parentNode.insertBefore(mirror, input.nextSibling);
-            });
-        }
+        snapshot = _prepareExportCapture(target);
 
         // Wait for reflow
         await new Promise(r => setTimeout(r, 100));
@@ -3523,20 +3570,6 @@ window.exportStrategyImage = async function() {
             windowHeight: target.scrollHeight,
         });
 
-        // Restore original styles
-        savedStyles.forEach(({ el, style, cls }) => {
-            el.style.cssText = style;
-            if (cls !== undefined) el.className = cls;
-        });
-        restoredDurationInputs.forEach(({ input, parent, nextSibling }) => {
-            const mirror = parent?.querySelector('[data-export-duration="true"]');
-            if (mirror) mirror.remove();
-            input.style.display = '';
-            if (nextSibling && input.parentNode !== parent) {
-                parent?.insertBefore(input, nextSibling);
-            }
-        });
-        
         // Download as PNG
         const link = document.createElement('a');
         link.download = `Streger-strategy-${Date.now()}.png`;
@@ -3545,6 +3578,8 @@ window.exportStrategyImage = async function() {
     } catch (e) {
         console.error('Image export failed:', e);
         window.showToast('Export failed: ' + e.message, 'error');
+    } finally {
+        if (snapshot) _restoreExportCapture(snapshot);
     }
 };
 
@@ -3564,51 +3599,9 @@ window.exportStrategyPdf = async function() {
     const btn = event?.target?.closest?.('button');
     if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + t('exportingPdf'); }
     
+    let snapshot = null;
     try {
-        // Temporarily expand all scrollable/capped containers
-        const summary = document.getElementById('strategySummary');
-        const timeline = document.getElementById('driverScheduleList');
-        const summaryParent = summary ? summary.closest('.max-h-\\[30vh\\], [class*="max-h-"]') : null;
-        const timelineParent = timeline ? timeline.closest('.flex-\\[2\\], [class*="flex-"]') : null;
-
-        const savedStyles = [];
-        [summary, timeline, summaryParent, timelineParent].forEach(el => {
-            if (el) {
-                savedStyles.push({ el, style: el.style.cssText, cls: el.className });
-                el.style.maxHeight = 'none';
-                el.style.overflow = 'visible';
-                el.style.height = 'auto';
-                el.style.flex = 'none';
-            }
-        });
-        const previewScreen = document.getElementById('previewScreen');
-        if (previewScreen) {
-            savedStyles.push({ el: previewScreen, style: previewScreen.style.cssText });
-            previewScreen.style.height = 'auto';
-            previewScreen.style.overflow = 'visible';
-        }
-        if (target) {
-            savedStyles.push({ el: target, style: target.style.cssText });
-            target.style.height = 'auto';
-            target.style.overflow = 'visible';
-        }
-
-        const restoredDurationInputs = [];
-        if (timeline) {
-            timeline.querySelectorAll('input[type="number"]').forEach((input) => {
-                const value = input.value || input.getAttribute('value') || '';
-                if (!value) return;
-
-                const mirror = document.createElement('span');
-                mirror.className = 'inline-flex items-center rounded px-2 py-1 text-xs font-mono font-bold bg-navy-800 border border-gray-600 text-white';
-                mirror.textContent = `${value}m`;
-                mirror.setAttribute('data-export-duration', 'true');
-
-                restoredDurationInputs.push({ input, parent: input.parentNode });
-                input.style.display = 'none';
-                input.parentNode.insertBefore(mirror, input.nextSibling);
-            });
-        }
+        snapshot = _prepareExportCapture(target);
 
         await new Promise(r => setTimeout(r, 100));
 
@@ -3623,17 +3616,6 @@ window.exportStrategyPdf = async function() {
             windowHeight: target.scrollHeight,
         });
 
-        // Restore original styles
-        savedStyles.forEach(({ el, style, cls }) => {
-            el.style.cssText = style;
-            if (cls !== undefined) el.className = cls;
-        });
-        restoredDurationInputs.forEach(({ input, parent }) => {
-            const mirror = parent?.querySelector('[data-export-duration="true"]');
-            if (mirror) mirror.remove();
-            input.style.display = '';
-        });
-        
         const imgData = canvas.toDataURL('image/png');
         const { jsPDF } = jspdf;
         const pdf = new jsPDF({
@@ -3648,6 +3630,7 @@ window.exportStrategyPdf = async function() {
         console.error('PDF export failed:', e);
         window.showToast('PDF export failed: ' + e.message, 'error');
     } finally {
+        if (snapshot) _restoreExportCapture(snapshot);
         if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-file-pdf"></i> <span class="hidden sm:inline">PDF</span>'; }
     }
 };
