@@ -98,6 +98,22 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         window.role = 'host';
         if (typeof window.checkForSavedRace === 'function') window.checkForSavedRace();
+        // Self-heal: if UI ended up with all host screens hidden, show setup to avoid a stuck blank page.
+        setTimeout(() => {
+            const setup = document.getElementById('setupScreen');
+            const savedModal = document.getElementById('savedRaceModal');
+            const dashboard = document.getElementById('raceDashboard');
+            if (!setup || !savedModal || !dashboard) return;
+
+            const setupHidden = setup.classList.contains('hidden');
+            const modalHidden = savedModal.classList.contains('hidden');
+            const dashboardHidden = dashboard.classList.contains('hidden');
+
+            if (setupHidden && modalHidden && dashboardHidden) {
+                console.warn('UI self-heal: all host screens hidden, restoring setup screen');
+                setup.classList.remove('hidden');
+            }
+        }, 150);
     }
     
     if(typeof updateModeUI === 'function') updateModeUI();

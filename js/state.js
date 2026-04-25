@@ -2737,23 +2737,36 @@ window.checkForSavedRace = function() {
             return;
         }
 
-        document.getElementById('setupScreen').classList.add('hidden');
         const modal = document.getElementById('savedRaceModal');
-        if (modal) {
-            modal.classList.remove('hidden');
-            const currentIdx = data.state.currentDriverIdx || 0;
-            const driverName = data.drivers[currentIdx] ? data.drivers[currentIdx].name : 'Unknown';
-            document.getElementById('savedRaceDriver').innerText = driverName;
-            
-            const raceMs = data.config.raceMs || (data.config.duration * 3600000);
-            const elapsed = Date.now() - data.state.startTime;
-            const remaining = Math.max(0, raceMs - elapsed);
-            document.getElementById('savedRaceTime').innerText = window.formatTimeHMS(remaining);
+        const setup = document.getElementById('setupScreen');
+        if (!modal || !setup) {
+            // Keep setup visible if modal container is missing to avoid a frozen blank screen.
+            return;
         }
+
+        const restoredDrivers = _buildDriversFromSavedData(data);
+        const currentIdx = Number.isFinite(data?.state?.currentDriverIdx)
+            ? data.state.currentDriverIdx
+            : 0;
+        const safeIdx = Math.max(0, Math.min(currentIdx, Math.max(0, restoredDrivers.length - 1)));
+        const driverName = restoredDrivers[safeIdx]?.name || 'Unknown';
+
+        setup.classList.add('hidden');
+        modal.classList.remove('hidden');
+
+        const savedRaceDriverEl = document.getElementById('savedRaceDriver');
+        if (savedRaceDriverEl) savedRaceDriverEl.innerText = driverName;
+
+        const raceMs = data?.config?.raceMs || ((data?.config?.duration || 0) * 3600000);
+        const elapsed = Date.now() - (data?.state?.startTime || Date.now());
+        const remaining = Math.max(0, raceMs - elapsed);
+        const savedRaceTimeEl = document.getElementById('savedRaceTime');
+        if (savedRaceTimeEl) savedRaceTimeEl.innerText = window.formatTimeHMS(remaining);
     } catch (e) {
         console.error("Error parsing saved race:", e);
         localStorage.removeItem(window.RACE_STATE_KEY);
-        document.getElementById('setupScreen').classList.remove('hidden');
+        const setup = document.getElementById('setupScreen');
+        if (setup) setup.classList.remove('hidden');
     }
 };
 
