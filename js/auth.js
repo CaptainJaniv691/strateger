@@ -31,7 +31,7 @@ window.checkProByEmail = async function(email) {
     // Check 2: Server lookup — does the database have a license for this email?
     try {
         const deviceId = window.getDeviceId ? window.getDeviceId() : '';
-        const res = await fetch(window.APP_CONFIG.API_BASE + '/verify-license', {
+        const res = await fetch(window.APP_CONFIG.API_BASE + '/.netlify/functions/verify-license', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email: normalEmail, deviceId })

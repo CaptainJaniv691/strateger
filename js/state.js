@@ -119,7 +119,7 @@ window.activateProLicense = async function(key) {
 
     try {
         const apiBase = (window.APP_CONFIG?.API_BASE || '').replace(/\/$/, '');
-        const verifyUrl = apiBase ? `${apiBase}/verify-license` : '/verify-license';
+        const verifyUrl = `${apiBase}/.netlify/functions/verify-license`;
         const res = await fetch(verifyUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -2604,6 +2604,70 @@ function attachConfigListeners() {
 // 💾 SAVED RACE LOGIC (Persistence)
 // ==========================================
 
+function _buildDriversFromSavedData(data) {
+    if (Array.isArray(data?.drivers) && data.drivers.length > 0) {
+        return data.drivers;
+    }
+
+    // Fallback 1: strategy snapshot
+    if (Array.isArray(data?.strategy?.drivers) && data.strategy.drivers.length > 0) {
+        return data.strategy.drivers.map((d, i) => ({
+            name: d.name || `Driver ${i + 1}`,
+            color: d.color || `hsl(${(i * 360 / Math.max(1, data.strategy.drivers.length))}, 70%, 50%)`,
+            squad: d.squad || 'A',
+            squadIdx: Number.isFinite(d.squadIdx) ? d.squadIdx : 0,
+            isStarter: !!d.isStarter,
+            totalTime: Number.isFinite(d.totalTime) ? d.totalTime : 0,
+            stints: Number.isFinite(d.stints) ? d.stints : 0,
+            logs: Array.isArray(d.logs) ? d.logs : []
+        }));
+    }
+
+    // Fallback 2: derive from planned stint schedule
+    if (Array.isArray(data?.state?.stintSchedule) && data.state.stintSchedule.length > 0) {
+        const byName = new Map();
+        data.state.stintSchedule.forEach((s, idx) => {
+            const name = String(s?.driverName || '').trim();
+            if (!name || byName.has(name)) return;
+            byName.set(name, {
+                name,
+                color: `hsl(${(idx * 360 / Math.max(1, data.state.stintSchedule.length))}, 70%, 50%)`,
+                squad: s?.squad || 'A',
+                squadIdx: 0,
+                isStarter: byName.size === 1,
+                totalTime: 0,
+                stints: 0,
+                logs: []
+            });
+        });
+        if (byName.size > 0) return Array.from(byName.values());
+    }
+
+    return [];
+}
+
+function _compactLiveDataForSave(liveData) {
+    const src = liveData || {};
+    // Keep only fields needed for resume/UI; avoid large competitor payloads that can exceed localStorage quota.
+    return {
+        position: src.position ?? null,
+        previousPosition: src.previousPosition ?? null,
+        lastLap: src.lastLap ?? null,
+        bestLap: src.bestLap ?? null,
+        laps: src.laps ?? 0,
+        gapToLeader: src.gapToLeader ?? null,
+        raceTimeLeftMs: src.raceTimeLeftMs ?? null,
+        _raceTimeReceivedAt: src._raceTimeReceivedAt ?? null,
+        ourTeamInPit: !!src.ourTeamInPit,
+        ourTeamPitCount: src.ourTeamPitCount ?? null,
+        ourTeamPenalty: src.ourTeamPenalty ?? 0,
+        ourTeamPenaltyTime: src.ourTeamPenaltyTime ?? 0,
+        competitors: Array.isArray(src.competitors) ? src.competitors.slice(0, 80) : [],
+        heartbeatCount: src.heartbeatCount || 0,
+        heartbeatAt: src.heartbeatAt || null
+    };
+}
+
 window.saveRaceState = function() {
     if (window.role !== 'host' || (!window.state.isRunning && !window.state.isFinished)) return;
     const snapshot = {
@@ -2614,13 +2678,34 @@ window.saveRaceState = function() {
         previewData: window.previewData || null,
         liveTimingConfig: window.liveTimingConfig,
         searchConfig: window.searchConfig,
-        liveData: window.liveData,
+        liveData: _compactLiveDataForSave(window.liveData),
         currentPitAdjustment: window.currentPitAdjustment || 0,
         // Save Host ID explicitly within the race state
         hostId: window.myId, 
         timestamp: Date.now()
     };
-    localStorage.setItem(window.RACE_STATE_KEY, JSON.stringify(snapshot));
+    try {
+        localStorage.setItem(window.RACE_STATE_KEY, JSON.stringify(snapshot));
+    } catch (e) {
+        // Retry once with a stricter compact payload if storage is near quota.
+        try {
+            snapshot.liveData = {
+                position: snapshot.liveData.position,
+                previousPosition: snapshot.liveData.previousPosition,
+                lastLap: snapshot.liveData.lastLap,
+                bestLap: snapshot.liveData.bestLap,
+                laps: snapshot.liveData.laps,
+                raceTimeLeftMs: snapshot.liveData.raceTimeLeftMs,
+                _raceTimeReceivedAt: snapshot.liveData._raceTimeReceivedAt,
+                ourTeamInPit: snapshot.liveData.ourTeamInPit,
+                ourTeamPitCount: snapshot.liveData.ourTeamPitCount,
+                competitors: []
+            };
+            localStorage.setItem(window.RACE_STATE_KEY, JSON.stringify(snapshot));
+        } catch (e2) {
+            console.error('Failed to save race state (storage quota or serialization issue):', e2);
+        }
+    }
 };
 
 // Save a final snapshot on refresh/back-navigation
@@ -2678,10 +2763,14 @@ window.continueRace = function() {
 
     try {
         const data = JSON.parse(savedData);
+        const restoredDrivers = _buildDriversFromSavedData(data);
+        if (!Array.isArray(restoredDrivers) || restoredDrivers.length === 0) {
+            throw new Error('Saved race has no drivers data');
+        }
         
         window.state = data.state;
         window.config = data.config;
-        window.drivers = data.drivers;
+        window.drivers = restoredDrivers;
         window.cachedStrategy = data.strategy; 
         if (data.previewData) window.previewData = data.previewData;
 
@@ -2689,6 +2778,15 @@ window.continueRace = function() {
         if (data.searchConfig) window.searchConfig = data.searchConfig;
         if (data.liveData) window.liveData = data.liveData;
         if (data.currentPitAdjustment !== undefined) window.currentPitAdjustment = data.currentPitAdjustment;
+
+        // Defensive index recovery in case stored indexes are out of range.
+        if (!window.state || typeof window.state !== 'object') window.state = {};
+        if (!Number.isFinite(window.state.currentDriverIdx) || window.state.currentDriverIdx < 0 || window.state.currentDriverIdx >= window.drivers.length) {
+            window.state.currentDriverIdx = 0;
+        }
+        if (!Number.isFinite(window.state.nextDriverIdx) || window.state.nextDriverIdx < 0 || window.state.nextDriverIdx >= window.drivers.length) {
+            window.state.nextDriverIdx = (window.state.currentDriverIdx + 1) % window.drivers.length;
+        }
 
         // Restore Host ID from the confirmed saved race
         if (data.hostId) {

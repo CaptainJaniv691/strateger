@@ -55,13 +55,16 @@ exports.handler = async (event, context) => {
         'live.racefacer.com',
         'racefacer.com',
         'www.apex-timing.com',
-        'apex-timing.com'
+        'apex-timing.com',
+        'results.alphatiming.co.uk',
+        'alphatiming.co.uk'
     ];
 
     // Allow any apex-timing subdomain
     const isAllowed = allowedDomains.some(domain => parsedUrl.hostname === domain) ||
                       parsedUrl.hostname.endsWith('.apex-timing.com') ||
-                      parsedUrl.hostname.endsWith('.racefacer.com');
+                      parsedUrl.hostname.endsWith('.racefacer.com') ||
+                      parsedUrl.hostname.endsWith('.alphatiming.co.uk');
 
     if (!isAllowed) {
         return {

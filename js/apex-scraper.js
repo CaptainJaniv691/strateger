@@ -449,6 +449,17 @@ class ApexTimingScraper {
                     comp.bestLapMs = lapMs;
                 }
                 comp.totalLaps = (comp.totalLaps || 0) + 1;
+                // Track lap history for avgLap computation (skip pit laps > 3× best)
+                if (lapMs > 0) {
+                    if (!comp.lapTimes) comp.lapTimes = [];
+                    comp.lapTimes.push(lapMs);
+                    const validLaps = comp.bestLapMs
+                        ? comp.lapTimes.filter(t => t < comp.bestLapMs * 3)
+                        : comp.lapTimes;
+                    if (validLaps.length > 0) {
+                        comp.avgLapMs = Math.round(validLaps.reduce((s, t) => s + t, 0) / validLaps.length);
+                    }
+                }
                 if (!deferEmit) this.emitUpdate();
                 return true;
             }

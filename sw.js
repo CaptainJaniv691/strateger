@@ -19,6 +19,7 @@ const STATIC_ASSETS = [
     '/js/live-timing-manager.js',
     '/js/racefacer-scraper.js',
     '/js/apex-scraper.js',
+    '/js/alpha-scraper.js',
     '/js/ui.js',
     '/js/main.js',
     '/icons/icon-192.svg',
