@@ -254,6 +254,9 @@
             <div class="flex items-center gap-2">
                 <span class="text-[10px] font-black text-ice bg-ice/10 border border-ice/30 rounded-full w-5 h-5 flex items-center justify-center shrink-0">1</span>
                 <span class="text-xs font-bold text-gray-300 uppercase tracking-widest" data-i18n="stepRaceSettings">Race Settings</span>
+                <button onclick="window.saveCurrentStateNow && window.saveCurrentStateNow()" title="Save Current State" aria-label="Save Current State" class="ml-auto w-7 h-7 rounded border border-gray-600 bg-navy-800 hover:bg-navy-700 text-gray-200 hover:text-white flex items-center justify-center transition" >
+                    <i class="fas fa-save text-[11px]"></i>
+                </button>
             </div>
 
             <div id="simResult" class="bg-black/40 border border-ice/30 p-3 rounded text-xs text-ice font-mono text-center whitespace-pre-line hidden">
@@ -317,7 +320,7 @@
                 </div>
                 <div class="mt-2">
                     <label class="text-xs text-gray-400 font-bold">📍 Track / Location</label>
-                    <div class="relative">
+                    <div class="relative overflow-visible">
                         <div class="relative">
                             <input type="text" id="raceLocation"
                                    placeholder="Search city or venue…"
@@ -329,9 +332,21 @@
                                    class="input-field pr-8">
                             <span id="locationSearchSpinner" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 text-xs pointer-events-none">⏳</span>
                         </div>
-                        <div id="locationSuggestions" class="hidden absolute z-[60] w-full mt-1 bg-navy-900 border border-gray-600 rounded-lg shadow-2xl overflow-hidden text-left"></div>
+                        <div id="locationSuggestions" class="hidden absolute z-[120] w-full mt-1 bg-navy-900 border border-gray-600 rounded-lg shadow-2xl max-h-72 overflow-y-auto text-left"></div>
+                    </div>
+                    <div id="selectedLocationPreview" class="hidden mt-2 bg-navy-950/70 border border-gray-700 rounded-lg p-2.5 space-y-1.5">
+                        <div id="selectedLocationName" class="text-xs text-white font-bold"></div>
+                        <div id="selectedLocationMeta" class="text-[11px] text-gray-400"></div>
+                        <div class="flex gap-2">
+                            <a id="selectedLocationMapsLink" href="#" target="_blank" rel="noopener noreferrer" class="text-[10px] px-2 py-0.5 rounded border border-gray-700 text-gray-400 hover:text-gray-200 hover:border-gray-500">Maps</a>
+                            <a id="selectedLocationRome2RioLink" href="#" target="_blank" rel="noopener noreferrer" class="text-[10px] px-2 py-0.5 rounded border border-gray-700 text-gray-500 hover:text-gray-300 hover:border-gray-500">Rome2Rio</a>
+                        </div>
                     </div>
                     <p class="text-[10px] text-gray-500 mt-1">Type a city or track name — weather auto-loads for the preview.</p>
+                    <label class="mt-1 inline-flex items-center gap-2 text-[11px] text-gray-300 cursor-pointer select-none">
+                        <input type="checkbox" id="showWeatherInStints" checked onchange="window._showWeatherInStints=this.checked; if(!document.getElementById('previewScreen')?.classList.contains('hidden') && window.renderPreview) window.renderPreview()" class="accent-cyan-400 w-3.5 h-3.5">
+                        <span>Show weather in stints</span>
+                    </label>
                 </div>
                 </div>
             </div>
@@ -484,19 +499,15 @@
                     <button onclick="window.addDriverField(); window.runSim()" class="btn-small bg-blue-600 w-full" data-i18n="addDriver">+ Add</button>
                     <button onclick="window.removeDriverField(); window.runSim()" class="btn-small bg-red-600 w-12">-</button>
                 </div>
-                <div class="mt-1">
-                    <button onclick="window.addDriversCustom(); window.runSim()" class="btn-small bg-cyan-700 hover:bg-cyan-600 w-full text-[11px]">
-                        <i class="fas fa-user-plus mr-1"></i><span data-i18n="addDriversCustom">Custom Add</span>
+                <div class="grid grid-cols-2 gap-2 mt-2">
+                    <button onclick="window.saveDriverTemplate()" class="bg-navy-800 hover:bg-navy-700 border border-gray-600 text-[10px] text-gray-200 px-2 py-1.5 rounded min-h-[28px]" data-i18n="buildDriverPool">
+                        Build Pool
+                    </button>
+                    <button onclick="window.openSavedDriversModal()" class="bg-cyan-700 hover:bg-cyan-600 border border-cyan-500/40 text-[10px] text-white px-2 py-1.5 rounded min-h-[28px]" data-i18n="chooseDriversFromPool">
+                        Choose Drivers
                     </button>
                 </div>
-                <div class="flex gap-2 mt-1">
-                    <button onclick="window.openSavedDriversModal()" class="btn-small bg-gray-700 hover:bg-gray-600 flex-1 text-[11px]">
-                        <i class="fas fa-clipboard-list mr-1"></i><span data-i18n="importDrivers">Import Saved</span>
-                    </button>
-                    <button onclick="window.saveDriverTemplate()" class="btn-small bg-gray-700 hover:bg-gray-600 flex-1 text-[11px]">
-                        <i class="fas fa-save mr-1"></i><span data-i18n="saveDrivers">Save List</span>
-                    </button>
-                </div>
+                <p class="text-[10px] text-gray-500 mt-1">Pool sync: Google signed-in users = cloud, guests = local device.</p>
                 </div>
             </div>
 

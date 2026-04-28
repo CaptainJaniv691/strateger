@@ -2,7 +2,6 @@
 // 🔐 GOOGLE AUTH & INTEGRATIONS
 // ==========================================
 
-const GOOGLE_CLIENT_ID = '944328539678-cm1ao0asklck15o9rpneh48nbdtpdstk.apps.googleusercontent.com';
 let googleUser = null;
 let googleAccessToken = null;
 
@@ -156,7 +155,7 @@ window.googleSignIn = async function() {
     if (typeof google === 'undefined') return window.showToast('Google API not loaded.', 'error');
     
     const client = google.accounts.oauth2.initTokenClient({
-        client_id: GOOGLE_CLIENT_ID,
+        client_id: window.APP_CONFIG.GOOGLE_CLIENT_ID,
         scope: 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',
         callback: async (tokenResponse) => {
             if (tokenResponse.error) {

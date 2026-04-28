@@ -2458,8 +2458,36 @@ window.t = function(key) {
         ? localStorage.getItem('strateger_viewer_lang') || localStorage.getItem('strateger_lang') || 'en'
         : localStorage.getItem('strateger_lang') || 'en';
     const dict = window.translations[lang] || window.translations['en'];
-    return dict[key] || key;
+    return dict[key] || window.translations.en[key] || key;
 };
+
+(function injectUiTranslationDefaults() {
+    const defaults = {
+        en: {
+            buildDriverPool: 'Build Pool',
+            chooseDriversFromPool: 'Choose Drivers',
+            selectAtLeastTwoDrivers: 'Please select at least 2 drivers',
+            saveCurrentState: 'Save Current State',
+            stateSaved: 'Current setup saved'
+        },
+        he: {
+            buildDriverPool: 'יצירת מאגר נהגים',
+            chooseDriversFromPool: 'בחירת נהגים מהמאגר',
+            selectAtLeastTwoDrivers: 'יש לבחור לפחות 2 נהגים',
+            saveCurrentState: 'שמור מצב נוכחי',
+            stateSaved: 'המצב הנוכחי נשמר'
+        }
+    };
+
+    Object.entries(window.translations || {}).forEach(([lang, dict]) => {
+        if (!dict) return;
+        const base = defaults.en;
+        const local = defaults[lang] || {};
+        Object.entries(base).forEach(([k, v]) => {
+            if (dict[k] == null) dict[k] = local[k] || v;
+        });
+    });
+})();
 
 // ==========================================
 // 🌍 LANGUAGE SUPPORT
@@ -2560,15 +2588,42 @@ window.saveHostState = function() {
             stops: document.getElementById('reqPitStops')?.value,
             minStint: document.getElementById('minStint')?.value,
             maxStint: document.getElementById('maxStint')?.value,
+            pitTime: document.getElementById('minPitTime')?.value,
+            startTime: document.getElementById('raceStartTime')?.value,
+            startDate: document.getElementById('raceStartDate')?.value,
+            raceLocation: document.getElementById('raceLocation')?.value,
+            allowDouble: !!document.getElementById('allowDouble')?.checked,
+            numSquads: document.getElementById('numSquads')?.value || '0',
+            trackFuel: !!document.getElementById('trackFuel')?.checked,
+            pitClosedStart: document.getElementById('pitClosedStart')?.value,
+            pitClosedEnd: document.getElementById('pitClosedEnd')?.value,
+            minDriverTime: document.getElementById('minDriverTime')?.value,
+            maxDriverTime: document.getElementById('maxDriverTime')?.value,
+            releaseBuffer: document.getElementById('releaseBuffer')?.value,
+            fuelTime: document.getElementById('fuelTime')?.value,
+            liveTimingUrl: document.getElementById('liveTimingUrl')?.value,
+            searchType: document.querySelector('input[name="searchType"]:checked')?.value || 'team',
+            searchValue: document.getElementById('searchValue')?.value,
             drivers: [] 
         };
         
-        const driverInputs = document.querySelectorAll('.driver-input');
-        driverInputs.forEach(input => {
-            draft.drivers.push({ name: input.value });
+        const rows = document.querySelectorAll('#driversList > div');
+        rows.forEach((row, idx) => {
+            const name = row.querySelector('.driver-input')?.value || '';
+            const color = row.querySelector('.driver-color-picker')?.value || '#22d3ee';
+            const squad = parseInt(row.querySelector('.squad-value')?.value || '0', 10);
+            const starter = !!row.querySelector('.starter-radio')?.checked;
+            draft.drivers.push({ name, color, squad, starter, idx });
         });
 
         localStorage.setItem(window.DRAFT_CONFIG_KEY, JSON.stringify(draft));
+    }
+};
+
+window.saveCurrentStateNow = function() {
+    window.saveHostState();
+    if (typeof window.showToast === 'function') {
+        window.showToast(window.t('stateSaved') || 'Current setup saved', 'success');
     }
 };
 
@@ -2581,14 +2636,50 @@ window.loadDraftConfig = function() {
         if(draft.stops) document.getElementById('reqPitStops').value = draft.stops;
         if(draft.minStint) document.getElementById('minStint').value = draft.minStint;
         if(draft.maxStint) document.getElementById('maxStint').value = draft.maxStint;
+        if(draft.pitTime) document.getElementById('minPitTime').value = draft.pitTime;
+        if(draft.startTime) document.getElementById('raceStartTime').value = draft.startTime;
+        if(draft.startDate) document.getElementById('raceStartDate').value = draft.startDate;
+        if(draft.raceLocation) document.getElementById('raceLocation').value = draft.raceLocation;
+        if(draft.pitClosedStart != null) document.getElementById('pitClosedStart').value = draft.pitClosedStart;
+        if(draft.pitClosedEnd != null) document.getElementById('pitClosedEnd').value = draft.pitClosedEnd;
+        if(draft.minDriverTime != null) document.getElementById('minDriverTime').value = draft.minDriverTime;
+        if(draft.maxDriverTime != null) document.getElementById('maxDriverTime').value = draft.maxDriverTime;
+        if(draft.releaseBuffer != null) document.getElementById('releaseBuffer').value = draft.releaseBuffer;
+        if(draft.fuelTime != null) document.getElementById('fuelTime').value = draft.fuelTime;
+        if(draft.liveTimingUrl != null) document.getElementById('liveTimingUrl').value = draft.liveTimingUrl;
+
+        const allowDouble = document.getElementById('allowDouble');
+        if (allowDouble && typeof draft.allowDouble === 'boolean') allowDouble.checked = draft.allowDouble;
+        const numSquads = document.getElementById('numSquads');
+        if (numSquads && draft.numSquads != null) numSquads.value = String(draft.numSquads);
+        const trackFuel = document.getElementById('trackFuel');
+        if (trackFuel && typeof draft.trackFuel === 'boolean') trackFuel.checked = draft.trackFuel;
+
+        if (draft.searchType) {
+            const searchRadio = document.querySelector(`input[name="searchType"][value="${draft.searchType}"]`);
+            if (searchRadio) searchRadio.checked = true;
+        }
+        if (draft.searchValue != null) {
+            const searchInput = document.getElementById('searchValue');
+            if (searchInput) searchInput.value = draft.searchValue;
+        }
         
         if (draft.drivers && draft.drivers.length > 0 && typeof window.createDriverInput === 'function') {
             const list = document.getElementById('driversList');
             if(list) list.innerHTML = ''; 
             draft.drivers.forEach((d, i) => {
-                window.createDriverInput(d.name, i===0, 'A'); 
+                window.createDriverInput(d.name || `${window.t('ltDriver')} ${i + 1}`, !!d.starter || i === 0, Number.isFinite(d.squad) ? d.squad : 0);
+                const rows = list?.querySelectorAll(':scope > div') || [];
+                const last = rows[rows.length - 1];
+                const picker = last?.querySelector('.driver-color-picker');
+                if (picker && d.color) picker.value = d.color;
             });
         }
+
+        if (typeof window.toggleSquadsInput === 'function') window.toggleSquadsInput();
+        if (typeof window.toggleFuelInput === 'function') window.toggleFuelInput();
+        if (typeof window.initVenueLocationPicker === 'function') window.initVenueLocationPicker();
+        if (typeof window.runSim === 'function') window.runSim();
     } catch(e) { console.error("Error loading draft", e); }
 };
 

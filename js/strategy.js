@@ -108,7 +108,9 @@ window.calculateStintDurations = function(config) {
     const pitTimeMs = config.pitTime * 1000;
     const totalStints = config.stops + 1;
     const totalPitTime = config.stops * pitTimeMs;
-    const totalNetDriveTime = raceMs - totalPitTime;
+    // Round to whole seconds: non-integer pitTime (e.g. 90.5s) can produce
+    // a sub-second remainder that makes the while loop oscillate infinitely.
+    const totalNetDriveTime = Math.round((raceMs - totalPitTime) / 1000) * 1000;
 
     const closedStartMs = (config.closedStart || 0) * 60000;
     const closedEndMs = (config.closedEnd || 0) * 60000;
@@ -252,7 +254,9 @@ window.calculateStintDurations = function(config) {
     // Final safeguard: guarantee exact sum without breaking bounds.
     let finalSum = rounded.reduce((a, b) => a + b, 0);
     let remaining = totalNetDriveTime - finalSum;
-    while (remaining !== 0) {
+    // Use >= 500 instead of !== 0: ±1000ms steps can never reach exactly zero
+    // if remaining is a sub-second value, causing an infinite oscillation.
+    while (Math.abs(remaining) >= 500) {
         const step = remaining > 0 ? 1000 : -1000;
         let changed = false;
         for (let i = totalStints - 1; i >= 0; i--) {

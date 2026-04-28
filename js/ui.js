@@ -572,6 +572,124 @@ window._venueWeatherInFlight = false;
 // ==========================================
 window._locationSearchTimer = null;
 window._locationAutocompleteResults = [];
+window._selectedVenueLocation = null;
+window._showWeatherInStints = window._showWeatherInStints !== false;
+window._weatherCodeMap = {
+    0: 'Clear', 1: 'Mostly clear', 2: 'Partly cloudy', 3: 'Overcast',
+    45: 'Fog', 48: 'Rime fog', 51: 'Light drizzle', 53: 'Drizzle', 55: 'Dense drizzle',
+    61: 'Light rain', 63: 'Rain', 65: 'Heavy rain', 66: 'Freezing rain', 67: 'Heavy freezing rain',
+    71: 'Light snow', 73: 'Snow', 75: 'Heavy snow', 77: 'Snow grains',
+    80: 'Rain showers', 81: 'Showers', 82: 'Violent showers',
+    95: 'Thunderstorm', 96: 'Storm + hail', 99: 'Severe storm + hail'
+};
+
+window.formatVenueShortName = function(place) {
+    if (!place) return '';
+    const rawName = String(place.name || '').trim();
+    const name = rawName.split(',')[0].trim();
+    let country = String(place.country || '').trim();
+
+    if (!country) {
+        const parts = String(place.displayName || '').split(',').map((p) => p.trim()).filter(Boolean);
+        country = parts.length > 1 ? parts[parts.length - 1] : '';
+    }
+
+    if (name && country) return `${name}, ${country}`;
+    if (name) return name;
+    if (country) return country;
+
+    const fallbackParts = String(place.displayName || '').split(',').map((p) => p.trim()).filter(Boolean);
+    if (fallbackParts.length >= 2) return `${fallbackParts[0]}, ${fallbackParts[fallbackParts.length - 1]}`;
+    return fallbackParts[0] || '';
+};
+
+window.getVenueForecastAt = function(targetMs) {
+    const weather = window._venueWeather;
+    const hourly = weather?.data?.hourly;
+    if (weather?.status !== 'ready' || !hourly || !Array.isArray(hourly.time) || !hourly.time.length) return null;
+
+    const target = Number(targetMs);
+    if (!Number.isFinite(target)) return null;
+
+    let bestIdx = -1;
+    let bestDelta = Number.POSITIVE_INFINITY;
+    for (let i = 0; i < hourly.time.length; i++) {
+        const slotMs = Date.parse(hourly.time[i]);
+        if (!Number.isFinite(slotMs)) continue;
+        const delta = Math.abs(slotMs - target);
+        if (delta < bestDelta) {
+            bestDelta = delta;
+            bestIdx = i;
+        }
+    }
+
+    if (bestIdx < 0) return null;
+    return {
+        time: hourly.time[bestIdx],
+        temp: hourly.temperature_2m?.[bestIdx],
+        wind: hourly.wind_speed_10m?.[bestIdx],
+        precipitation: hourly.precipitation?.[bestIdx],
+        weatherCode: hourly.weather_code?.[bestIdx],
+        weatherText: window._weatherCodeMap[hourly.weather_code?.[bestIdx]] || 'Weather'
+    };
+};
+
+window.formatVenueForecastShort = function(forecast) {
+    if (!forecast) return '';
+    const temp = Number.isFinite(Number(forecast.temp)) ? `${Math.round(forecast.temp)}°C` : '-';
+    const rain = Number.isFinite(Number(forecast.precipitation)) ? `${Number(forecast.precipitation).toFixed(1)}mm` : '0.0mm';
+    return `${temp} · ${rain}`;
+};
+
+window.resolveVenueLocation = function(value) {
+    const normalized = String(value || '').trim().toLowerCase();
+    if (!normalized) return null;
+
+    if (window._selectedVenueLocation && String(window._selectedVenueLocation.displayName || '').toLowerCase() === normalized) {
+        return window._selectedVenueLocation;
+    }
+
+    return window._locationAutocompleteResults.find((p) => String(p.displayName || '').toLowerCase() === normalized) || null;
+};
+
+window.renderSelectedVenuePreview = function(place) {
+    const card = document.getElementById('selectedLocationPreview');
+    const nameEl = document.getElementById('selectedLocationName');
+    const metaEl = document.getElementById('selectedLocationMeta');
+    const mapsLink = document.getElementById('selectedLocationMapsLink');
+    const r2rLink = document.getElementById('selectedLocationRome2RioLink');
+    if (!card || !nameEl || !metaEl || !mapsLink || !r2rLink) return;
+
+    if (!place) {
+        card.classList.add('hidden');
+        return;
+    }
+
+    const lat = Number(place.lat);
+    const lon = Number(place.lon);
+    const displayName = window.formatVenueShortName(place);
+
+    nameEl.innerText = displayName;
+    metaEl.innerText = Number.isFinite(lat) && Number.isFinite(lon)
+        ? `${lat.toFixed(5)}, ${lon.toFixed(5)}`
+        : '';
+
+    mapsLink.href = Number.isFinite(lat) && Number.isFinite(lon)
+        ? `https://www.google.com/maps/search/?api=1&query=${lat},${lon}`
+        : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(displayName)}`;
+    r2rLink.href = `https://www.rome2rio.com/map/${encodeURIComponent(displayName)}`;
+
+    card.classList.remove('hidden');
+};
+
+window.initVenueLocationPicker = function() {
+    const input = document.getElementById('raceLocation');
+    if (!input) return;
+    const prefilled = String(input.value || '').trim();
+    if (!prefilled) return;
+    const resolved = window.resolveVenueLocation(prefilled);
+    window.renderSelectedVenuePreview(resolved || { displayName: prefilled, name: prefilled, admin1: '', country: '' });
+};
 
 window.onLocationInput = function(value) {
     const dropdown = document.getElementById('locationSuggestions');
@@ -591,10 +709,49 @@ window.onLocationInput = function(value) {
 
     window._locationSearchTimer = setTimeout(async () => {
         try {
-            const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=6&language=en&format=json`;
-            const res = await fetch(url);
-            const json = await res.json();
-            const results = Array.isArray(json.results) ? json.results : [];
+            const [meteoResults, nominatimResults] = await Promise.all([
+                (async () => {
+                    const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=8&language=en&format=json`;
+                    const res = await fetch(url);
+                    const json = await res.json();
+                    return Array.isArray(json.results) ? json.results : [];
+                })(),
+                (async () => {
+                    const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(query)}&limit=8&addressdetails=1`;
+                    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                    const json = await res.json();
+                    return Array.isArray(json) ? json : [];
+                })()
+            ]);
+
+            const fromMeteo = meteoResults.map((r) => ({
+                name: r.name,
+                admin1: r.admin1 || '',
+                country: r.country || '',
+                lat: r.latitude,
+                lon: r.longitude,
+                displayName: [r.name, r.country].filter(Boolean).join(', ')
+            }));
+
+            const fromNominatim = nominatimResults.map((r) => ({
+                name: (r.display_name || '').split(',')[0] || r.name || query,
+                admin1: r.address?.state || r.address?.county || r.address?.city || '',
+                country: r.address?.country || '',
+                lat: Number(r.lat),
+                lon: Number(r.lon),
+                displayName: [
+                    (r.display_name || '').split(',')[0] || r.name || query,
+                    r.address?.country || ''
+                ].filter(Boolean).join(', ')
+            }));
+
+            const seen = new Set();
+            const results = [...fromMeteo, ...fromNominatim].filter((r) => {
+                const key = `${String(r.displayName || '').toLowerCase()}|${Number(r.lat).toFixed(4)}|${Number(r.lon).toFixed(4)}`;
+                if (seen.has(key)) return false;
+                seen.add(key);
+                return true;
+            }).slice(0, 12);
             if (spinner) spinner.classList.add('hidden');
 
             if (!results.length) {
@@ -603,22 +760,15 @@ window.onLocationInput = function(value) {
                 return;
             }
 
-            window._locationAutocompleteResults = results.map(r => ({
-                name: r.name,
-                admin1: r.admin1 || '',
-                country: r.country || '',
-                lat: r.latitude,
-                lon: r.longitude
-            }));
+            window._locationAutocompleteResults = results;
 
             dropdown.innerHTML = window._locationAutocompleteResults.map((place, i) => {
-                const secondary = [place.admin1, place.country].filter(Boolean).join(', ');
                 return `<div class="px-3 py-2.5 cursor-pointer hover:bg-navy-800 border-b border-gray-700/40 last:border-0 flex items-center gap-2"
                               onmousedown="window.selectLocationSuggestion(${i})">
                     <span class="text-gray-400 text-sm shrink-0">📍</span>
-                    <span>
-                        <span class="font-bold text-white text-sm">${place.name}</span>
-                        ${secondary ? `<span class="text-gray-400 text-xs ml-1">${secondary}</span>` : ''}
+                    <span class="min-w-0">
+                        <span class="font-bold text-white text-sm break-words whitespace-normal">${place.name}</span>
+                        ${place.country ? `<span class="text-gray-400 text-xs ml-1">${place.country}</span>` : ''}
                     </span>
                 </div>`;
             }).join('');
@@ -634,18 +784,21 @@ window.selectLocationSuggestion = function(idx) {
     const place = window._locationAutocompleteResults[idx];
     if (!place) return;
 
-    const fullName = [place.name, place.admin1, place.country].filter(Boolean).join(', ');
+    const fullName = window.formatVenueShortName(place);
     const input = document.getElementById('raceLocation');
     if (input) input.value = fullName;
 
     const dropdown = document.getElementById('locationSuggestions');
     if (dropdown) dropdown.classList.add('hidden');
 
+    window._selectedVenueLocation = place;
+    window.renderSelectedVenuePreview(place);
+
     if (typeof window.syncRaceLocation === 'function') window.syncRaceLocation(fullName);
     if (typeof window.runSim === 'function') window.runSim();
 };
 
-window.refreshVenueWeather = async function(rawLocation) {
+window.refreshVenueWeather = async function(rawLocation, selectedPlace) {
     const input = String(rawLocation || '').trim();
     if (!input) return;
 
@@ -653,7 +806,8 @@ window.refreshVenueWeather = async function(rawLocation) {
     const fuzzyMatch = findBestVenueAlias(input);
     const query = fuzzyMatch || _VENUE_ALIASES[normalized] || input;
     const cacheFreshMs = 10 * 60 * 1000;
-    if (window._venueWeather.key === query && (Date.now() - window._venueWeather.fetchedAt) < cacheFreshMs) {
+    const hasHourlyCache = Array.isArray(window._venueWeather?.data?.hourly?.time) && window._venueWeather.data.hourly.time.length > 0;
+    if (window._venueWeather.key === query && (Date.now() - window._venueWeather.fetchedAt) < cacheFreshMs && hasHourlyCache) {
         return;
     }
     if (window._venueWeatherInFlight) return;
@@ -662,29 +816,33 @@ window.refreshVenueWeather = async function(rawLocation) {
     window._venueWeather = { key: query, status: 'loading', fetchedAt: Date.now(), data: null, resolvedName: '' };
 
     try {
-        const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1&language=en&format=json`;
-        const geoRes = await fetch(geoUrl, { cache: 'no-store' });
-        const geo = await geoRes.json();
-        const best = Array.isArray(geo.results) ? geo.results[0] : null;
-        if (!best) throw new Error('Location not found');
+        let best = selectedPlace || window.resolveVenueLocation(input);
+        if (!best || !Number.isFinite(Number(best.lat)) || !Number.isFinite(Number(best.lon))) {
+            const geoUrl = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=1&language=en&format=json`;
+            const geoRes = await fetch(geoUrl, { cache: 'no-store' });
+            const geo = await geoRes.json();
+            const geoBest = Array.isArray(geo.results) ? geo.results[0] : null;
+            if (!geoBest) throw new Error('Location not found');
+            best = {
+                name: geoBest.name,
+                admin1: geoBest.admin1 || '',
+                country: geoBest.country || '',
+                lat: geoBest.latitude,
+                lon: geoBest.longitude,
+                displayName: [geoBest.name, geoBest.country].filter(Boolean).join(', ')
+            };
+        }
 
-        const lat = best.latitude;
-        const lon = best.longitude;
-        const resolvedName = [best.name, best.admin1, best.country].filter(Boolean).join(', ');
+        const lat = Number(best.lat);
+        const lon = Number(best.lon);
+        const resolvedName = window.formatVenueShortName(best);
+        window._selectedVenueLocation = best;
+        window.renderSelectedVenuePreview(best);
 
-        const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,wind_speed_10m,precipitation,weather_code&timezone=auto`;
+        const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,wind_speed_10m,precipitation,weather_code&hourly=temperature_2m,wind_speed_10m,precipitation,weather_code&forecast_days=7&timezone=auto`;
         const weatherRes = await fetch(weatherUrl, { cache: 'no-store' });
         const weather = await weatherRes.json();
         const current = weather.current || {};
-
-        const codeMap = {
-            0: 'Clear', 1: 'Mostly clear', 2: 'Partly cloudy', 3: 'Overcast',
-            45: 'Fog', 48: 'Rime fog', 51: 'Light drizzle', 53: 'Drizzle', 55: 'Dense drizzle',
-            61: 'Light rain', 63: 'Rain', 65: 'Heavy rain', 66: 'Freezing rain', 67: 'Heavy freezing rain',
-            71: 'Light snow', 73: 'Snow', 75: 'Heavy snow', 77: 'Snow grains',
-            80: 'Rain showers', 81: 'Showers', 82: 'Violent showers',
-            95: 'Thunderstorm', 96: 'Storm + hail', 99: 'Severe storm + hail'
-        };
 
         window._venueWeather = {
             key: query,
@@ -695,7 +853,8 @@ window.refreshVenueWeather = async function(rawLocation) {
                 temp: current.temperature_2m,
                 wind: current.wind_speed_10m,
                 precipitation: current.precipitation,
-                weatherText: codeMap[current.weather_code] || 'Weather unavailable',
+                weatherText: window._weatherCodeMap[current.weather_code] || 'Weather unavailable',
+                hourly: weather.hourly || null,
             }
         };
     } catch (err) {
@@ -771,6 +930,11 @@ window.renderPreview = function() {
         const startTime = new Date(currentTimeMs);
         const endTime = new Date(currentTimeMs + stint.duration);
         const durationMin = Math.round(stint.duration / 60000);
+        const showWeatherTags = window._showWeatherInStints !== false;
+        const stintForecast = window.getVenueForecastAt(startTime.getTime());
+        const stintForecastTag = (showWeatherTags && stintForecast)
+            ? `<span class="text-[10px] text-cyan-300 ml-1">${window.formatVenueForecastShort(stintForecast)}</span>`
+            : '';
         
         const startTimeStr = startTime.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
         const endTimeStr = endTime.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
@@ -806,7 +970,7 @@ window.renderPreview = function() {
                     <button onclick="window.moveStint(${index}, 1)" class="text-gray-500 hover:text-white text-[10px] leading-none px-1 ${isLast ? 'invisible' : ''}" title="Move Down">▼</button>
                 </div>
                 <div class="flex-1 min-w-0">
-                    <div class="font-bold text-white leading-tight break-words whitespace-normal">${stint.driverName}</div>
+                    <div class="font-bold text-white leading-tight break-words whitespace-normal">${stint.driverName}${stintForecastTag}</div>
                     <div class="flex items-center gap-1 text-gray-400 text-[10px]">
                         <span>${startTimeStr}</span>
                         <span class="text-ice">${arrow}</span>
@@ -875,7 +1039,10 @@ window.renderPreview = function() {
                 ? weather.resolvedName
                 : window.config.raceLocation;
             let weatherStr = '';
-            if (weather?.status === 'ready' && weather?.data) {
+            const raceStartForecast = window.getVenueForecastAt(startRef.getTime());
+            if (weather?.status === 'ready' && weather?.data && raceStartForecast) {
+                weatherStr = `Start: ${raceStartForecast.weatherText} • ${window.formatVenueForecastShort(raceStartForecast)} • ${Number.isFinite(Number(raceStartForecast.wind)) ? Math.round(Number(raceStartForecast.wind)) : '-'} km/h`;
+            } else if (weather?.status === 'ready' && weather?.data) {
                 weatherStr = `${weather.data.weatherText} • ${weather.data.temp ?? '-'}°C • ${weather.data.wind ?? '-'} km/h`;
             } else if (weather?.status === 'loading') {
                 weatherStr = '⏳';
@@ -2149,10 +2316,10 @@ window._renderDriverPoolModal = function(poolDrivers) {
     controls.className = 'flex gap-2 pt-2 border-t border-gray-700 mt-2';
     controls.innerHTML = `
         <button onclick="window.applyDriverPoolSelection()" class="flex-1 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold py-2 rounded">
-            ${t('importDrivers') || 'Use selected'}
+            ${t('chooseDriversFromPool') || 'Choose Drivers'}
         </button>
         <button onclick="window.saveDriverTemplate()" class="flex-1 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-bold py-2 rounded">
-            ${t('saveDrivers') || 'Update group'}
+            ${t('buildDriverPool') || 'Build Pool'}
         </button>
     `;
     list.appendChild(controls);
@@ -2176,23 +2343,36 @@ window._getCurrentPool = async function() {
 window.saveDriverTemplate = async function() {
     const t = window.t || ((k) => k);
     const drivers = window._collectCurrentDrivers();
-    if (!drivers.length) {
-        window.showToast && window.showToast(t('noDriversToSave') || 'No drivers to save', 'warning');
+    if (drivers.length < 2) {
+        window.showToast && window.showToast(t('selectAtLeastTwoDrivers') || 'Please select at least 2 drivers', 'warning');
+        return;
+    }
+
+    const seen = new Set();
+    const normalized = drivers.filter((d) => {
+        const key = String(d.name || '').trim().toLowerCase();
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+    });
+
+    if (normalized.length < 2) {
+        window.showToast && window.showToast(t('selectAtLeastTwoDrivers') || 'Please select at least 2 drivers', 'warning');
         return;
     }
 
     const email = window._getSignedInEmail();
     try {
         if (email) {
-            await window._saveDriverPoolRemote(email, drivers);
+            await window._saveDriverPoolRemote(email, normalized);
             window.showToast && window.showToast((t('driversSaved') || 'Driver group saved') + ' · cloud sync', 'success');
         } else {
-            window._saveDriverPoolLocal(drivers);
+            window._saveDriverPoolLocal(normalized);
             window.showToast && window.showToast((t('driversSaved') || 'Driver group saved') + ' · local device', 'success');
         }
     } catch (e) {
         // Never lose data — fallback local.
-        window._saveDriverPoolLocal(drivers);
+        window._saveDriverPoolLocal(normalized);
         window.showToast && window.showToast((t('driversSaved') || 'Driver group saved') + ' · local fallback', 'warning');
         console.warn('Driver pool cloud save failed:', e?.message || e);
     }
@@ -2204,6 +2384,7 @@ window.openSavedDriversModal = async function() {
 };
 
 window.applyDriverPoolSelection = async function() {
+    const t = window.t || ((k) => k);
     const checks = Array.from(document.querySelectorAll('[data-driver-pool-check]'));
     const pool = await window._getCurrentPool();
     const selected = checks
@@ -2211,8 +2392,8 @@ window.applyDriverPoolSelection = async function() {
         .map((el) => pool[parseInt(el.getAttribute('data-driver-pool-check'), 10)])
         .filter(Boolean);
 
-    if (!selected.length) {
-        window.showToast && window.showToast('בחר לפחות נהג אחד', 'warning');
+    if (selected.length < 2) {
+        window.showToast && window.showToast(t('selectAtLeastTwoDrivers') || 'Please select at least 2 drivers', 'warning');
         return;
     }
 
