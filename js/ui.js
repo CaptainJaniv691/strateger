@@ -567,6 +567,84 @@ function findBestVenueAlias(input) {
 window._venueWeather = { key: '', status: 'idle', fetchedAt: 0, data: null, resolvedName: '' };
 window._venueWeatherInFlight = false;
 
+// ==========================================
+// 📍 LOCATION AUTOCOMPLETE
+// ==========================================
+window._locationSearchTimer = null;
+window._locationAutocompleteResults = [];
+
+window.onLocationInput = function(value) {
+    const dropdown = document.getElementById('locationSuggestions');
+    const spinner = document.getElementById('locationSearchSpinner');
+    if (!dropdown) return;
+
+    const query = value.trim();
+    if (query.length < 2) {
+        dropdown.classList.add('hidden');
+        if (spinner) spinner.classList.add('hidden');
+        clearTimeout(window._locationSearchTimer);
+        return;
+    }
+
+    clearTimeout(window._locationSearchTimer);
+    if (spinner) spinner.classList.remove('hidden');
+
+    window._locationSearchTimer = setTimeout(async () => {
+        try {
+            const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=6&language=en&format=json`;
+            const res = await fetch(url);
+            const json = await res.json();
+            const results = Array.isArray(json.results) ? json.results : [];
+            if (spinner) spinner.classList.add('hidden');
+
+            if (!results.length) {
+                dropdown.innerHTML = `<div class="px-3 py-2.5 text-[11px] text-gray-500">No locations found</div>`;
+                dropdown.classList.remove('hidden');
+                return;
+            }
+
+            window._locationAutocompleteResults = results.map(r => ({
+                name: r.name,
+                admin1: r.admin1 || '',
+                country: r.country || '',
+                lat: r.latitude,
+                lon: r.longitude
+            }));
+
+            dropdown.innerHTML = window._locationAutocompleteResults.map((place, i) => {
+                const secondary = [place.admin1, place.country].filter(Boolean).join(', ');
+                return `<div class="px-3 py-2.5 cursor-pointer hover:bg-navy-800 border-b border-gray-700/40 last:border-0 flex items-center gap-2"
+                              onmousedown="window.selectLocationSuggestion(${i})">
+                    <span class="text-gray-400 text-sm shrink-0">📍</span>
+                    <span>
+                        <span class="font-bold text-white text-sm">${place.name}</span>
+                        ${secondary ? `<span class="text-gray-400 text-xs ml-1">${secondary}</span>` : ''}
+                    </span>
+                </div>`;
+            }).join('');
+            dropdown.classList.remove('hidden');
+        } catch (err) {
+            if (spinner) spinner.classList.add('hidden');
+            console.warn('[location-autocomplete] fetch failed:', err);
+        }
+    }, 350);
+};
+
+window.selectLocationSuggestion = function(idx) {
+    const place = window._locationAutocompleteResults[idx];
+    if (!place) return;
+
+    const fullName = [place.name, place.admin1, place.country].filter(Boolean).join(', ');
+    const input = document.getElementById('raceLocation');
+    if (input) input.value = fullName;
+
+    const dropdown = document.getElementById('locationSuggestions');
+    if (dropdown) dropdown.classList.add('hidden');
+
+    if (typeof window.syncRaceLocation === 'function') window.syncRaceLocation(fullName);
+    if (typeof window.runSim === 'function') window.runSim();
+};
+
 window.refreshVenueWeather = async function(rawLocation) {
     const input = String(rawLocation || '').trim();
     if (!input) return;
@@ -787,30 +865,37 @@ window.renderPreview = function() {
             </div>
         `;
     }).join('');
-    
+
+    // === Render location/weather into preview header ===
+    const previewLocEl = document.getElementById('previewLocationWeather');
+    if (previewLocEl) {
+        if (window.config?.raceLocation) {
+            const weather = window._venueWeather;
+            const displayName = (weather?.status === 'ready' && weather?.resolvedName)
+                ? weather.resolvedName
+                : window.config.raceLocation;
+            let weatherStr = '';
+            if (weather?.status === 'ready' && weather?.data) {
+                weatherStr = `${weather.data.weatherText} • ${weather.data.temp ?? '-'}°C • ${weather.data.wind ?? '-'} km/h`;
+            } else if (weather?.status === 'loading') {
+                weatherStr = '⏳';
+            } else if (weather?.status === 'error') {
+                weatherStr = '⚠️';
+            }
+            previewLocEl.innerHTML = `
+                <div class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">${t('locationWeather')}</div>
+                <div class="text-sm font-bold text-white leading-snug break-words">${displayName}</div>
+                ${weatherStr ? `<div class="text-[11px] text-cyan-300 mt-0.5 leading-snug">${weatherStr}</div>` : ''}
+            `;
+        } else {
+            previewLocEl.innerHTML = '';
+        }
+    }
+
     const summaryEl = document.getElementById('strategySummary');
     if (summaryEl) {
         summaryEl.className = "grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-1.5 sm:gap-2 p-2";
-        const weather = window._venueWeather;
-        let weatherLine = '<div class="text-[10px] text-gray-400 mt-1">Weather and race context stay anchored to this location.</div>';
-        if (window.config?.raceLocation && weather?.status === 'loading') {
-            weatherLine = '<div class="text-[10px] text-blue-300 mt-1">⏳ Fetching live weather for venue…</div>';
-        } else if (window.config?.raceLocation && weather?.status === 'ready' && weather?.data) {
-            weatherLine = `<div class="text-[10px] text-cyan-300 mt-1">🌤️ ${weather.data.temp ?? '-'}°C · ${weather.data.weatherText} · 💨 ${weather.data.wind ?? '-'} km/h · 🌧️ ${weather.data.precipitation ?? 0} mm</div>`;
-            if (weather.resolvedName) {
-                weatherLine += `<div class="text-[9px] text-gray-500 mt-0.5">Resolved: ${weather.resolvedName}</div>`;
-            }
-        } else if (window.config?.raceLocation && weather?.status === 'error') {
-            weatherLine = '<div class="text-[10px] text-amber-300 mt-1">⚠️ Could not fetch live weather for this location.</div>';
-        }
-        const locationCard = window.config?.raceLocation ? `
-            <div class="bg-gradient-to-br from-ice/10 to-cyan-500/10 rounded-lg border border-ice/20 p-2 sm:p-3 text-left sm:text-center col-span-3 md:col-span-2 lg:col-span-2">
-                <div class="text-[10px] uppercase tracking-[0.2em] text-ice font-bold">Venue</div>
-                <div class="text-sm sm:text-base text-white font-bold mt-1 break-words">📍 ${window.config.raceLocation}</div>
-                ${weatherLine}
-            </div>
-        ` : '';
-        summaryEl.innerHTML = locationCard + summaryHtml;
+        summaryEl.innerHTML = summaryHtml;
     }
 };
 

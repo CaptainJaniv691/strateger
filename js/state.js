@@ -2849,6 +2849,11 @@ window.saveRaceState = function() {
     });
     try {
         localStorage.setItem(window.RACE_STATE_KEY, JSON.stringify(snapshot));
+        window._lastSaveOk = true;
+        const _sd = document.getElementById('syncDot');
+        if (_sd) _sd.className = 'w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse';
+        const _sv = document.getElementById('syncStatusDot');
+        if (_sv) _sv.classList.remove('hidden');
     } catch (e) {
         // Retry once with a stricter compact payload if storage is near quota.
         try {
@@ -2865,7 +2870,17 @@ window.saveRaceState = function() {
                 competitors: []
             };
             localStorage.setItem(window.RACE_STATE_KEY, JSON.stringify(snapshot));
+            window._lastSaveOk = true;
+            const _sd = document.getElementById('syncDot');
+            if (_sd) _sd.className = 'w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse';
+            const _sv = document.getElementById('syncStatusDot');
+            if (_sv) _sv.classList.remove('hidden');
         } catch (e2) {
+            window._lastSaveOk = false;
+            const _sd = document.getElementById('syncDot');
+            if (_sd) _sd.className = 'w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse';
+            const _sv = document.getElementById('syncStatusDot');
+            if (_sv) _sv.classList.remove('hidden');
             console.error('Failed to save race state (storage quota or serialization issue):', e2);
         }
     }
@@ -2926,6 +2941,13 @@ window.checkForSavedRace = function() {
         const remaining = Math.max(0, raceMs - elapsed);
         const savedRaceTimeEl = document.getElementById('savedRaceTime');
         if (savedRaceTimeEl) savedRaceTimeEl.innerText = window.formatTimeHMS(remaining);
+
+        const stintNum = hydrated?.state?.globalStintNumber || 1;
+        const pitCount = hydrated?.state?.pitCount || 0;
+        const savedRaceStintEl = document.getElementById('savedRaceStint');
+        const savedRaceStopsEl = document.getElementById('savedRaceStops');
+        if (savedRaceStintEl) savedRaceStintEl.innerText = stintNum;
+        if (savedRaceStopsEl) savedRaceStopsEl.innerText = pitCount;
     } catch (e) {
         console.error("Error parsing saved race:", e);
         localStorage.removeItem(window.RACE_STATE_KEY);
@@ -3031,7 +3053,7 @@ window.continueRace = function() {
         }, 1000);
 
         if (window._saveInterval) clearInterval(window._saveInterval);
-        window._saveInterval = setInterval(window.saveRaceState, 10000);
+        window._saveInterval = setInterval(window.saveRaceState, 5000);
 
         // Restore live timing after refresh/continue
         try {
@@ -3083,6 +3105,12 @@ window.cancelDiscard = function() {
 };
 
 window.finalDiscardRace = function() {
+    // Stop any running save interval FIRST so it can't fire between removeItem and reload
+    if (window._saveInterval) { clearInterval(window._saveInterval); window._saveInterval = null; }
+
+    // Prevent the beforeunload/pagehide handlers from re-saving the race we just deleted
+    if (window.state) { window.state.isRunning = false; window.state.isFinished = false; }
+
     localStorage.removeItem(window.RACE_STATE_KEY);
     // Delete Host ID
     localStorage.removeItem('strateger_host_id');

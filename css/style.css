@@ -495,6 +495,87 @@ header {
     }
 }
 
+/* ==================== IPAD AIR / LARGE TABLET (835-1024px) ==================== */
+@media (min-width: 835px) and (max-width: 1024px) {
+    #raceTimerDisplay {
+        font-size: 2.2rem;
+        letter-spacing: 0.04em;
+        font-weight: 900;
+    }
+
+    #pitCountDisplay {
+        font-size: 1.35rem;
+        font-weight: 800;
+    }
+
+    #pitStatusIndicator {
+        font-size: 0.9rem;
+        letter-spacing: 0.02em;
+    }
+
+    #strategyTargetStint {
+        font-size: 3.75rem;
+        font-weight: 900;
+    }
+
+    #strategyDelta {
+        font-size: 1.1rem;
+    }
+
+    #modeButtonsContainer > button {
+        min-height: 68px;
+        font-size: 1rem;
+    }
+
+    #modeButtonsContainer > button > span:first-child {
+        font-size: 1.5rem;
+    }
+
+    #stintTimerDisplay {
+        font-size: 2rem;
+        font-weight: 900;
+    }
+
+    #currentDriverName {
+        font-size: 1.5rem;
+    }
+
+    #raceControlDock {
+        padding: 16px;
+        gap: 14px;
+    }
+
+    #raceControlDock #nextDriverName {
+        max-width: 300px;
+        font-size: 1.6rem;
+    }
+
+    #raceControlDock #pitEntryBtn {
+        min-height: 88px;
+        font-size: 1.5rem;
+        border-radius: 1.25rem;
+    }
+
+    #raceControlDock #pitEntryBtn i {
+        font-size: 2rem;
+    }
+
+    #raceControlDock .penalty-btn {
+        min-width: 52px;
+        min-height: 40px;
+        font-size: 0.9rem;
+    }
+
+    /* Saved race modal: larger cards on tablet */
+    #savedRaceModal .grid {
+        gap: 10px;
+    }
+
+    #savedRaceTime {
+        font-size: 1.35rem;
+    }
+}
+
 /* ==================== MOBILE LAYOUT (<=767px) ==================== */
 @media (max-width: 767px) {
     body {
