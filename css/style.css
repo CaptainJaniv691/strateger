@@ -83,6 +83,43 @@ html.light-bg .border-gray-700\/60 { border-color: rgba(0, 0, 0, 0.1) !important
 html.light-bg .driver-row { background-color: rgba(255,255,255,0.8) !important; border-color: rgba(0,0,0,0.1) !important; }
 html.light-bg .driver-input { color: #1e293b !important; }
 html.light-bg #setupScreen h2 { color: #1e293b !important; }
+html.light-bg #raceDashboard .text-white,
+html.light-bg #previewScreen .text-white,
+html.light-bg #raceDashboard .text-gray-100,
+html.light-bg #previewScreen .text-gray-100,
+html.light-bg #raceDashboard .text-gray-200,
+html.light-bg #previewScreen .text-gray-200,
+html.light-bg #raceDashboard .text-gray-300,
+html.light-bg #previewScreen .text-gray-300,
+html.light-bg #raceDashboard .text-gray-400,
+html.light-bg #previewScreen .text-gray-400 {
+    color: #1f2937 !important;
+}
+html.light-bg #raceDashboard .text-gray-500,
+html.light-bg #previewScreen .text-gray-500,
+html.light-bg #raceDashboard .text-gray-600,
+html.light-bg #previewScreen .text-gray-600 {
+    color: #374151 !important;
+}
+html.light-bg #raceDashboard .text-ice,
+html.light-bg #previewScreen .text-ice {
+    color: #0e7490 !important;
+}
+html.light-bg #raceDashboard .text-neon,
+html.light-bg #previewScreen .text-neon {
+    color: #3f6212 !important;
+}
+html.light-bg #raceDashboard .bg-navy-900,
+html.light-bg #previewScreen .bg-navy-900,
+html.light-bg #raceDashboard .bg-navy-950,
+html.light-bg #previewScreen .bg-navy-950 {
+    background-color: rgba(255, 255, 255, 0.92) !important;
+    border-color: rgba(15, 23, 42, 0.14) !important;
+}
+html.light-bg #raceDashboard button,
+html.light-bg #previewScreen button {
+    box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.14);
+}
 
 /* ==================== SAFE AREA UTILITIES ==================== */
 @supports (padding: env(safe-area-inset-top)) {

@@ -523,9 +523,46 @@ function formatHours(ms) {
 }
 
 const _VENUE_ALIASES = {
+    // UK circuits
+    'buckmore park': 'Buckmore Park, Sittingbourne, UK',
+    'buckmore': 'Buckmore Park, Sittingbourne, UK',
+    'silverstone': 'Silverstone Circuit, UK',
+    'brands hatch': 'Brands Hatch, Sevenoaks, UK',
+    'donington': 'Donington Park, Leicestershire, UK',
+    'knockhill': 'Knockhill Racing Circuit, Scotland, UK',
+    'snetterton': 'Snetterton Circuit, Norfolk, UK',
+    'oulton park': 'Oulton Park, Cheshire, UK',
+    'spa': 'Spa-Francorchamps Circuit, Belgium',
+    'le mans': 'Circuit de la Sarthe, Le Mans, France',
+    'monza': 'Autodromo Nazionale di Monza, Italy',
+    'nurburgring': 'Nürburgring, Germany',
+    'mugello': 'Mugello Circuit, Italy',
+    // International
     'lignano circuit': 'Lignano Sabbiadoro Circuit, Italy',
     'lignano': 'Lignano Sabbiadoro Circuit, Italy',
 };
+
+// Simple fuzzy matcher: find venue with highest token overlap
+function findBestVenueAlias(input) {
+    const normalized = input.toLowerCase();
+    if (_VENUE_ALIASES[normalized]) return _VENUE_ALIASES[normalized];
+    
+    const inputTokens = normalized.split(/\s+/).filter(t => t.length > 2);
+    let bestMatch = null;
+    let bestScore = 0;
+    
+    for (const [key, fullName] of Object.entries(_VENUE_ALIASES)) {
+        const keyTokens = key.split(/\s+/);
+        const matchedTokens = inputTokens.filter(t => keyTokens.some(k => k.startsWith(t) || t.startsWith(k)));
+        const score = matchedTokens.length / Math.max(keyTokens.length, inputTokens.length);
+        if (score > bestScore) {
+            bestScore = score;
+            bestMatch = { alias: fullName, score };
+        }
+    }
+    
+    return bestScore > 0.5 ? bestMatch.alias : null;
+}
 
 window._venueWeather = { key: '', status: 'idle', fetchedAt: 0, data: null, resolvedName: '' };
 window._venueWeatherInFlight = false;
@@ -535,7 +572,8 @@ window.refreshVenueWeather = async function(rawLocation) {
     if (!input) return;
 
     const normalized = input.toLowerCase();
-    const query = _VENUE_ALIASES[normalized] || input;
+    const fuzzyMatch = findBestVenueAlias(input);
+    const query = fuzzyMatch || _VENUE_ALIASES[normalized] || input;
     const cacheFreshMs = 10 * 60 * 1000;
     if (window._venueWeather.key === query && (Date.now() - window._venueWeather.fetchedAt) < cacheFreshMs) {
         return;

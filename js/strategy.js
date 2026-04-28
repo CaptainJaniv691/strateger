@@ -119,6 +119,34 @@ window.calculateStintDurations = function(config) {
     const fuelLimitMs = config.fuel > 0 ? config.fuel * 60000 : Infinity;
     
     const effectiveMaxStint = Math.min(maxStintMs, fuelLimitMs);
+
+    if (totalNetDriveTime <= 0) {
+        return { error: 'Pit time exceeds race duration. Reduce pit stops or pit time.' };
+    }
+    if (totalStints <= 0) {
+        return { error: 'Invalid stint count.' };
+    }
+    if (effectiveMaxStint < safeMinStintMs) {
+        return { error: 'Max stint (or fuel limit) is lower than minimum stint. Increase max/fuel or reduce minimum.' };
+    }
+
+    const minFirstStint = Math.max(safeMinStintMs, closedStartMs > 0 ? (closedStartMs + 120000) : safeMinStintMs);
+    const minLastStint = Math.max(safeMinStintMs, closedEndMs > 0 ? (closedEndMs + 120000) : safeMinStintMs);
+    if (minFirstStint > effectiveMaxStint || minLastStint > effectiveMaxStint) {
+        return { error: 'Pit-closed window requires a stint longer than your max stint/fuel limit.' };
+    }
+
+    const mandatoryMinTotal = minFirstStint + minLastStint + Math.max(0, totalStints - 2) * safeMinStintMs;
+    const possibleMaxTotal = totalStints * effectiveMaxStint;
+    if (totalNetDriveTime < mandatoryMinTotal || totalNetDriveTime > possibleMaxTotal) {
+        const maxStopsForMin = Math.max(0, Math.floor(totalNetDriveTime / safeMinStintMs) - 1);
+        const minStopsForMax = Math.max(0, Math.ceil(totalNetDriveTime / effectiveMaxStint) - 1);
+        let hint = '';
+        if (config.stops > maxStopsForMin) hint = ` Try stops <= ${maxStopsForMin}.`;
+        if (config.stops < minStopsForMax) hint = ` Try stops >= ${minStopsForMax}.`;
+        return { error: `Current duration/stops/min/max cannot fit together.${hint}` };
+    }
+
     // Target 1 minute below max to leave buffer for pit entry.
     const targetStintDuration = effectiveMaxStint - 60000;
 
@@ -129,24 +157,11 @@ window.calculateStintDurations = function(config) {
     durationFirst = Math.min(durationFirst, effectiveMaxStint);
     if (durationFirst < closedStartMs) durationFirst = closedStartMs + 60000; 
 
-    let minLastStint = safeMinStintMs;
-    if (closedEndMs > 0) {
-        minLastStint = Math.max(minStintMs, closedEndMs + 120000); 
-    }
-
     let remainingTime = totalNetDriveTime - durationFirst - minLastStint;
     const middleStintsCount = totalStints - 2;
 
     if (remainingTime < middleStintsCount * safeMinStintMs) {
-        console.warn("Time budget too tight, adjusting first/last to fit minimums.");
-        const avg = totalNetDriveTime / totalStints;
-        const fallbackDurations = new Array(totalStints).fill(avg);
-
-        // Normalize fallback durations to whole seconds and ensure exact sum.
-        const roundedFallback = fallbackDurations.map(d => Math.round(d / 1000) * 1000);
-        const sumRounded = roundedFallback.reduce((a, b) => a + b, 0);
-        roundedFallback[totalStints - 1] += (totalNetDriveTime - sumRounded);
-        return { durations: roundedFallback };
+        return { error: 'Time budget is too tight for your current min stint and pit-closed settings.' };
     }
 
     const stintDurations = new Array(totalStints).fill(0);
@@ -191,57 +206,10 @@ window.calculateStintDurations = function(config) {
     
     stintDurations[totalStints - 1] = finalStintDuration;
 
-    // Post-validation: if any stint violates min/max bounds, fall back to balanced distribution.
+    // Post-validation: never return out-of-bounds stints.
     const anyViolation = stintDurations.some(d => d < safeMinStintMs || d > effectiveMaxStint);
     if (anyViolation) {
-        console.warn("Greedy allocation violated bounds, falling back to balanced distribution.");
-        const avg = totalNetDriveTime / totalStints;
-        // Start from equal split, then adjust first/last for pit window constraints
-        for (let i = 0; i < totalStints; i++) {
-            stintDurations[i] = avg;
-        }
-        // Respect closed pit window for first stint
-        if (closedStartMs > 0 && stintDurations[0] < closedStartMs + 120000) {
-            const needed = (closedStartMs + 120000) - stintDurations[0];
-            stintDurations[0] = closedStartMs + 120000;
-            // Take from middle/last stints equally
-            const takeFrom = totalStints - 1;
-            for (let i = 1; i < totalStints; i++) {
-                stintDurations[i] -= needed / takeFrom;
-            }
-        }
-        // Respect closed pit window for last stint
-        if (closedEndMs > 0 && stintDurations[totalStints - 1] < closedEndMs + 120000) {
-            const needed = (closedEndMs + 120000) - stintDurations[totalStints - 1];
-            stintDurations[totalStints - 1] = closedEndMs + 120000;
-            const takeFrom = totalStints - 1;
-            for (let i = 0; i < totalStints - 1; i++) {
-                stintDurations[i] -= needed / takeFrom;
-            }
-        }
-        // Clamp all stints to min/max and redistribute overflow
-        for (let pass = 0; pass < 3; pass++) {
-            let overflow = 0;
-            let adjustable = 0;
-            for (let i = 0; i < totalStints; i++) {
-                if (stintDurations[i] > effectiveMaxStint) {
-                    overflow += stintDurations[i] - effectiveMaxStint;
-                    stintDurations[i] = effectiveMaxStint;
-                } else if (stintDurations[i] < safeMinStintMs) {
-                    overflow -= safeMinStintMs - stintDurations[i];
-                    stintDurations[i] = safeMinStintMs;
-                } else {
-                    adjustable++;
-                }
-            }
-            if (Math.abs(overflow) < 1000 || adjustable === 0) break;
-            const perStint = overflow / adjustable;
-            for (let i = 0; i < totalStints; i++) {
-                if (stintDurations[i] > safeMinStintMs && stintDurations[i] < effectiveMaxStint) {
-                    stintDurations[i] += perStint;
-                }
-            }
-        }
+        return { error: 'Could not build a valid stint plan within your min/max bounds. Adjust stops or stint limits.' };
     }
 
     // Normalize durations to whole seconds to avoid sub-second drift.
@@ -281,10 +249,24 @@ window.calculateStintDurations = function(config) {
         }
     }
 
-    // Final safeguard: guarantee the sum equals totalNetDriveTime exactly.
-    const finalSum = rounded.reduce((a, b) => a + b, 0);
-    if (finalSum !== totalNetDriveTime) {
-        rounded[totalStints - 1] += (totalNetDriveTime - finalSum);
+    // Final safeguard: guarantee exact sum without breaking bounds.
+    let finalSum = rounded.reduce((a, b) => a + b, 0);
+    let remaining = totalNetDriveTime - finalSum;
+    while (remaining !== 0) {
+        const step = remaining > 0 ? 1000 : -1000;
+        let changed = false;
+        for (let i = totalStints - 1; i >= 0; i--) {
+            const next = rounded[i] + step;
+            if (next >= safeMinStintMs && next <= effectiveMaxStint) {
+                rounded[i] = next;
+                remaining -= step;
+                changed = true;
+                if (remaining === 0) break;
+            }
+        }
+        if (!changed) {
+            return { error: 'Unable to reconcile exact race time while preserving stint bounds.' };
+        }
     }
 
     return { durations: rounded };
@@ -453,6 +435,10 @@ window._setStartBtnState = function(valid) {
 };
 
 window.runSim = function() {
+    if (typeof window.ensureMinimumDrivers === 'function') {
+        window.ensureMinimumDrivers(2);
+    }
+
     const durationHours = parseFloat(document.getElementById('raceDuration').value) || 12;
     const reqStops = parseInt(document.getElementById('reqPitStops').value) || 15;
     const minStintMin = parseFloat(document.getElementById('minStint').value) || 10;
@@ -594,23 +580,24 @@ window.runSim = function() {
     const totalRaceTime = actualDriveTime + actualPitTime;
     const avgStint = stints.length > 0 ? (actualDriveTime / stints.length / 60000).toFixed(1) : 0;
 
-    // === Check if average stint is within bounds ===
-    const isAverageStintValid = avgStint >= minStintMin && avgStint <= maxStintMin;
+    // Every single stint must respect bounds (not just the average).
     const invalidStrategyWarning = document.getElementById('invalidStrategyWarning');
-    
-    if (!isAverageStintValid) {
+    const firstInvalid = stints.find(s => {
+        const minutes = s.duration / 60000;
+        return minutes < minStintMin || minutes > maxStintMin;
+    });
+    if (firstInvalid) {
         if (invalidStrategyWarning) {
             invalidStrategyWarning.classList.remove('hidden');
-            document.getElementById('averageStintValue').innerText = avgStint;
+            document.getElementById('averageStintValue').innerText = (firstInvalid.duration / 60000).toFixed(1);
             document.getElementById('minStintBound').innerText = minStintMin;
             document.getElementById('maxStintBound').innerText = maxStintMin;
         }
         window.cachedStrategy = null;
         window._setStartBtnState(false);
         return;
-    } else {
-        if (invalidStrategyWarning) invalidStrategyWarning.classList.add('hidden');
     }
+    if (invalidStrategyWarning) invalidStrategyWarning.classList.add('hidden');
 
     let pitClosedInfo = '';
     if (closedEndMin > 0 && pits.length > 0) {
@@ -666,6 +653,14 @@ window.runSim = function() {
     }
     window._setStartBtnState(true);
 };
+
+// Replay any early inline onchange calls that fired before strategy.js loaded.
+if (window._pendingRunSimRequested) {
+    window._pendingRunSimRequested = false;
+    setTimeout(() => {
+        if (typeof window.runSim === 'function') window.runSim();
+    }, 0);
+}
 
 window.generatePreview = function(silent, render) {
     if (!window.cachedStrategy) {

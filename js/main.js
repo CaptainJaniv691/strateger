@@ -12,7 +12,10 @@ window.syncRaceLocation = function(value) {
         calendarLocation.value = raceLocation;
     }
     if (raceLocation && typeof window.refreshVenueWeather === 'function') {
-        window.refreshVenueWeather(raceLocation);
+        const selectedPlace = (typeof window.resolveVenueLocation === 'function')
+            ? window.resolveVenueLocation(raceLocation)
+            : null;
+        window.refreshVenueWeather(raceLocation, selectedPlace);
     }
 };
 
@@ -38,9 +41,15 @@ document.addEventListener('DOMContentLoaded', () => {
         else document.body.style.background = savedBg || '';
     }
 
-    if (typeof window.addDriverField === 'function') {
+    if (typeof window.ensureMinimumDrivers === 'function') {
+        window.ensureMinimumDrivers(2);
+    } else if (typeof window.addDriverField === 'function') {
         window.addDriverField();
         window.addDriverField();
+    }
+
+    if (typeof window.initVenueLocationPicker === 'function') {
+        window.initVenueLocationPicker();
     }
 
     // Calculate initial strategy from default params
@@ -580,11 +589,19 @@ window.startDemoRace = function() {
         Number.isFinite(window.demoConfig?.customDuration) &&
         window.demoConfig.customDuration > 0
     ) {
+        const durationMin = Math.round(window.demoConfig.customDuration * 60);
+        const targetAvg = window.demoConfig.customDuration >= 8 ? 45 : (window.demoConfig.customDuration >= 3 ? 35 : 22);
+        const suggestedStints = Math.max(2, Math.round(durationMin / targetAvg));
+        const suggestedStops = Math.max(1, suggestedStints - 1);
+        const avgStint = durationMin / (suggestedStops + 1);
+        const minStint = Math.max(8, Math.round(avgStint * 0.75));
+        const maxStint = Math.max(minStint + 8, Math.round(avgStint * 1.35));
+
         profile = {
             duration: window.demoConfig.customDuration,
-            stops: Math.max(1, Math.round(window.demoConfig.customDuration * 2)),
-            minStint: Math.max(5, Math.round(window.demoConfig.customDuration * 10)),
-            maxStint: Math.max(10, Math.round(window.demoConfig.customDuration * 20)),
+            stops: suggestedStops,
+            minStint,
+            maxStint,
         };
     } else {
         profile = profileMap[window.demoConfig?.raceLength] || profileMap.endurance;
@@ -594,8 +611,8 @@ window.startDemoRace = function() {
     setVal('reqPitStops', String(profile.stops));
     setVal('minStint', String(profile.minStint));
     setVal('maxStint', String(profile.maxStint));
-    setVal('raceLocation', 'Spa-Francorchamps');
-    if (typeof window.syncRaceLocation === 'function') window.syncRaceLocation('Spa-Francorchamps');
+    setVal('raceLocation', 'Spa, Belgium');
+    if (typeof window.syncRaceLocation === 'function') window.syncRaceLocation('Spa, Belgium');
     setVal('minPitTime', '60');          // 1 minute pit time
     setVal('pitClosedStart', '2');       // pit closed first 2 min
     setVal('pitClosedEnd', '2');         // pit closed last 2 min
