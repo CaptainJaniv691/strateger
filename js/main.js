@@ -1057,6 +1057,12 @@ function updateNightModeUI() {
 
 window.tick = function() {
     if (!window.state.isRunning) return;
+    if (typeof window.hasValidRaceDrivers === 'function' && !window.hasValidRaceDrivers()) {
+        if (typeof window.abortRaceDueToMissingDrivers === 'function') {
+            window.abortRaceDueToMissingDrivers('tick');
+        }
+        return;
+    }
     const now = (window.getSyncedNow && typeof window.getSyncedNow === 'function') ? window.getSyncedNow() : Date.now();
     const raceMs = window.config.raceMs || (parseFloat(window.config.duration) * 3600000);
     if (now - window.state.startTime >= raceMs) {
@@ -1156,6 +1162,45 @@ window.stopAllClocks = function() {
     } catch(e) {}
 };
 
+window.hasValidRaceDrivers = function() {
+    return Array.isArray(window.drivers) && window.drivers.length > 0;
+};
+
+window.abortRaceDueToMissingDrivers = function(source) {
+    const src = source || 'unknown';
+    if (window._missingDriversAbortTriggered) return;
+    window._missingDriversAbortTriggered = true;
+
+    console.error(`🚨 Race aborted due to missing drivers (source: ${src})`);
+
+    if (window.state && typeof window.state === 'object') {
+        window.state.isRunning = false;
+        window.state.isInPit = false;
+    }
+
+    if (typeof window.stopAllClocks === 'function') {
+        window.stopAllClocks();
+    }
+
+    try {
+        if (window.RACE_STATE_KEY) localStorage.removeItem(window.RACE_STATE_KEY);
+    } catch (e) {}
+
+    const raceDashboard = document.getElementById('raceDashboard');
+    const previewScreen = document.getElementById('previewScreen');
+    const savedRaceModal = document.getElementById('savedRaceModal');
+    const setupScreen = document.getElementById('setupScreen');
+
+    if (raceDashboard) raceDashboard.classList.add('hidden');
+    if (previewScreen) previewScreen.classList.add('hidden');
+    if (savedRaceModal) savedRaceModal.classList.add('hidden');
+    if (setupScreen) setupScreen.classList.remove('hidden');
+
+    if (typeof window.showToast === 'function') {
+        window.showToast('Race stopped: drivers list is empty. Please refill drivers before starting again.', 'error', 7000);
+    }
+};
+
 // Returns Date.now() adjusted by host clock offset (for viewers/drivers)
 window.getSyncedNow = function() {
     return Date.now() + (window._hostTimeOffset || 0);
@@ -1165,6 +1210,12 @@ window.renderFrame = function() {
     if (!window.state) return;
     // Allow one final render after finish to show FINISH on the timer
     if (!window.state.isRunning && !window.state.isFinished) return;
+    if (typeof window.hasValidRaceDrivers === 'function' && !window.hasValidRaceDrivers()) {
+        if (typeof window.abortRaceDueToMissingDrivers === 'function') {
+            window.abortRaceDueToMissingDrivers('renderFrame');
+        }
+        return;
+    }
 
     // Recalculate target every frame (needed for last stint = remaining time)
     if (typeof window.recalculateTargetStint === 'function') window.recalculateTargetStint();

@@ -2646,6 +2646,168 @@ function _buildDriversFromSavedData(data) {
     return [];
 }
 
+function _normalizeDriverForPersistence(driver, idx, total) {
+    const d = driver || {};
+    return {
+        name: String(d.name || '').trim() || `Driver ${idx + 1}`,
+        color: d.color || `hsl(${(idx * 360 / Math.max(1, total))}, 70%, 50%)`,
+        squad: d.squad || 'A',
+        squadIdx: Number.isFinite(d.squadIdx) ? d.squadIdx : 0,
+        isStarter: !!d.isStarter,
+        totalTime: Number.isFinite(d.totalTime) ? d.totalTime : 0,
+        stints: Number.isFinite(d.stints) ? d.stints : 0,
+        logs: Array.isArray(d.logs) ? d.logs : []
+    };
+}
+
+function _extractDriversFromTimeline(timeline) {
+    if (!Array.isArray(timeline) || timeline.length === 0) return [];
+    const byName = new Map();
+    timeline.forEach((item, idx) => {
+        if (item?.type !== 'stint') return;
+        const name = String(item?.driverName || '').trim();
+        if (!name || byName.has(name)) return;
+        byName.set(name, {
+            name,
+            color: item?.color || `hsl(${(idx * 360 / Math.max(1, timeline.length))}, 70%, 50%)`,
+            squad: item?.squad || item?.activeSquad || 'A',
+            squadIdx: 0,
+            isStarter: byName.size === 0,
+            totalTime: 0,
+            stints: 0,
+            logs: []
+        });
+    });
+    return Array.from(byName.values());
+}
+
+function _extractDriversFromDomInputs() {
+    const inputs = document.querySelectorAll('.driver-input');
+    if (!inputs || !inputs.length) return [];
+
+    const picked = Array.from(inputs)
+        .map((input, idx) => ({
+            name: String(input?.value || '').trim() || `Driver ${idx + 1}`,
+            color: `hsl(${(idx * 360 / Math.max(1, inputs.length))}, 70%, 50%)`,
+            squad: 'A',
+            squadIdx: 0,
+            isStarter: idx === 0,
+            totalTime: 0,
+            stints: 0,
+            logs: []
+        }));
+
+    return picked;
+}
+
+function _collectSafeDriversForSnapshot() {
+    const sources = [];
+
+    if (Array.isArray(window.drivers) && window.drivers.length > 0) {
+        sources.push(window.drivers);
+    }
+
+    const fromStrategy = Array.isArray(window.cachedStrategy?.timeline)
+        ? _extractDriversFromTimeline(window.cachedStrategy.timeline)
+        : [];
+    if (fromStrategy.length > 0) sources.push(fromStrategy);
+
+    const fromPreview = Array.isArray(window.previewData?.timeline)
+        ? _extractDriversFromTimeline(window.previewData.timeline)
+        : [];
+    if (fromPreview.length > 0) sources.push(fromPreview);
+
+    const fromStintSchedule = Array.isArray(window.state?.stintSchedule)
+        ? _extractDriversFromTimeline(window.state.stintSchedule.map((s) => ({ ...s, type: 'stint' })))
+        : [];
+    if (fromStintSchedule.length > 0) sources.push(fromStintSchedule);
+
+    const fromDom = _extractDriversFromDomInputs();
+    if (fromDom.length > 0) sources.push(fromDom);
+
+    const winner = sources.find((arr) => Array.isArray(arr) && arr.length > 0) || [];
+    return winner.map((d, i) => _normalizeDriverForPersistence(d, i, winner.length));
+}
+
+function _sanitizeSnapshotBeforeSave(snapshot) {
+    const safe = { ...(snapshot || {}) };
+
+    let safeDrivers = Array.isArray(safe.drivers)
+        ? safe.drivers.map((d, i) => _normalizeDriverForPersistence(d, i, safe.drivers.length))
+        : [];
+
+    // Never overwrite a previously good snapshot with an empty drivers array.
+    if (safeDrivers.length === 0) {
+        try {
+            const existingRaw = localStorage.getItem(window.RACE_STATE_KEY);
+            if (existingRaw) {
+                const existing = JSON.parse(existingRaw);
+                if (Array.isArray(existing?.drivers) && existing.drivers.length > 0) {
+                    safeDrivers = existing.drivers.map((d, i) => _normalizeDriverForPersistence(d, i, existing.drivers.length));
+                }
+            }
+        } catch (e) {
+            // Ignore parse errors and continue with best-effort fallback.
+        }
+    }
+
+    if (safeDrivers.length === 0) {
+        const maxIdxFromState = Number.isFinite(safe?.state?.currentDriverIdx)
+            ? safe.state.currentDriverIdx
+            : 0;
+        const fallbackCount = Math.max(2, maxIdxFromState + 1);
+        safeDrivers = Array.from({ length: fallbackCount }, (_, i) => _normalizeDriverForPersistence({}, i, fallbackCount));
+        safeDrivers[0].isStarter = true;
+    }
+
+    const safeState = { ...(safe.state || {}) };
+    const maxIdx = Math.max(0, safeDrivers.length - 1);
+    const currentIdx = Number.isFinite(safeState.currentDriverIdx) ? safeState.currentDriverIdx : 0;
+    safeState.currentDriverIdx = Math.max(0, Math.min(currentIdx, maxIdx));
+
+    const nextIdxRaw = Number.isFinite(safeState.nextDriverIdx)
+        ? safeState.nextDriverIdx
+        : (safeState.currentDriverIdx + 1);
+    safeState.nextDriverIdx = Math.max(0, Math.min(nextIdxRaw, maxIdx));
+
+    safe.drivers = safeDrivers;
+    safe.state = safeState;
+    safe.config = {
+        ...(safe.config || {}),
+        driverCount: safeDrivers.length,
+        driverNames: safeDrivers.map((d) => d.name)
+    };
+
+    return safe;
+}
+
+function _hydrateSavedRaceData(data) {
+    const hydrated = { ...(data || {}) };
+    const restoredDrivers = _buildDriversFromSavedData(hydrated)
+        .map((d, i, arr) => _normalizeDriverForPersistence(d, i, arr.length));
+
+    if (restoredDrivers.length > 0) {
+        hydrated.drivers = restoredDrivers;
+        hydrated.config = {
+            ...(hydrated.config || {}),
+            driverCount: restoredDrivers.length,
+            driverNames: restoredDrivers.map((d) => d.name)
+        };
+    }
+
+    hydrated.state = hydrated.state || {};
+    const maxIdx = Math.max(0, (hydrated.drivers?.length || 1) - 1);
+    if (!Number.isFinite(hydrated.state.currentDriverIdx)) hydrated.state.currentDriverIdx = 0;
+    hydrated.state.currentDriverIdx = Math.max(0, Math.min(hydrated.state.currentDriverIdx, maxIdx));
+
+    if (!Number.isFinite(hydrated.state.nextDriverIdx)) {
+        hydrated.state.nextDriverIdx = Math.min(maxIdx, hydrated.state.currentDriverIdx + 1);
+    }
+    hydrated.state.nextDriverIdx = Math.max(0, Math.min(hydrated.state.nextDriverIdx, maxIdx));
+
+    return hydrated;
+}
+
 function _compactLiveDataForSave(liveData) {
     const src = liveData || {};
     // Keep only fields needed for resume/UI; avoid large competitor payloads that can exceed localStorage quota.
@@ -2670,10 +2832,11 @@ function _compactLiveDataForSave(liveData) {
 
 window.saveRaceState = function() {
     if (window.role !== 'host' || (!window.state.isRunning && !window.state.isFinished)) return;
-    const snapshot = {
+    const safeDrivers = _collectSafeDriversForSnapshot();
+    const snapshot = _sanitizeSnapshotBeforeSave({
         config: window.config,
         state: window.state,
-        drivers: window.drivers,
+        drivers: safeDrivers,
         strategy: window.cachedStrategy || null,
         previewData: window.previewData || null,
         liveTimingConfig: window.liveTimingConfig,
@@ -2683,7 +2846,7 @@ window.saveRaceState = function() {
         // Save Host ID explicitly within the race state
         hostId: window.myId, 
         timestamp: Date.now()
-    };
+    });
     try {
         localStorage.setItem(window.RACE_STATE_KEY, JSON.stringify(snapshot));
     } catch (e) {
@@ -2732,6 +2895,7 @@ window.checkForSavedRace = function() {
 
     try {
         const data = JSON.parse(savedData);
+        const hydrated = _hydrateSavedRaceData(data);
         if (Date.now() - new Date(data.timestamp).getTime() > 24 * 60 * 60 * 1000) {
             localStorage.removeItem(window.RACE_STATE_KEY);
             return;
@@ -2744,9 +2908,9 @@ window.checkForSavedRace = function() {
             return;
         }
 
-        const restoredDrivers = _buildDriversFromSavedData(data);
-        const currentIdx = Number.isFinite(data?.state?.currentDriverIdx)
-            ? data.state.currentDriverIdx
+        const restoredDrivers = _buildDriversFromSavedData(hydrated);
+        const currentIdx = Number.isFinite(hydrated?.state?.currentDriverIdx)
+            ? hydrated.state.currentDriverIdx
             : 0;
         const safeIdx = Math.max(0, Math.min(currentIdx, Math.max(0, restoredDrivers.length - 1)));
         const driverName = restoredDrivers[safeIdx]?.name || 'Unknown';
@@ -2757,8 +2921,8 @@ window.checkForSavedRace = function() {
         const savedRaceDriverEl = document.getElementById('savedRaceDriver');
         if (savedRaceDriverEl) savedRaceDriverEl.innerText = driverName;
 
-        const raceMs = data?.config?.raceMs || ((data?.config?.duration || 0) * 3600000);
-        const elapsed = Date.now() - (data?.state?.startTime || Date.now());
+        const raceMs = hydrated?.config?.raceMs || ((hydrated?.config?.duration || 0) * 3600000);
+        const elapsed = Date.now() - (hydrated?.state?.startTime || Date.now());
         const remaining = Math.max(0, raceMs - elapsed);
         const savedRaceTimeEl = document.getElementById('savedRaceTime');
         if (savedRaceTimeEl) savedRaceTimeEl.innerText = window.formatTimeHMS(remaining);
@@ -2776,21 +2940,22 @@ window.continueRace = function() {
 
     try {
         const data = JSON.parse(savedData);
-        const restoredDrivers = _buildDriversFromSavedData(data);
+        const hydrated = _hydrateSavedRaceData(data);
+        const restoredDrivers = _buildDriversFromSavedData(hydrated);
         if (!Array.isArray(restoredDrivers) || restoredDrivers.length === 0) {
             throw new Error('Saved race has no drivers data');
         }
         
-        window.state = data.state;
-        window.config = data.config;
+        window.state = hydrated.state;
+        window.config = hydrated.config;
         window.drivers = restoredDrivers;
-        window.cachedStrategy = data.strategy; 
-        if (data.previewData) window.previewData = data.previewData;
+        window.cachedStrategy = hydrated.strategy; 
+        if (hydrated.previewData) window.previewData = hydrated.previewData;
 
-        if (data.liveTimingConfig) window.liveTimingConfig = data.liveTimingConfig;
-        if (data.searchConfig) window.searchConfig = data.searchConfig;
-        if (data.liveData) window.liveData = data.liveData;
-        if (data.currentPitAdjustment !== undefined) window.currentPitAdjustment = data.currentPitAdjustment;
+        if (hydrated.liveTimingConfig) window.liveTimingConfig = hydrated.liveTimingConfig;
+        if (hydrated.searchConfig) window.searchConfig = hydrated.searchConfig;
+        if (hydrated.liveData) window.liveData = hydrated.liveData;
+        if (hydrated.currentPitAdjustment !== undefined) window.currentPitAdjustment = hydrated.currentPitAdjustment;
 
         // Defensive index recovery in case stored indexes are out of range.
         if (!window.state || typeof window.state !== 'object') window.state = {};
@@ -2802,9 +2967,9 @@ window.continueRace = function() {
         }
 
         // Restore Host ID from the confirmed saved race
-        if (data.hostId) {
-            localStorage.setItem('strateger_host_id', data.hostId);
-            window.myId = data.hostId; 
+        if (hydrated.hostId) {
+            localStorage.setItem('strateger_host_id', hydrated.hostId);
+            window.myId = hydrated.hostId; 
         }
 
         document.getElementById('savedRaceModal').classList.add('hidden');
@@ -2854,6 +3019,12 @@ window.continueRace = function() {
         // 3. הפעלת הלולאה מחדש
         if (window.raceInterval) clearInterval(window.raceInterval);
         window.raceInterval = setInterval(() => {
+            if (typeof window.hasValidRaceDrivers === 'function' && !window.hasValidRaceDrivers()) {
+                if (typeof window.abortRaceDueToMissingDrivers === 'function') {
+                    window.abortRaceDueToMissingDrivers('continueRace.raceInterval');
+                }
+                return;
+            }
             if (typeof window.tick === 'function') window.tick();
             if (typeof window.broadcast === 'function') window.broadcast();
             if (typeof window.renderFrame === 'function') window.renderFrame();

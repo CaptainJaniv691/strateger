@@ -326,6 +326,26 @@ header {
     width: 100%;
 }
 
+/* ==================== RACE DASHBOARD APP SHELL ==================== */
+#raceDashboard {
+    min-height: 100dvh;
+}
+
+#dashboardScrollArea {
+    padding-bottom: calc(10px + var(--safe-bottom, 0px));
+}
+
+#raceControlDock {
+    border-radius: 16px;
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.96) 0%, rgba(2, 6, 23, 0.97) 100%);
+}
+
+#raceControlDock #pitEntryBtn {
+    min-height: 64px;
+    border-radius: 20px;
+}
+
 /* ==================== TABLET LAYOUT (768-1024px) ==================== */
 @media (min-width: 768px) and (max-width: 1024px) {
     body {
@@ -334,6 +354,10 @@ header {
     #setupScreen, #raceDashboard {
         max-width: 100%;
         padding: 0 24px;
+    }
+    #raceDashboard {
+        max-width: 980px;
+        margin: 0 auto;
     }
     header {
         max-width: 100%;
@@ -344,7 +368,34 @@ header {
     #dashboardInfoBar {
         grid-template-columns: repeat(4, 1fr);
         gap: 8px;
-        padding: 10px 24px;
+        padding: 10px 12px;
+        border-radius: 14px;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        background: rgba(15, 23, 42, 0.8);
+        backdrop-filter: blur(10px);
+        position: sticky;
+        top: calc(48px + var(--safe-top, 0px));
+        z-index: 18;
+        margin: 8px 0 10px;
+    }
+    #dashboardScrollArea {
+        padding: 4px 4px calc(14px + var(--safe-bottom, 0px));
+    }
+    #dashboardScrollArea > div {
+        border-radius: 16px;
+    }
+    #raceControlDock {
+        position: sticky;
+        bottom: calc(10px + var(--safe-bottom, 0px));
+        z-index: 22;
+        box-shadow: 0 14px 30px rgba(2, 6, 23, 0.5);
+    }
+    #raceControlDock .penalty-btn {
+        min-width: 46px;
+        min-height: 34px;
+    }
+    #raceControlDock #nextDriverName {
+        max-width: 220px;
     }
     .tablet-collapsible.tablet-collapsed .tablet-collapse-body {
         display: none;
@@ -382,6 +433,68 @@ header {
     #pitModal > * { max-width: 600px; margin: 0 auto; }
 }
 
+/* ==================== IPAD MINI POLISH (768x1024 PORTRAIT) ==================== */
+@media (min-width: 768px) and (max-width: 834px) and (orientation: portrait) {
+    #dashboardInfoBar {
+        gap: 10px;
+        padding: 12px 14px;
+    }
+
+    #raceTimerDisplay {
+        font-size: 1.7rem;
+        letter-spacing: 0.02em;
+    }
+
+    #pitCountDisplay {
+        font-size: 1.15rem;
+    }
+
+    #pitStatusIndicator {
+        font-size: 0.82rem;
+        letter-spacing: 0.02em;
+    }
+
+    #strategyTargetStint {
+        font-size: 3.25rem;
+    }
+
+    #strategyDelta {
+        font-size: 1rem;
+    }
+
+    #modeButtonsContainer {
+        gap: 10px;
+    }
+
+    #modeButtonsContainer > button {
+        min-height: 60px;
+        font-size: 0.95rem;
+    }
+
+    #modeButtonsContainer > button > span:first-child {
+        font-size: 1.35rem;
+    }
+
+    #raceControlDock {
+        padding: 14px;
+        gap: 12px;
+    }
+
+    #raceControlDock #nextDriverName {
+        max-width: 260px;
+        font-size: 1.45rem;
+    }
+
+    #raceControlDock #pitEntryBtn {
+        min-height: 76px;
+        font-size: 1.3rem;
+    }
+
+    #raceControlDock #pitEntryBtn i {
+        font-size: 1.8rem;
+    }
+}
+
 /* ==================== MOBILE LAYOUT (<=767px) ==================== */
 @media (max-width: 767px) {
     body {
@@ -400,9 +513,53 @@ header {
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 6px;
         padding: 8px;
+        border-radius: 12px;
+        border: 1px solid rgba(148, 163, 184, 0.2);
+        background: rgba(15, 23, 42, 0.84);
+        backdrop-filter: blur(8px);
+        position: sticky;
+        top: calc(44px + var(--safe-top, 0px));
+        z-index: 18;
+        margin-bottom: 8px;
+    }
+    #dashboardScrollArea {
+        padding: 0 0 12px;
+    }
+    #dashboardScrollArea > div {
+        border-radius: 14px;
+    }
+    #raceControlDock {
+        position: sticky;
+        bottom: calc(8px + var(--safe-bottom, 0px));
+        z-index: 22;
+        box-shadow: 0 12px 22px rgba(2, 6, 23, 0.5);
+    }
+    #raceControlDock .penalty-btn {
+        min-width: 40px;
+        min-height: 32px;
+    }
+    #raceControlDock #nextDriverName {
+        max-width: 150px;
     }
     #googleActionsBar {
         gap: 6px;
+    }
+}
+
+/* Large phones: move from cramped 2x2 stats to compact 4-column app bar */
+@media (min-width: 430px) and (max-width: 767px) {
+    #dashboardInfoBar {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 6px;
+    }
+    #raceTimerDisplay {
+        font-size: 1.1rem;
+    }
+    #pitStatusIndicator {
+        font-size: 0.72rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 }
 

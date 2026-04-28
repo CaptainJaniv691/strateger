@@ -682,6 +682,16 @@ window.initRace = function() {
         if (!window.cachedStrategy) return window.showToast('Please generate a strategy first!', 'warning');
     }
 
+    if ((!Array.isArray(window.drivers) || window.drivers.length === 0) && typeof window.updateDriversFromUI === 'function') {
+        window.updateDriversFromUI();
+    }
+    if (!Array.isArray(window.drivers) || window.drivers.length === 0) {
+        if (typeof window.abortRaceDueToMissingDrivers === 'function') {
+            window.abortRaceDueToMissingDrivers('initRace');
+        }
+        return;
+    }
+
     const allowDouble = document.getElementById('allowDouble')?.checked;
     if (!allowDouble && window.previewData && window.previewData.timeline) {
         const stints = window.previewData.timeline.filter(t => t.type === 'stint');
@@ -783,6 +793,12 @@ window.initRace = function() {
     if (window.raceInterval) clearInterval(window.raceInterval);
     
     window.raceInterval = setInterval(() => {
+        if (typeof window.hasValidRaceDrivers === 'function' && !window.hasValidRaceDrivers()) {
+            if (typeof window.abortRaceDueToMissingDrivers === 'function') {
+                window.abortRaceDueToMissingDrivers('strategy.raceInterval');
+            }
+            return;
+        }
         if (typeof window.tick === 'function') window.tick();
         if (typeof window.broadcast === 'function') window.broadcast();
         if (typeof window.renderFrame === 'function') window.renderFrame();
